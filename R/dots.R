@@ -30,7 +30,7 @@
 #' @seealso dots_names dots_missing dots_expressions dots
 #' @aliases unpack
 #' @author Peter Meilstrup
-#' @useDynLib vadr _dots_unpack
+#' @useDynLib fexpr _dots_unpack
 #' @export
 dots_unpack <- function(...) {
   unpack(dots(...))
@@ -41,8 +41,8 @@ dots_unpack <- function(...) {
 #' @param x A \code{\link{dots}} object.
 unpack <- function(x) UseMethod("unpack")
 
-#' @S3method unpack ...
-#' @useDynLib vadr _dots_unpack
+#' @export
+#' @useDynLib fexpr _dots_unpack
 unpack.... <- function (x) {
   du <- .Call(`_dots_unpack`, x)
   data.frame(du, row.names=make.names(du$name, unique=TRUE), check.names=TRUE)
@@ -63,7 +63,7 @@ unpack.... <- function (x) {
 #' @export
 expressions <- function(x) UseMethod("expressions")
 
-#' @S3method expressions ...
+#' @export
 #' @rdname dots_expressions
 expressions.... <- function(x) {
   y <- .Call(`_dots_unpack`, get("x"))
@@ -75,7 +75,7 @@ expressions.... <- function(x) {
 #' @param ... Any arguments.
 #' @note dots_expressions is the same as \code{\link{list_quote}}.
 #' @usage dots_expressions(...)
-#' @useDynLib vadr _dots_expressions
+#' @useDynLib fexpr _dots_expressions
 dots_expressions <- function(...) {
   if (nargs() > 0) .Call(`_dots_expressions`, get("..."))
   else list()
@@ -94,8 +94,8 @@ list_quote <- dots_expressions
   UseMethod("expressions<-")
 }
 
-#' @S3method expressions<- ...
-#' @useDynLib vadr _mutate_expressions
+#' @export
+#' @useDynLib fexpr _mutate_expressions
 `expressions<-....` <- function(x, value) {
   .Call(`_mutate_expressions`, x, value)
 }
@@ -122,7 +122,7 @@ environments <- function(x) {
   UseMethod("environments")
 }
 
-#' @S3method environments ...
+#' @export
 environments.... <- function(x) {
   y <- .Call(`_dots_unpack`, get("x"))
   unclass(structure(y$envir, names=y$name))
@@ -135,14 +135,14 @@ environments.... <- function(x) {
   UseMethod("environments<-")
 }
 
-#' @S3method environments<- ...
+#' @export
 #' @rdname dots_environments
-#' @useDynLib vadr _mutate_environments
+#' @useDynLib fexpr _mutate_environments
 `environments<-....` <- function(x, value) {
   .Call(`_mutate_environments`, x, value)
 }
 
-#' @S3method format deparse
+#' @export
 format.deparse <- function(x, ...) {
   format(vapply(x, deparse, "", nlines=1, width.cutoff=100), ... )
 }
@@ -158,20 +158,20 @@ format.deparse <- function(x, ...) {
 #' @author Peter Meilstrup
 #' @aliases dots_names names names<-
 #' @seealso dots dots_environments dots_expressions dots_missing curr alist
-#' @useDynLib vadr _dots_names
+#' @useDynLib fexpr _dots_names
 #' @name dots_names
 #' @rdname dots_names
 #' @export
 dots_names <- function(...) names(dots(...))
 
-#' @S3method "names" "..."
-#' @useDynLib vadr _dots_names
+#' @export
+#' @useDynLib fexpr _dots_names
 #' @rdname dots_names
 #' @param x a \code{\dots} object, as constructed by \code{\link{dots}}
 #' @usage names(x)
 names.... <- function(x) .Call(`_dots_names`, x)
 
-#' @useDynLib vadr _dotslist_to_list _list_to_dotslist
+#' @useDynLib fexpr _dotslist_to_list _list_to_dotslist
 #' @rdname dots_names
 #' @usage names(x) <- value
 #' @param value A character vector containing new names to be applied.
@@ -297,13 +297,13 @@ missing_value <- function(n) {
   }
 }
 
-#' @S3method "print" "..."
+#' @export
 `print....` <- function(x, ...) {
   invisible(cat("<...[", length(x), "]>\n"))
 }
 
 
-#' @S3method format ...
+#' @export
 format.... <- function(x, ...) {
   (paste0("<...[", length(x), "]>"))
 }
@@ -359,7 +359,7 @@ format.... <- function(x, ...) {
 `%()%` <- function(f, arglist)
     UseMethod("%()%", arglist)
 
-#' @S3method "%()%" "..."
+#' @export
 `%()%....` <- function(f, arglist) {
   # this method elegant but doesn't work on some
   # nonstandard-eval functions (e.g. alist $()$ dots(...) just returns
@@ -369,7 +369,7 @@ format.... <- function(x, ...) {
   f(...)
 }
 
-#' @S3method "%()%" default
+#' @export
 `%()%.default`  <- function(f, arglist) {
   if (length(arglist) == 0) return(f())
   assign("...", as.dots.literal(as.list(arglist)))
@@ -384,7 +384,7 @@ format.... <- function(x, ...) {
 #' @rdname curr
 `%<<<%` <- function(f, x) UseMethod("%<<<%", x)
 
-#' @S3method "%<<%" "..."
+#' @export
 `%<<%....` <- function(f, x) {
   if (length(x) == 0) return(f)
   dotslist <- list(NULL, x)
@@ -409,7 +409,7 @@ format.... <- function(x, ...) {
   }
 }
 
-#' @S3method "%<<<%" "..."
+#' @export
 #' @rdname curr
 `%<<<%....` <- function(f, x) {
   if (length(x) == 0) return(f)
@@ -451,10 +451,10 @@ curl <- function(f, ...) {
 #Here we reuse %()% since we had a time getting it to follow the desired
 #semantics.
 
-#' @S3method "%<<%" default
+#' @export
 `%<<%.default` <- function(f, x) `%<<%....`(f, as.dots.literal(x))
 
-#' @S3method "%<<<%" default
+#' @export
 `%<<<%.default` <- function(f, x) `%<<<%....`(f, as.dots.literal(x))
 
 #' @export
@@ -462,11 +462,11 @@ curl <- function(f, ...) {
 #' @param y a \dots object as constructed by \code{\link{dots}}.
 `%__%` <- function(x, y) UseMethod("%__%", x)
 
-#' @S3method "%__%" "..."
+#' @export
 #' @export
 `%__%....` <- function(x, y) UseMethod("%__%....", y)
 
-#' @S3method "%__%...." "..."
+#' @export
 `%__%........` <- function(x, y, ...) {
   if (length(x) == 0) return(y)
   if (length(y) == 0) return(x)
@@ -480,16 +480,16 @@ curl <- function(f, ...) {
   dots(..., ...)
 }
 
-#' @S3method "%__%...." default
+#' @export
 `%__%.....default` <- function (x, y) `%__%........`(x, as.dots.literal(y))
 
-#' @S3method "%__%" default
+#' @export
 `%__%.default` <- function(x, y) UseMethod("%__%.default", y)
 
-#' @S3method "%__%.default" "..."
+#' @export
 `%__%.default....` <- function (x, y) `%__%........`(as.dots.literal(x), y)
 
-#' @S3method "%__%.default" default
+#' @export
 `%__%.default.default` <- c
 
 #' Convert a list of expressions into a \code{\dots} object (a list of
@@ -511,18 +511,18 @@ as.dots <- function(x, .envir=arg_env(x, environment())) {
 
 as_dots <- function(x, .envir) UseMethod("as.dots")
 
-#' @S3method as.dots "..."
+#' @export
 as.dots.... <- function(x, .envir=arg_env(x, environment())) x
 
-#' @S3method as.list "..."
+#' @export
 as.list.... <- function(x, .envir=arg_env(x, environment()), ...) list %()% x
 
-#' @S3method as.dots default
+#' @export
 as.dots.default <- function(x, .envir) {
   do.call(dots, as.list(x), FALSE, .envir)
 }
 
-#' @useDynLib vadr _as_dots_literal
+#' @useDynLib fexpr _as_dots_literal
 #' @export
 #' @rdname as.dots
 as.dots.literal <- function(x)
@@ -541,7 +541,7 @@ as.dots.literal <- function(x)
 #' @export
 is.missing <- function(x) if (missing(x)) TRUE else UseMethod("is.missing")
 
-#' @S3method is.missing "..."
+#' @export
 is.missing.... <- function(x) {
   out <- logical(length(x))
   if (length(x) > 0) {
@@ -557,7 +557,7 @@ is.missing.... <- function(x) {
   out
 }
 
-#' @S3method is.missing default
+#' @export
 is.missing.default <- function(x) {
   if (is.list(x))
     vapply(x, identical, FALSE, quote(expr=))
@@ -565,26 +565,26 @@ is.missing.default <- function(x) {
     rep(FALSE, length(x))
 }
 
-#' @S3method "[" "..."
-#' @useDynLib vadr _list_to_dotslist
+#' @export
+#' @useDynLib fexpr _list_to_dotslist
 `[....` <- function(x, ...) {
   temp <- .Call(`_dotslist_to_list`, x)
   temp <- temp[...]
   .Call(`_list_to_dotslist`, temp)
 }
 
-#' @S3method "[[" "..."
-#' @useDynLib vadr _dotslist_to_list
+#' @export
+#' @useDynLib fexpr _dotslist_to_list
 `[[....` <- function(x, ...) {
   temp <- .Call(`_dotslist_to_list`, x)
   do.call(force.first.arg, list(temp[[...]]))
 }
 
-#' @S3method "[<-" "..."
+#' @export
 `[<-....` <- function(x, ix, value) UseMethod("[<-....", value)
 
-#' @S3method "[<-...." "..."
-#' @useDynLib vadr _dotslist_to_list _list_to_dotslist
+#' @export
+#' @useDynLib fexpr _dotslist_to_list _list_to_dotslist
 `[<-........` <- function(x, ix, ..., value) {
   into <- .Call(`_dotslist_to_list`, x)
   from <- .Call(`_dotslist_to_list`, value)
@@ -592,9 +592,9 @@ is.missing.default <- function(x) {
   .Call(`_list_to_dotslist`, into)
 }
 
-#' @S3method "[<-...." "default"
-#' @useDynLib vadr _list_to_dotslist
-#' @useDynLib vadr _dotslist_to_list
+#' @export
+#' @useDynLib fexpr _list_to_dotslist
+#' @useDynLib fexpr _dotslist_to_list
 `[<-.....default` <- function(x, ix, ..., value) {
   into <- .Call(`_dotslist_to_list`, x)
   from <- .Call(`_dotslist_to_list`, as.dots.literal(value))
@@ -602,9 +602,9 @@ is.missing.default <- function(x) {
   .Call(`_list_to_dotslist`, into)
 }
 
-#' @S3method "[[<-" "..."
-#' @useDynLib vadr _list_to_dotslist
-#' @useDynLib vadr _dotslist_to_list
+#' @export
+#' @useDynLib fexpr _list_to_dotslist
+#' @useDynLib fexpr _dotslist_to_list
 `[[<-....` <- function(x, ..., value) {
   into <- .Call(`_dotslist_to_list`, x)
   into[[...]] <- as.dots.literal(value)[[1]]
@@ -612,16 +612,16 @@ is.missing.default <- function(x) {
 }
 
 
-#' @S3method "$" "..."
-#' @useDynLib vadr _dotslist_to_list
+#' @export
+#' @useDynLib fexpr _dotslist_to_list
 `$....` <- function(x, name) {
   temp <- .Call(`_dotslist_to_list`, x)
   do.call(force.first.arg, list(do.call(`$`, list(temp, name))))
 }
 
-#' @S3method "$<-" "..."
-#' @useDynLib vadr _dotslist_to_list
-#' @useDynLib vadr _list_to_dotslist
+#' @export
+#' @useDynLib fexpr _dotslist_to_list
+#' @useDynLib fexpr _list_to_dotslist
 `$<-....` <- function(x, name, value) {
   into <- .Call(`_dotslist_to_list`, x)
   from <- .Call(`_dotslist_to_list`, arg_dots(value))

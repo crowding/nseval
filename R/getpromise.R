@@ -10,7 +10,7 @@
 #' @seealso dots get_dots
 #' @rdname arg_list
 #' @export
-#' @useDynLib vadr _getpromise_in
+#' @useDynLib fexpr _getpromise_in
 arg_dots <- function(...) {
   d <- unpack(dots(...))
   .Call(`_getpromise_in`, d$envir, d$expr, d$name)
@@ -38,7 +38,7 @@ get_dots <- function(names, envir=arg_env(names, environment())) {
 #' @param name A single argument name; not evaluated.
 #' @param envir The environment to look for the argument name in. By default
 #' looks in the lexical environment of the \code{name} argument.
-#' @useDynLib vadr _arg_env
+#' @useDynLib fexpr _arg_env
 #' @export
 arg_env <- function(name,
                     envir=arg_env(name, environment())) {
@@ -51,7 +51,7 @@ arg_env <- function(name,
 #' environment. The effect is similar to \code{substitute(name)} but more
 #' specific.
 #' @rdname arg_env
-#' @useDynLib vadr _arg_expr
+#' @useDynLib fexpr _arg_expr
 #' @export
 arg_expr <- function(name,
                      envir=arg_env(name, environment())) {
@@ -72,7 +72,7 @@ arg_expr <- function(name,
 #' @param envir An environment.
 #' @param include_missing Whether to include "missing" bindings in the dotslist.
 #' @return A \link{dots} object.
-#' @useDynLib vadr _env_to_dots
+#' @useDynLib fexpr _env_to_dots
 #' @export
 env2dots <- function(envir, include_missing=FALSE) {
   .Call(`_env_to_dots`, envir, ls(envir=envir, all.names=TRUE), include_missing)
@@ -92,7 +92,7 @@ env2dots <- function(envir, include_missing=FALSE) {
 #' @param size The size of the new environment.
 #' @param hash Whether the new environment should use a hashtable.
 #' @return An environment object.
-#' @useDynLib vadr _dots_to_env
+#' @useDynLib fexpr _dots_to_env
 #' @export
 dots2env <- function(dots, envir = NULL,
                      parent = arg_env(dots, environment()),

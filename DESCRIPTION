@@ -1,48 +1,20 @@
-Package: vadr
+Package: fexpr
 Type: Package
-Title: Macros, metaprogramming, and pleasant programming idioms.
-Version: 0.01
-Date: 2012-09-21
+Title: Easier access to R promise and dots(...) objects
+Version: 0.99
+Date: 2015-06-30
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: This package implements workalikes for the author's (and
-    perhaps your) favorite features from other languages, making R
-    programs shorter and more expressive. Destructurimg bind lets you
-    perform parallel assignments and unpack nested lists. A chain
-    macro lets you quickly string several operations together, similar
-    to Unix pipelines. A collection of functions makes it easy to work
-    with `...` arguments and missing values. Behind the scenes is an
-    efficient macro utility, with a much improved alternative to the
-    bquote() function.
+Description: Provides an interface to R's builtin promise objects
+             and dots(...) argument lists.
 License: MIT + file LICENSE
 Suggests:
     testthat (>= 0.2),
     microbenchmark (>= 1.1.3),
-    digest (>= 0.5.2),
     roxygen2 (>= 2.2.2),
     knitr (>= 1.2),
-    stringr
 Imports:
-    compiler (>= 2.15.2),
-    memo (>= 0.1)
 Collate:
-    'ammoc.R'
-    'macro.R'
-    'anaphora.R'
-    'bind.R'
-    'chain.R'
     'dots.R'
-    'fun.R'
     'getpromise.R'
-    'indexing.R'
-    'mply.R'
-    'onLoad.R'
-    'parse.R'
-    'programming.R'
-    'qq_fast.R'
-    'quasiquote.R'
-    'resources.R'
-    'run_as_script.R'
-    'vadr-description.R'
-    'with_args.R'
 VignetteBuilder: knitr
