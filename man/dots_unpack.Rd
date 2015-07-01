@@ -12,8 +12,8 @@ unpack(x)
 \arguments{
 \item{...}{Any number of arguments. Usually, you will pass in the
 ... from the body of a function,
-e.g. \code{dots_unpack(...)}. Technically this creates a copy of the
-dots list, but it should have identical effect.}
+e.g. \code{dots_unpack(...)}. Technically this creates a copy of
+the dots list, but it should have identical effect.}
 
 \item{x}{A \code{\link{dots}} object.}
 }

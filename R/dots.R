@@ -11,8 +11,8 @@
 #'
 #' @param ... Any number of arguments. Usually, you will pass in the
 #' ... from the body of a function,
-#' e.g. \code{dots_unpack(...)}. Technically this creates a copy of the
-#' dots list, but it should have identical effect.
+#' e.g. \code{dots_unpack(...)}. Technically this creates a copy of
+#' the dots list, but it should have identical effect.
 #'
 #' @return A data frame, with one row for each element of
 #' \code{\dots}, and columns: \describe{ \item{"name"}{The name of
@@ -308,7 +308,7 @@ format.... <- function(x, ...) {
   (paste0("<...[", length(x), "]>"))
 }
 
-#' Partially and fully apply arguments to functions.
+#' Apply a list of arguments to a function.
 #'
 #' These operators help in passing arbitrary lists of arguments to
 #' functions, with a more convenient interface than
@@ -316,42 +316,19 @@ format.... <- function(x, ...) {
 #' saving some arguments with a reference to a function so the
 #' resulting function can be passed elsewhere.
 #'
-#' These objects have methods for objects of class \code{...} produced
-#' by \code{\link{dots}}, so that you may partially apply argument
-#' lists without arguments as yet unevaluated.
-#' @param x a vector, optionally with names, or an object of class
+#' @param arglist a vector, optionally with names, or an object of class
 #' \code{...} as produced by \code{\link{dots}}.
 #' @param f a function, to be called, or to to have arguments attached to.
-#' @param arglist A \dots object (see \code{\link{dots}}.)
-#' @aliases %()% %<<% %<<<% %__% curr curl
-#' @rdname curr
-#' @return \itemize{
-#'
-#' \item For \code{\%()\%}, the result of calling
-#' the function with the arguments provided. When \code{x} is a
-#' \code{\dots} object, its contents are passed inithout
-#' evaluating. When \code{x} is another type of sequence its elements
-#' are put in the value slots of already-evaluated promises. This is
-#' slightly different behavior from \code{\link{do.call}(f,
-#' as.list(x), quote=TRUE)}, which passes unevaluated promises with
-#' expressions wrapped in \code{link{quote}}. This makes a difference
-#' if \code{f} performs nonstandard evaluation.
-#'
-#' \item For \code{\%<<\%} and \code{\%<<<\%}, a new function with the
-#' arguments partially applied. For \code{f \%<<<\% arglist}, the
-#' arguments will be placed in the argument list before any further
-#' arguments; for \code{f \%<<\% arglist} the arguments will be placed
-#' afterwards.
-#'
-#' \item \code{curr} and \code{curl} are standalone functions that
-#' partially apply arguments to functions; \code{curr(f, a=1, b=2)} is
-#' equivalent to \code{f \%<<\% dots(a=1, b=2)}, and \code{curl} is
-#' the "left curry" corresponding to \code{\%>>\%}.
-#'
-#' \item For
-#' \code{\%__\%}, the two operands concatenated together. The result will be
-#' a list, or a \code{dots} object if any of the operands are
-#' \code{dots} objects.  }
+#' @rdname call
+#' @return The result of calling the function with the arguments
+#' provided. When \code{x} is a \code{\dots} object, its contents are
+#' passed inithout evaluating. When \code{x} is another type of
+#' sequence its elements are put in the value slots of
+#' already-evaluated promises. This is slightly different behavior
+#' from \code{\link{do.call}(f, as.list(x), quote=TRUE)}, which passes
+#' unevaluated promises with expressions wrapped in
+#' \code{link{quote}}. This makes a difference if \code{f} performs
+#' nonstandard evaluation.
 #'
 #' @note "Curry" is a slight misnomer for partial function application.
 #' @author Peter Meilstrup
@@ -376,121 +353,6 @@ format.... <- function(x, ...) {
   f(...)
 }
 
-#' @export
-#' @rdname curr
-`%<<%` <- function(f, x) UseMethod("%<<%", x)
-
-#' @export
-#' @rdname curr
-`%<<<%` <- function(f, x) UseMethod("%<<<%", x)
-
-#' @export
-`%<<%....` <- function(f, x) {
-  if (length(x) == 0) return(f)
-  dotslist <- list(NULL, x)
-  function(...) {
-    if (missing(...)) {
-      assign("...", x)
-      f(...)
-    } else {
-      dotslist[1] <<- list(get("..."))
-      rm(list="...", envir=environment())
-      count <- 0
-      makeActiveBinding("...", function(x) {
-        count <<- count+1
-        dotslist[[count]]
-      }, environment())
-      #a DOTSXP is only expanded into a function's arguments when the
-      #evaluator encounters the special symbol "...". We use an active
-      #binding to get R to expand two different DOTSXPS from the same
-      #symbol.
-      f(..., ...)
-    }
-  }
-}
-
-#' @export
-#' @rdname curr
-`%<<<%....` <- function(f, x) {
-  if (length(x) == 0) return(f)
-  dotslist <- list(x, NULL)
-  function(...) {
-    if (missing(...)) {
-      assign("...", x)
-      f(...)
-    } else {
-      dotslist[2] <<- list(get("..."))
-      rm(list="...", envir=environment())
-      count <- 0
-      makeActiveBinding("...", function(x) {
-        count <<- count+1
-        dotslist[[count]]
-      }, environment())
-      f(..., ...)
-    }
-  }
-}
-
-#also a standalone right-curry and left-curry; does not use
-#S3-dispatched dots objects.
-
-#' @export
-#' @rdname curr
-#' @param ... Other arguments. to be captured without evaluating.
-curr <- function(f, ...) {
-  `%<<%....`(f, dots(...))
-}
-
-#' @export
-#' @rdname curr
-curl <- function(f, ...) {
-  `%<<<%....`(f, dots(...))
-}
-
-#Curry methods for plain values.
-#Here we reuse %()% since we had a time getting it to follow the desired
-#semantics.
-
-#' @export
-`%<<%.default` <- function(f, x) `%<<%....`(f, as.dots.literal(x))
-
-#' @export
-`%<<<%.default` <- function(f, x) `%<<<%....`(f, as.dots.literal(x))
-
-#' @export
-#' @rdname curr
-#' @param y a \dots object as constructed by \code{\link{dots}}.
-`%__%` <- function(x, y) UseMethod("%__%", x)
-
-#' @export
-#' @export
-`%__%....` <- function(x, y) UseMethod("%__%....", y)
-
-#' @export
-`%__%........` <- function(x, y, ...) {
-  if (length(x) == 0) return(y)
-  if (length(y) == 0) return(x)
-  dotslists <- list(x, y)
-  count <- 0
-  rm(list="...", envir=environment())
-  makeActiveBinding("...", function(x) {
-    count <<- count+1
-    dotslists[[count]]
-  }, environment())
-  dots(..., ...)
-}
-
-#' @export
-`%__%.....default` <- function (x, y) `%__%........`(x, as.dots.literal(y))
-
-#' @export
-`%__%.default` <- function(x, y) UseMethod("%__%.default", y)
-
-#' @export
-`%__%.default....` <- function (x, y) `%__%........`(as.dots.literal(x), y)
-
-#' @export
-`%__%.default.default` <- c
 
 #' Convert a list of expressions into a \code{\dots} object (a list of
 #' promises.)

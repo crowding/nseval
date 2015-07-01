@@ -312,50 +312,7 @@ test_that("x <- dots() captures dots and %()% calls with dots", {
 
 test_that("%()% and %<<% on vectors respects tags", {
   paste %()% c(sep="monkey", 1, 2, 3) %is% "1monkey2monkey3"
-  c %<<% c(a=1) %()% c(b=2) %is% c(b=2, a=1)
-  c %<<<% c(a=1) %()% c(b=2) %is% c(a=1, b=2)
 })
-
-test_that("curr and curl", {
-  #these are versions that don't dispatch
-  f <- curr(`/`)
-  g <- curr(`/`)
-  expect_error(f(5))
-  expect_error(f())
-  expect_error(g(5))
-  expect_error(g())
-  f <- curr(`/`, 2)
-  g <- curl(`/`, 2)
-  expect_error(f())
-  expect_error(g())
-  f(5) %is% 2.5
-  g(5) %is% 0.4
-})
-
-test_that("curry DTRT with original scope of its arguments", {
-  with_setup(
-    setup={
-      g <- function(...) {
-        x <- "this is not in f"
-        thunk(c, ...)
-      }
-
-      f <- function(...) {
-        x <- "this is in f"
-        g(this_x_should_be_scoped_in_f = x, ...)
-      }
-    },
-    #for each variant of curry
-    thunk <- curl,
-    thunk <- curr,
-    thunk <- function(f, ...) f %<<% dots(...),
-    thunk <- function(f, ...) f %<<<% dots(...),
-    #the actual test is in the teardown...
-    teardown={
-      f()() %is% c(this_x_should_be_scoped_in_f = "this is in f")
-      length(f(a=1)()) %is% 2
-    }
-)})
 
 test_that("as.dots() converts expressions to dotslists w.r.t. a given env", {
   x <- 3
@@ -389,74 +346,6 @@ test_that("as.dots.literal puts literal things into dots", {
   list %()% as.dots.literal(list(quote(...))) %is% list(quote(...))
 })
 
-test_that("Curried dots evaluate like promises", {
-  with_setup(
-    setup={
-      bind[w, x, y, z] <- c(2, 3, 4, 5)
-      d <- dots(w+x)
-      dd <- dots(w+x, y+z)
-      f <- `*` %<<% d
-      f2 <- `*` %<<% dd
-    },
-    {
-      f2() %is% 45
-      x <- 4
-      f(y+z) %is% 54
-    },
-    {
-      x <- 4
-      f2() %is% 54
-      f(2) %is% 12
-      x <- 3
-      (f %()% d) %is% 36
-    },
-    {
-      #left-curry applies to the left of the arglist
-      f2 <- `/` %<<<% dots(w+x)
-      x <- 2
-      f2(2) %is% 2
-      x <- 3
-      f2(2) %is% 2
-    })
-})
-
-test_that("Curry operators concatenate dots, dots stay attached to envs", {
-  with_setup(
-    setup={
-      envl <- list2env(structure(as.list(letters), names=letters))
-      envu <- list2env(structure(as.list(LETTERS), names=letters))
-      envn <- list2env(structure(as.list(1:10), names=letters[1:10]))
-      l <- evalq(dots(a, b, c), envl)
-      u <- evalq(dots(a, b, c), envu)
-      n <- evalq(dots(a, b, c), envn)
-      P <- paste %<<% list(sep="")
-    },
-    P  %()%  l  %is%  "abc",
-    P  %()%  u  %is%  "ABC",
-    P  %()%  n  %is%  "123",
-    #these two cases are bothersome.
-    P  %<<%  l  %<<%  u  %()%  n  %is%  "123ABCabc", #this is not intuitive?
-    P  %<<<% u  %<<<% l  %()%  n  %is%  "ABCabc123",
-    P  %<<<% l  %<<%  u  %()%  n  %is%  "abc123ABC",
-    P  %<<<% (u %__% l)  %()%  n  %is%  "ABCabc123",
-    P  %<<% (u %__% l)   %()%  n  %is%  "123ABCabc"
-    )
-})
-
-test_that("%__% with mixed sequence types", {
-  with_setup(
-    setup={
-      x <- "a"; y <- "b"; z <- "c"
-      a <- dots(x, y, z)
-      b <- LETTERS[4:6]
-    },
-    paste0 %()% (a %__% b) %is% "abcDEF",
-    paste0 %()% (b %__% a) %is% "DEFabc",
-    {x <- "_"; paste0 %()% (b %__% a) %is% "DEF_bc"},
-    {x <- "_"; paste0 %()% (a %__% b) %is% "_bcDEF"}
-    )
-})
-
 test_that("dots has some kind of print method", {
   d <- dots(a, b, c)
    capture.output(print(d))
@@ -476,17 +365,6 @@ test_that("dots() et al with empty inputs", {
 
   f %()% a %is% 8
   f %()% b %is% 8
-  (f %<<<% a)() %is% 8
-  (f %<<% b)() %is% 8
-  f %()% (b %__% a) %is% 8
-  (f %<<% list())() %is% 8
-  (f %<<<% list())() %is% 8
-  f %()% (c %__% list()) %is% 2
-  f %()% (list() %__% d) %is% 4
-  f %()% (a %__% c) %is% 2
-  f %()% (c %__% a) %is% 2
-  f %()% (a %__% d) %is% 4
-  f %()% (d %__% a) %is% 4
 })
 
 test_that("dots() on empty arguments", {
