@@ -33,8 +33,8 @@ quote(df[,1])
 substitute(df[row,col], list(row = missing_value(), col = 1))
 
 # These statements are also equivalent:
-quote(function(a, b, c, d, e) print("hello"))
-call("function", as.pairlist(put(missing_value(5), names, letters[1:5])),
+quote(function(a, b, c) print("hello"))
+call("function", pairlist(a=missing_value, b=missing_value, c=missing_value)),
                  quote(print("hello")))
 }
 \seealso{

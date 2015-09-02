@@ -1,4 +1,4 @@
 library(testthat)
-library(vadr)
+library(fexpr)
 
-test_package("vadr")
+test_package("fexpr")

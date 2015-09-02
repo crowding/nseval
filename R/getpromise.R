@@ -1,3 +1,5 @@
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 #' Fetch promises associated with named arguments.
 #'
 #' @param ... Variable names (unevaluated). Arguments may be named; these names
@@ -64,7 +66,7 @@ arg_expr <- function(name,
 #'
 #' All bindings in the environment will be copied into a new
 #' \code{\dots} list. Bindings that are promises will be added to the
-#' \dots list without forcing, while other bindings will be wrapped in
+#' \dots list without forcing, while other bindings will be wrap >ped in
 #' an already-evaluated promise.  If `...` exists in the environment,
 #' all bindings it contains will be added to the \dots list. The
 #' output will not be in any particular order.

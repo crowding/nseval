@@ -175,6 +175,7 @@ names.... <- function(x) .Call(`_dots_names`, x)
 #' @rdname dots_names
 #' @usage names(x) <- value
 #' @param value A character vector containing new names to be applied.
+#' @S3method "names<-" "..."
 `names<-....` <- function(x, value) {
   temp <- .Call(`_dotslist_to_list`, x)
   names(temp) <- value
@@ -285,8 +286,8 @@ dots <- function(...) structure(if (nargs() > 0) get("...") else NULL,
 #' substitute(df[row,col], list(row = missing_value(), col = 1))
 #'
 #' # These statements are also equivalent:
-#' quote(function(a, b, c, d, e) print("hello"))
-#' call("function", as.pairlist(put(missing_value(5), names, letters[1:5])),
+#' quote(function(a, b, c) print("hello"))
+#' call("function", pairlist(a=missing_value, b=missing_value, c=missing_value)),
 #'                  quote(print("hello")))
 #' @export
 missing_value <- function(n) {

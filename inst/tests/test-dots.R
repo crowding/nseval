@@ -4,31 +4,38 @@ library(stringr)
 
 `%is%` <- expect_equal
 
+##Quickie macro to help with setup and teardown.
 unwind_protect <- function(body, unwind) {
   on.exit(unwind)
   body
 }
 
-##Quickie macro to help with setup and teardown.
-with_setup <- macro(JIT=FALSE, function(setup=NULL, ..., teardown=NULL) {
-  qq({
-    ...( lapply(list(...), function(x) qq({
-      .(setup)
-      .(unwind_protect)(.(x), .(teardown))
-    })))
-  })
-})
+with_setup <- function(setup=NULL, ..., teardown=NULL) {
+  setup_e <- arg_env(setup)
+  setup_x <- arg_expr(setup)
+  teardown_e <- arg_env(teardown)
+  teardown_x <- arg_expr(teardown)
+
+  doSetup <- function() eval(setup_x, setup_e)
+  doTeardown <- function() eval(teardown_x, teardown_e)
+  tests <- as.list(substitute(...()))
+  for (i in 1:length(tests)) {
+    doSetup()
+    unwind_protect(eval(tests[[i]], setup_e), doTeardown())
+  }
+}
 
 ## DOTSXP UNPACKING --------------------------------------------------
 
 test_that("dots_unpack() method extracts dots information into a data frame", {
   expect_equal(nrow(dots_unpack()), 0)
+
   f <- function(...) {
-    list(dots_unpack(...), environment())
+    dots_unpack(...)
   }
   x <- 2
   y <- 3
-  bind[di, env] <- f(x, y=3, z=x+y)
+  di <- f(x, y=3, z=x+y)
   env <- environment()
 
   expect_identical(di$expr[[1]], quote(x))
@@ -50,20 +57,21 @@ test_that("dots_unpack(...) exposes promise behavior", {
   b <- a+2
   unpack_fns <- function(...) {
     #get functions that to things to the same dotslist
+    list()
     list(
-      function() dots_unpack(...),
-      function() (function(x, ...) x)(...),
-      function() list(...),
-      environment()
+      reunpack=function() dots_unpack(...),
+      eval_x=function() (function(x, ...) x)(...),
+      eval_all=function() list(...),
+      inner_env=environment()
       )}
   outer_env <- environment()
-  bind[reunpack, eval_x, eval_all, inner_env] <- unpack_fns(x=a, y=a+2)
+  l <- unpack_fns(x=a, y=a+2)
 
-  du <- reunpack()
+  du <- l$reunpack()
   expect_identical(du$value[[1]], NULL)
   expect_identical(du$env[[1]], outer_env)
-  eval_x()
-  du2 <- reunpack()
+  l$eval_x()
+  du2 <- l$reunpack()
   expect_identical(du2$value[[1]], 12)
   expect_identical(du2$envir[[1]], NULL)
   expect_identical(du2$envir[[2]], outer_env)
@@ -76,22 +84,20 @@ test_that("dots_unpack has a print method that works", {
 
 test_that("dots_unpack(...) descends through promise chains if necessary", {
   y <- 1
+  f1_env <- NULL
   f1 <- function(...) {
     x <- 1
-    list(getdots(y=x+1, ...), environment())
+    f1_env <<- environment()
+    getdots(y=x+1, ...)
   }
   getdots <- function(...) dots_unpack(...)
 
-  bind[du, f1_env] <- f1(a=y+z)
+  du <- f1(a=y+z)
 
   expect_identical(du[["a", "envir"]], environment())
   expect_identical(du[["y", "envir"]], f1_env)
-  #"substitute" here extracts the expression from compiled bytecode
-  #(which a promise may contain) Maybe I should try to get the expressions out..
-  expect_true(identical(du[["a", "expr"]], quote(y+z))
-              || "bytecode" %in% mode(du[["a", "expr"]]))
-  expect_true(identical(du[["y", "expr"]], quote(x+1))
-              || "bytecode" %in% class(du[["y", "expr"]]))
+  expect_identical(du[["a", "expr"]], quote(y+z))
+  expect_identical(du[["y", "expr"]], quote(x+1))
 })
 
 ## these should also be in reference to dots objects
@@ -425,7 +431,7 @@ test_that("dots [] operator subsets without forcing promises", {
       y <- 4
     }, {
       c %()% a[1:2] %is% c(3,r=4)
-       x <- 4
+      x <- 4
       c %()% a[3] %is% 8
       y <- 2
       c %()% a %is% c(3,r=4,8)

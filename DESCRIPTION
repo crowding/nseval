@@ -1,7 +1,7 @@
 Package: fexpr
 Type: Package
-Title: Easier access to R promise and dots(...) objects
-Version: 0.99
+Title: Interface to R promise and dots(...) objects
+Version: 0.1
 Date: 2015-06-30
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
@@ -10,9 +10,10 @@ Description: Provides an interface to R's builtin promise objects
 License: MIT + file LICENSE
 Suggests:
     testthat (>= 0.2),
-    microbenchmark (>= 1.1.3),
     roxygen2 (>= 2.2.2),
     knitr (>= 1.2),
+    plyr (>= 1.8.1),
+    ggplot2(>= 1.0.1)
 Imports:
 Collate:
     'dots.R'
