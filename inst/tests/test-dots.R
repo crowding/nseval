@@ -361,7 +361,7 @@ test_that("dots() et al with empty inputs", {
   #note that there isn't such a thing as an empty dotslist, and this
   #(a) complicates evaluating "..." etc, and (b) complicates making a
   #dotslist the basis of the class (as it will have to be something
-  #else to match a zero value.
+  #else to match a zero value.)
   #So test variants of dots apply, curry, and cdots, with  empty dotslists.
   f <- function(x=4, y=2) x * y
   a <- dots()
@@ -374,40 +374,44 @@ test_that("dots() et al with empty inputs", {
 })
 
 test_that("dots() on empty arguments", {
-  x <- dots(, b=3)
-  expect_identical(expressions(x), list(missing_value(), b=3))
-  expect_equal(environments(x), list(emptyenv(), b=environment()))
+  x <- dots(, b=z)
+  expect_identical(expressions(x), list(missing_value(), b=quote(z)))
+  expect_identical(environments(x), list(emptyenv(), b=environment()))
   y <- x[1]
   names(y) <- "foo"
   expect_identical(expressions(y), list(foo=missing_value()))
 
-  if (FALSE) {
-    #these are classified as R bugs for now.
-    #https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15707
-    m1 <- function(x,y,z) c(missing(x), missing(y), missing(z))
-    m2 <- function(...) dots_missing(...)
+  #check that missingness is computed and propagated correctly.
+  #the following have now been fixed.
+  #ref: https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15707
+  m1 <- function(x,y,z) c(missing(x), missing(y), missing(z))
+  m2 <- function(...) dots_missing(...)
 
-    dots_other <- function(x, y, z) {
-      arg_dots(x, y, z) #makes promises set to R_MissingValue
-    }
-
-    d1 <- dots(x, , z) #currently, makes
-    d2 <- dots_other(x, , z)
-
-    m1(one, , three) #FALSE, TRUE, FALSE
-    m2(one, , three) #FALSE, FALSE, FALSE
-    (function(...) m1(...))(one, , three) #FALSE, TRUE, FALSE
-    (function(...) m2(...))(one, , three) #FALSE, FALSE, FALSE
-    (function(...) (function(...) m1(...))(...))(one, , three)
-    #FALSE, FALSE, FALSE but these last two are on R
-    m1 %()% d1 #FALSE, TRUE, FALSE
-    m1 %()% d2 #FALSE, FALSE, FALSE
-    m2 %()% d1 #FALSE, FALSE, FALSE
-    m2 %()% d2 #FALSE, FALSE, FALSE
-    do.call(m1, alist(one, , three)) #FALSE, TRUE, FALSE
-    do.call(m2, alist(one, , three)) #FALSE, TRUE, FALSE
+  dots_other <- function(x, y, z) {
+    arg_dots(x, y, z) #makes promises set to R_MissingValue
   }
 
+  d1 <- dots(x, , z)
+  d2 <- dots_other(x, , z)
+
+  expect_equal(c(FALSE, TRUE, FALSE), m1(one, , three))
+  expect_equal(c(FALSE, TRUE, FALSE), 
+               m2(one, , three)) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), 
+               (function(...) m1(...))(one, , three))
+  expect_equal(c(FALSE, TRUE, FALSE),
+               (function(...) m2(...))(one, , three)) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), 
+               (function(...) (function(...) m1(...))(...))(one, , three))
+  #FALSE, FALSE, FALSE but these last two are on R
+  expect_equal(c(FALSE, TRUE, FALSE), m1 %()% d1)
+  expect_equal(c(FALSE, TRUE, FALSE), m1 %()% d2) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), m2 %()% d1) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), m2 %()% d2) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), 
+               do.call(m1, alist(one, , three)))
+  expect_equal(c(FALSE, TRUE, FALSE), 
+               do.call(m2, alist(one, , three)))
 })
 
 test_that("dots methods on empty dots", {
