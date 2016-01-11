@@ -37,6 +37,18 @@ test_that("arg_env error on evaluated promise", {
   expect_error(f2(124), "evaluated")
 })
 
+test_that("arg_expr should not force promise", {
+  e <- environment()
+  f <- function(x) {
+    expect_equal(arg_expr(x), quote(y+z))
+    expect_equal(arg_env(x), e)
+    expect_equal(arg_expr(x), quote(y+z))
+    expect_equal(arg_env(x), e)
+  }
+  f(y+z)
+})
+
+
 test_that("empty arguments return missing value and empty environment", {
   f1 <- function(x) arg_env(x)
   f2 <- function(x) arg_expr(x)
@@ -134,4 +146,3 @@ test_that("dotlist to environment", {
   substitute(list(a, b, c, d), e2) %is% quote(list(one, two, five, six))
   substitute(list(...), e2) %is% quote(list(three, four, seven, eight))
 })
-
