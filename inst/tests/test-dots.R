@@ -105,13 +105,13 @@ test_that("dots_missing", {
   expect_equivalent(logical(0), dots_missing())
   with_setup(
     setup={
-      if (exists("a")) rm(a)
+      if (exists("a")) rm(a, inherits=TRUE)
       unmissing <- 1
       b <- missing_value()
     },
     #test both the dots_missing form and the is.missing.... form
     thunk <- dots_missing,
-    thunk <- function(...) is.missing....(dots(...)),
+    thunk <- function(...) is.missing(dots(...)),
     #actual testing in the teardown
     teardown={
       expect_equal(c(   FALSE, FALSE,     c=TRUE, FALSE, d=FALSE, TRUE),

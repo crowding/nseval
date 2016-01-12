@@ -41,7 +41,7 @@ SEXP _mutate_expressions(SEXP dots, SEXP new_exprs) {
     SET_TAG(o, TAG(d));
 
     if (oldprom == R_MissingArg) {
-      // nothing
+      // nothing (missing arguments should keep emptyenv as their environment.)
     } else {
       while (TYPEOF(PRCODE(oldprom)) == PROMSXP) {
         oldprom = PRCODE(oldprom);
@@ -55,7 +55,7 @@ SEXP _mutate_expressions(SEXP dots, SEXP new_exprs) {
     SET_PRCODE(newprom, VECTOR_ELT(new_exprs, i));
   }
   DUPLICATE_ATTRIB(out, dots);
-  UNPROTECT(2);
+  UNPROTECT(1);
   return out;
 }
 
@@ -90,7 +90,7 @@ SEXP _mutate_environments(SEXP dots, SEXP new_envs) {
     SET_PRENV(newprom, VECTOR_ELT(new_envs, i));
   }
   DUPLICATE_ATTRIB(out, dots);
-  UNPROTECT(2);
+  UNPROTECT(1);
   return out;
 }
 
