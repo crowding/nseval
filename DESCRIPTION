@@ -1,12 +1,12 @@
 Package: fexpr
 Type: Package
-Title: Interface to R promise and dots(...) objects
-Version: 0.1
-Date: 2015-06-30
+Title: Tools to manupulate lazy arguments, evaluation, promises, and ... objects.
+Version: 0.2
+Date: 2016-01-18
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: Provides an interface to R's builtin promise objects
-             and dots(...) argument lists.
+    and dots(...) argument lists.
 License: MIT + file LICENSE
 Suggests:
     testthat (>= 0.2),
@@ -14,8 +14,8 @@ Suggests:
     knitr (>= 1.2),
     plyr (>= 1.8.1),
     ggplot2(>= 1.0.1)
-Imports:
 Collate:
     'dots.R'
     'getpromise.R'
 VignetteBuilder: knitr
+RoxygenNote: 5.0.1

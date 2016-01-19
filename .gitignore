@@ -64,3 +64,6 @@ pools
 *.prv
 *.blg
 DONE
+.Rproj.user
+*.Rproj
+.Rbuildignore

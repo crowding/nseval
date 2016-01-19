@@ -6,8 +6,8 @@
 #' \code{"..."} and, when bound to that name, given special
 #' dispensation by the R interpreter when appearing in the argument
 #' list of a call. Dots objects are normally opaque to R code, and
-#' usually don't explicitly appear in user code, but you can obtain a
-#' \code{\dots} inside of R by using \code{get("...")}.
+#' usually don't appear as first-class objects in user code, but you
+#' can obtain a \code{\dots} object in base R by using \code{get("...")}.
 #'
 #' @param ... Any number of arguments. Usually, you will pass in the
 #' ... from the body of a function,
@@ -29,7 +29,6 @@
 #' class on the columns to one that has a special as.character method.
 #' @seealso dots_names dots_missing dots_expressions dots
 #' @aliases unpack
-#' @author Peter Meilstrup
 #' @useDynLib fexpr _dots_unpack
 #' @export
 dots_unpack <- function(...) {
@@ -50,8 +49,8 @@ unpack.... <- function (x) {
 
 #' Extract unevaluated expressions.
 #'
-#' From any set of arguments (typically passing \code{\dots},
-#' \code{dots_expressions} retreives the associated expressions.) The
+#' From any set of arguments (typically passing \code{\dots}),
+#' \code{dots_expressions} retreives the associated expressions. The
 #' corresponding method \code{expressions} method of
 #' \code{\link{dots}} objects extracts the dots argument.
 #'
@@ -103,7 +102,7 @@ list_quote <- dots_expressions
 #' Extract or manipulate environments contained in dots lists.
 #'
 #' \code{environments} works on a dots list created by \{code{\link{dots}} w,
-#' while \code{dots_environments} works on arguments you pass in.
+#' while \code{dots_environments} works on arguments directly passed in.
 #' @rdname dots_environments
 #' @param ... Any arguments.
 #' @aliases dots_environments environments
@@ -258,8 +257,9 @@ list_missing <- function(...) {
 #'  }
 #' named.list(a=1, b=2*2, stop("this is not evaluated"))
 #' @export
-dots <- function(...) structure(if (nargs() > 0) get("...") else NULL,
-                                class="...")
+dots <- function(...) 
+  structure(if (nargs() > 0) get("...") else NULL,
+            class="...")
 
 #' Return an empty symbol.
 #'
@@ -364,7 +364,6 @@ format.... <- function(x, ...) {
 #' list items are treated as expressions to be evaluated. For
 #' \code{as.dots.literal}, the items are treated as literal values.
 #' @seealso dots "%<<%" "%<<<%" "%()%" "[...." "[[....", "names...."
-#' @author Peter Meilstrup
 #' @aliases as.dots.literal
 #' @export
 as.dots <- function(x, .envir=arg_env(x, environment())) {
@@ -389,7 +388,7 @@ as.dots.default <- function(x, .envir) {
 #' @export
 #' @rdname as.dots
 as.dots.literal <- function(x)
-    .Call(`_as_dots_literal`, as.list(x))
+  .Call(`_as_dots_literal`, as.list(x))
 
 #' Check if list members are equal to the "missing value."
 #'
@@ -474,7 +473,6 @@ is.missing.default <- function(x) {
   .Call(`_list_to_dotslist`, into)
 }
 
-
 #' @export
 #' @useDynLib fexpr _dotslist_to_list
 `$....` <- function(x, name) {
@@ -489,7 +487,7 @@ is.missing.default <- function(x) {
   into <- .Call(`_dotslist_to_list`, x)
   from <- .Call(`_dotslist_to_list`, arg_dots(value))
   eval(call("$<-", quote(into), name, quote(from[[length(from)]])))
-   .Call(`_list_to_dotslist`, into)
+  .Call(`_list_to_dotslist`, into)
 }
 
 #force() forces "the argument named x", while force.first.arg is
