@@ -78,10 +78,6 @@ test_that("dots_unpack(...) exposes promise behavior", {
   expect_identical(du2$value[[2]], NULL)
 })
 
-test_that("dots_unpack has a print method that works", {
-  capture.output(dots_unpack(a, b, c, d, 4, e)) #should go without error
-})
-
 test_that("dots_unpack(...) descends through promise chains if necessary", {
   y <- 1
   f1_env <- NULL
@@ -150,6 +146,7 @@ test_that("is.missing on non-dotlists", {
   is.missing(b) %is% c(FALSE, FALSE, FALSE, FALSE)
   is.missing() %is% TRUE
   is.missing(function(x) y) %is% FALSE
+  is.missing(missing_value()) %is% TRUE
 })
 
 test_that("list_missing", {
@@ -350,11 +347,6 @@ test_that("as.dots() is idempotent on dots objects", {
 test_that("as.dots.literal puts literal things into dots", {
   list %()% as.dots.literal(alist(a, b, c, d)) %is% alist(a,b,c,d)
   list %()% as.dots.literal(list(quote(...))) %is% list(quote(...))
-})
-
-test_that("dots has some kind of print method", {
-  d <- dots(a, b, c)
-   capture.output(print(d))
 })
 
 test_that("dots() et al with empty inputs", {

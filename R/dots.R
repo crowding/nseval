@@ -141,11 +141,6 @@ environments.... <- function(x) {
   .Call(`_mutate_environments`, x, value)
 }
 
-#' @export
-format.deparse <- function(x, ...) {
-  format(vapply(x, deparse, "", nlines=1, width.cutoff=100), ... )
-}
-
 #' Extract or change the argument names of \code{\dots} arguments.
 #'
 #' @param ... Any arguments. Usually you will pass \code{\dots} from the
@@ -298,17 +293,6 @@ missing_value <- function(n) {
   }
 }
 
-#' @export
-`print....` <- function(x, ...) {
-  invisible(cat("<...[", length(x), "]>\n"))
-}
-
-
-#' @export
-format.... <- function(x, ...) {
-  (paste0("<...[", length(x), "]>"))
-}
-
 #' Apply a list of arguments to a function.
 #'
 #' These operators help in passing arbitrary lists of arguments to
@@ -421,7 +405,9 @@ is.missing.... <- function(x) {
 
 #' @export
 is.missing.default <- function(x) {
-  if (is.list(x))
+  if (identical(x, missing_value())) 
+    TRUE
+  else if (is.list(x))
     vapply(x, identical, FALSE, quote(expr=))
   else
     rep(FALSE, length(x))
