@@ -1,3 +1,6 @@
+#ifndef _VADR_H
+#define _VADR_H
+
 #include <R.h>
 #include <Rinternals.h>
 
@@ -10,3 +13,5 @@ void assert_type(SEXP, SEXPTYPE);
 void assert_type3(SEXP, SEXPTYPE, const char *);
 int recycle_length(int i, int j);
 SEXP allocate_dots(int length);
+
+#endif

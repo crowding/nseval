@@ -1,0 +1,71 @@
+Wrapping Nonstandard-evaluating functions
+=====
+
+##### Or, how to use Metaprogramming to work around other people's
+code that used Metaprogramming
+
+## Automating graph labels.
+
+Probably the most frequent and mundane application of non-standard evaluation is to
+automate writing axis labels. Here is code that plots a sine curve:
+
+```{r}
+x <- seq(0, 2 * pi, length = 100)
+plot(x, sin(x), type = "l")
+```
+
+The graph that is produced has labels on its horizontal axis,  `sin(x)` and `x` 
+on the vertical axis.
+
+If, instead, we stored `sin(x)` in a variable `y`, a different label is drawn on the Y axis.
+```{r}
+y <- sin(x)
+plot(x, y, type = "l")
+```
+
+So plotting `y <- sin(x)` does not mean that wrting `y` is equivalent to writing `sin(x)`. `plot` is still able to tell the difference.
+
+In *standard evaluation* a function only depends on the value of its arguments. If `y` is defined to have the value of `sin(x)`, then `f(y)` should do the same thing as `f(sin(x))`. Clearly `plot` breaks this rule. The R community has calls this `non-standard evaluation`. A function that uses non-standard evalution can have behavtior depends on the way its argument is written, not just what values they evaluate to.
+
+### NSE makes it difficult to wrap functions.
+
+Let's say we wanted to make a function `lineplot` that behaves just like `plot` but has a default plot argument.
+
+I want to make that a hard rule. Writing `lineplot(x, sin(y))` should function _exactly_ as writing `plot(x, sin(y), sin(x))
+
+```
+lineplot <- function(x, y, type="l", ...) {
+  plot(x, y, type, ...)
+}
+
+lineplot(x, sin(x))
+```
+
+But our axis label is now wrong. It now always says `x` and `y` instead of `sin(y)` or whatever else we might have wrote. `lineplot` didn't live up to the spec of behaving just like `plot` but for one detail.
+
+### The NSE package easily wraps NSE functions with `invoke`
+
+It's harder to fix this problem than you might think, so I'll first show `nse`'s way of writing `lineplot`:
+
+```{r}
+lineplot <- function(x, y, type="l", ...) {
+  invoke(plot)(x, y, type=type, ...)
+}
+
+lineplot(x, sin(x))
+```
+
+Here's how it works. `invoke(plot)` returns a function. That function takes its arguments by name instead of evaluating them. 
+
+### R's builtin facilities have weird edge cases
+
+Here are various ways base R provides of writing `lineplot` that all don't quite meet the spec.
+
+```
+
+```
+
+Counterargument:
+do(plot(x=x, y=y)
+
+### The `nse` package makes it possible to wrap 

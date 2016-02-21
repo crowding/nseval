@@ -79,6 +79,8 @@ test_that("caller of a closed environment (contra parent.frame)", {
 })
 
 test_that("caller from a lazy argument", {
+  #baseline calls "e" which calls "f" which calls "g"
+  #"caller" is written in the context of "f" so it should return "e"
   e <- function() {
     where <- "e"
     f <- function() {
