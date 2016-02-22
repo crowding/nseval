@@ -7,7 +7,8 @@ format.deparse <- function(x, ...) {
 
 #' @export
 `print....` <- function(x, ...) {
-  invisible(cat(format(x, ...), "\n"))
+  cat(format(x, ...), "\n")
+  invisible(x)
 }
 
 `%(d)%` <- function(f, d) {

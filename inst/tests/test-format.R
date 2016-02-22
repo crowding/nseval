@@ -6,9 +6,15 @@ test_that("dots_unpack has a print method that works", {
   capture.output(dots_unpack(a, b, c, d, 4, e)) #should go without error
 })
 
+silently <- function(x, output_callback = force) {
+  y <- NULL
+  output_callback(capture.output(y <- print(x)))
+  y
+}
+
 test_that("dots has some kind of print method", {
   d <- dots(a, b, c)
-  capture.output(print(d))
+  expect_true(identical(silently(print(d)), d))
 })
 
 test_that("format dots", {
