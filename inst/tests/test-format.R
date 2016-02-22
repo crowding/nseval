@@ -25,7 +25,13 @@ test_that("format dots", {
   
   format(d) %is% paste0("args(4, a = x + 2 := 4, ", e, " ? b + 1, c = ", e, " ? 3 + 3)")
   format(d, show.environments=FALSE) %is% paste0("args(4, a = x + 2 := 4, ? b + 1, c = ? 3 + 3)")
-  format(d, show.values=FALSE) %is% paste0("args(4, a = x + 2 := 4, ", e, " ? b + 1, c = ", e, " ? 3 + 3)")
   format(d, show.expressions=FALSE) %is% paste0("args(4, a = 4, ", e, " ? b + 1, c = ", e, " ? 3 + 3)")
   format(d, compact=TRUE) %is% paste0("args(4, a = 4, ? b + 1, c = ? 3 + 3)")
+  
+  format(dots(a, b, c)) %is% paste0("args(", e, " ? a, ", e, " ? b, ", e, " ? c)")
+})
+
+test_that("multiline format doesn't throw errors", {
+  format(dots(a = function(x){x}))
+  format(as.dots.literal(list(a = function(x){x})))
 })

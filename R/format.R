@@ -7,7 +7,7 @@ format.deparse <- function(x, ...) {
 
 #' @export
 `print....` <- function(x, ...) {
-  invisible(cat("<...[", length(x), "]>\n"))
+  invisible(cat(format(x, ...), "\n"))
 }
 
 `%(d)%` <- function(f, d) {
@@ -44,8 +44,7 @@ df <- function(...) {
   list
 }
 
-make_names <- function (x, prefix = "X") 
-{
+make_names <- function (x, prefix = "X"){
   nm <- names(x)
   if (is.null(nm)) {
     nm <- rep.int("", length(x))
@@ -53,6 +52,23 @@ make_names <- function (x, prefix = "X")
   n <- sum(nm == "", na.rm = TRUE)
   nm[nm == ""] <- paste(prefix, seq_len(n), sep = "")
   nm
+}
+
+one_line <- function(x, f, ...) {
+  l <- lapply(x, f)
+  vapply(l, function(x) if(length(x) > 1) paste0(x[[1]], "...") else x[[1]], "")
+}
+
+#' @export
+format.oneline <- function(x, ...) {
+  if ("no_multiline" %in% class(x)) {
+    class(x) <- setdiff(class(x), "oneline")
+  }
+  if (is.list(x)) {
+    one_line(x, format, ...)
+  } else {
+    one_line(list(x), format, ...)
+  }
 }
 
 #' Format a dots object for printing. 
@@ -76,7 +92,8 @@ format.... <- function(x,
                        show.expressions = !compact,
                        ...) {
   dotdata <- unpack(x)
-  doformat <- function(x) format(x, ...)
+  doformat <- function(x) one_line(x, format, ...)
+  dodeparse <- function(x) one_line(x, deparse, ...)
   
   contents <- paste0(
     ifelse(dotdata$name != "",
@@ -89,12 +106,12 @@ format.... <- function(x,
                         function(expr) vapply(expr, is.language, FALSE),
                         function(expr, value) paste0(
                           if (show.expressions && !is.missing(expr)) 
-                            paste0(doformat(expr), " := ") else "",
+                            paste0(dodeparse(expr), " := ") else "",
                           doformat(value)),
                         function(value) doformat(value)),
              function(expr, envir) paste0(if (show.environments) doformat(envir) else "", 
                                           if (show.environments) " ? " else "? ",
-                                          doformat(expr))),
+                                          dodeparse(expr))),
     collapse=", "
   )
   chars = paste0("args(", contents, ")")
