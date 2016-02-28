@@ -5,7 +5,7 @@
 \title{Format a dots object for printing.}
 \usage{
 \method{format}{...}(x, compact = FALSE, show.environments = !compact,
-  show.expressions = !compact, ...)
+  show.expressions = !compact, width = 30, ...)
 }
 \arguments{
 \item{x}{A dots object.}

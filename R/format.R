@@ -55,21 +55,34 @@ make_names <- function (x, prefix = "X"){
   nm
 }
 
-one_line <- function(x, f, ...) {
+one_line <- function(x, f, width, ...) {
   l <- lapply(x, f)
-  vapply(l, function(x) if(length(x) > 1) paste0(x[[1]], "...") else x[[1]], "")
+  vapply(l, function(x) toString(
+    if(length(x) > 1) paste0(x[[1]], "...") else if (length(x) == 1) x else "?NULL?", width=width), "")
 }
 
+format_robust <- function(x, ...) {
+  tryCatch(format(x, ...), error=function(e) "?FORMAT?")
+}
+
+#' Formats a sequence of objects to show one line each.
+#' Somewhat similar to format.AsIs but tries harder with language objects.
+#' @param x An object
+#'
+#' @param width 
+#' @param ... parameters passed to "format"
+#'
 #' @export
-format.oneline <- function(x, ...) {
-  if ("no_multiline" %in% class(x)) {
+format.oneline <- function(x, width=30, ...) {
+  if ("one_line" %in% class(x)) {
     class(x) <- setdiff(class(x), "oneline")
   }
-  if (is.list(x)) {
-    one_line(x, format, ...)
+  if (is.numeric(x) || is.character(x) || is.list(x)) {
+    x <- one_line(x, format_robust, width=width, ...)
   } else {
-    one_line(list(x), format, ...)
+    x <- one_line(list(x), format_robust, width=width, ...)
   }
+  x
 }
 
 #' Format a dots object for printing. 
@@ -91,10 +104,11 @@ format.... <- function(x,
                        compact = FALSE, 
                        show.environments = !compact, 
                        show.expressions = !compact,
+                       width=30,
                        ...) {
   dotdata <- unpack(x)
-  doformat <- function(x) one_line(x, format, ...)
-  dodeparse <- function(x) one_line(x, deparse, ...)
+  doformat <- function(x) one_line(x, format, width=width, ...)
+  dodeparse <- function(x) one_line(x, deparse, width=width, ...)
   
   contents <- paste0(
     ifelse(dotdata$name != "",

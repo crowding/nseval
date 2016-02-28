@@ -43,9 +43,9 @@ SEXP _dots_unpack(SEXP dots) {
       error("Expected ENVSXP or NULL in environment slot of DOTSXP, got %s",
             type2char(TYPEOF(item)));
 
-    SET_STRING_ELT(names, i, isNull(TAG(s)) ? mkChar("") : PRINTNAME(TAG(s)));
     SET_VECTOR_ELT(environments, i, PRENV(item));
     SET_VECTOR_ELT(expressions, i, PREXPR(item));
+    SET_STRING_ELT(names, i, isNull(TAG(s)) ? R_BlankString : PRINTNAME(TAG(s)));
 
     if (PRVALUE(item) != R_UnboundValue) {
       SET_VECTOR_ELT(values, i, PRVALUE(item));
@@ -64,10 +64,6 @@ SEXP _dots_unpack(SEXP dots) {
   SET_STRING_ELT(colNames, 1, mkChar("envir"));
   SET_STRING_ELT(colNames, 2, mkChar("expr"));
   SET_STRING_ELT(colNames, 3, mkChar("value"));
-
-  setAttrib(expressions, R_ClassSymbol, ScalarString(mkChar("deparse")));
-  setAttrib(environments, R_ClassSymbol, ScalarString(mkChar("deparse")));
-  setAttrib(values, R_ClassSymbol, ScalarString(mkChar("deparse")));
 
   setAttrib(dataFrame, R_NamesSymbol, colNames);
   setAttrib(dataFrame, R_RowNamesSymbol, names);

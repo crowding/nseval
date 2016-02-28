@@ -42,9 +42,13 @@ unpack <- function(x) UseMethod("unpack")
 
 #' @export
 #' @useDynLib fexpr _dots_unpack
-unpack.... <- function (x) {
-  du <- .Call(`_dots_unpack`, x)
-  data.frame(du, row.names=make.names(du$name, unique=TRUE), check.names=TRUE)
+unpack.... <- function  (x) {
+  x <- .Call(`_dots_unpack`, x)
+  class(x$envir) <- "oneline"
+  class(x$expr) <- "oneline"
+  class(x$value) <- "oneline"
+  attr(x, "row.names") <- make.unique(x$name)
+  x
 }
 
 #' Extract unevaluated expressions.
