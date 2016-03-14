@@ -122,3 +122,106 @@ test_that("foo", {
 # st$promargs[[22]] = args(quote(caller()) := caller(), y := <environment: 0x102b75350>)
 
 # Learning: If the call's callfun is a primitive, it is probably not a "real" call, at least its cloenv is not to be trusted. 
+
+test_that("caller from a lazy argument in a closed environment", {
+  where <- "0"
+  e <- function() {
+    where <- "e"
+    f <- function() {
+      where <- "f"
+      g <- function(g) {
+        where <- "g"
+        function(f) g
+      }
+      g(caller())
+    }
+    f()
+  }
+  e()() %throws% "e"
+})
+
+
+# Example 3
+
+test_that("caller from a lazy argument in a closed environment", {
+  where <- "0"
+  e <- function() {
+    where <- "e"
+    f <- function() {
+      where <- "f"
+      g <- function(g) {
+        where <- "g"
+        function(f) g
+      }
+      g(caller())
+    }
+    f()
+  }
+  e()()$where %throws% "e"
+})
+
+#    callflag evaldepth                       promargs                        callfun                  sysparent                           call                     cloenv
+# 1         0         0                           NULL                           NULL        <environment: base>                           NULL        <environment: base>
+# 2        12         1 args(~/fexpr/inst/tests/te.... function (file, local = FA.... <environment: R_GlobalEnv> source("~/fexpr/inst/tests.... <environment: 0x107c86a98>
+# 3        12         2 args(<environment: 0x107c8....               function (x) ... <environment: 0x107c86a98>   withVisible(eval(ei, envir)) <environment: 0x10900a4d0>
+# 4        12         5 args(ei := expression(test.... function (expr, envir = pa.... <environment: 0x107c86a98>                eval(ei, envir) <environment: 0x10900a310>
+# 5        12         6 args(expression(test_that(....             .Primitive("eval") <environment: 0x10900a310>      eval(expr, envir, enclos) <environment: R_GlobalEnv>
+# 6        12         7 args(caller from a lazy ar....      function (desc, code) ... <environment: R_GlobalEnv> test_that("caller from a l.... <environment: 0x109009e40>
+# 7        12         9 args(desc := caller from a.... function (description, cod.... <environment: 0x109009e40> test_code(desc, substitute.... <environment: 0x10900ab80>
+# 8        12        11 args(<environment: 0x10900.... function (expr, ..., final.... <environment: 0x10900ab80> tryCatch(withCallingHandle.... <environment: 0x10900dc60>
+# 9        12        12 args(<environment: 0x10900.... function (expr, names, par.... <environment: 0x10900dc60> tryCatchList(expr, classes.... <environment: 0x10900e460>
+# 10       12        13 args(<environment: 0x10900.... function (expr, name, pare.... <environment: 0x10900e460> tryCatchOne(tryCatchList(e.... <environment: 0x10900e118>
+# 11       12        14 args(<environment: 0x10900.... function (expr, name, pare.... <environment: 0x10900e118> doTryCatch(return(expr), n.... <environment: 0x10900ed08>
+# 12       12        17 args(<environment: 0x10900.... function (expr, names, par.... <environment: 0x10900e460> tryCatchList(expr, names[-.... <environment: 0x10900e6e8>
+# 13       12        18 args(<environment: 0x10900.... function (expr, name, pare.... <environment: 0x10900e6e8> tryCatchOne(expr, names, p.... <environment: 0x10900f2d8>
+# 14       12        19 args(<environment: 0x10900.... function (expr, name, pare.... <environment: 0x10900f2d8> doTryCatch(return(expr), n.... <environment: 0x10900ef20>
+# 15       12        25 args(<environment: 0x10900....       function (expr, ...) ... <environment: 0x10900ab80> withCallingHandlers(eval(c.... <environment: 0x10900f8a8>
+# 16       12        27 args(code := {..., new_tes.... function (expr, envir = pa.... <environment: 0x10900ab80> eval(code, new_test_enviro.... <environment: 0x109010988>
+# 17       12        28 args({... := {..., <enviro....             .Primitive("eval") <environment: 0x109010988>      eval(expr, envir, enclos) <environment: 0x10900a720>
+# 18       12        30 args(<environment: 0x10900.... function (object, expected.... <environment: 0x10900a720>                e()() %is*% "e" <environment: 0x109011310>
+# 19       12        32 args(<environment: 0x10901.... function (object, conditio.... <environment: 0x109011310> expect_that(object, throws.... <environment: 0x1037a22d8>
+# 20       12        35 args(<environment: 0x1037a....            function (expr) ... <environment: 0x1037a22d8>              condition(object) <environment: 0x10707a838>
+# 21       12        38 args(<environment: 0x10707.... function (expr, silent = F.... <environment: 0x10707a838>         try(force(expr), TRUE) <environment: 0x10707a640>
+# 22       12        39 args(<environment: 0x10707.... function (expr, ..., final.... <environment: 0x10707a640> tryCatch(expr, error = fun.... <environment: 0x10707be08>
+# 23       12        40 args(<environment: 0x10707.... function (expr, names, par.... <environment: 0x10707be08> tryCatchList(expr, classes.... <environment: 0x10707ed78>
+# 24       12        41 args(<environment: 0x10707.... function (expr, name, pare.... <environment: 0x10707ed78> tryCatchOne(expr, names, p.... <environment: 0x10707e6e8>
+# 25       12        42 args(<environment: 0x10707.... function (expr, name, pare.... <environment: 0x10707e6e8> doTryCatch(return(expr), n.... <environment: 0x103798748>
+# 26       12        48 args(<environment: 0x10707....               function (x) ... <environment: 0x10707a838>                    force(expr) <environment: 0x103798390>
+# 27       12        53                           NULL               function (f) ... <environment: 0x10900a720>                          e()() <environment: 0x103798e30> # the function called; is "g"
+# 28       12        55                           NULL function (envir = caller(e.... <environment: 0x103799178>                       caller() <environment: 0x103798d88> # target env for some reason
+# 29       12        58                           NULL                function () ... <environment: 0x103798d88>                   stacktrace() <environment: 0x101b586d8>
+
+# envir: <environment: 0x103798d88>
+
+#       Frames:                      parent                              call  
+# [[1]] <environment: 0x107c86a98>   0       source("~/fexpr/inst/tests....
+# [[2]] <environment: 0x10900a4d0>   1         withVisible(eval(ei, envir))
+# [[3]] <environment: 0x10900a310>   1                      eval(ei, envir)
+# [[4]] <environment: R_GlobalEnv>   3            eval(expr, envir, enclos)
+# [[5]] <environment: 0x109009e40>   0       test_that("caller from a l....
+# [[6]] <environment: 0x10900ab80>   5       test_code(desc, substitute....
+# [[7]] <environment: 0x10900dc60>   6       tryCatch(withCallingHandle....
+# [[8]] <environment: 0x10900e460>   7       tryCatchList(expr, classes....
+# [[9]] <environment: 0x10900e118>   8       tryCatchOne(tryCatchList(e....
+# [[10]] <environment: 0x10900ed08>  9       doTryCatch(return(expr), n....
+# [[11]] <environment: 0x10900e6e8>  8       tryCatchList(expr, names[-....
+# [[12]] <environment: 0x10900f2d8>  11      tryCatchOne(expr, names, p....
+# [[13]] <environment: 0x10900ef20>  12      doTryCatch(return(expr), n....
+# [[14]] <environment: 0x10900f8a8>  6       withCallingHandlers(eval(c....
+# [[15]] <environment: 0x109010988>  6       eval(code, new_test_enviro....
+# [[16]] <environment: 0x10900a720>  15           eval(expr, envir, enclos)
+# [[17]] <environment: 0x109011310>  16                     e()() %is*% "e"
+# [[18]] <environment: 0x1037a22d8>  17      expect_that(object, throws....
+# [[19]] <environment: 0x10707a838>  18                   condition(object)
+# [[20]] <environment: 0x10707a640>  19              try(force(expr), TRUE)
+# [[21]] <environment: 0x10707be08>  20      tryCatch(expr, error = fun....
+# [[22]] <environment: 0x10707ed78>  21      tryCatchList(expr, classes....
+# [[23]] <environment: 0x10707e6e8>  22      tryCatchOne(expr, names, p....
+# [[24]] <environment: 0x103798748>  23      doTryCatch(return(expr), n....
+# [[25]] <environment: 0x103798390>  19                         force(expr)
+# [[26]] <environment: 0x103798e30>  16                               e()()
+# [[27]] <environment: 0x103798d88>  27                            caller()  *target env* note it is its own sysparent!
+
+# where=27
+
+# Possible lesson: if we are our own sysparent, reject. 

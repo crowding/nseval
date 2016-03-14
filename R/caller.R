@@ -53,25 +53,26 @@
 #' # located under inst/tests/test-caller.R
 #' @useDynLib fexpr _caller
 caller <- function(envir=caller(environment())) {
-  st <- stacktrace::stacktrace()
+  frames <- sys.frames()
+  where <- which(vapply(frames, identical, FALSE, envir))
   
-  #Where is target environment instantiated?
-  where <- which(vapply(st$cloenv, identical, FALSE, envir))
-  
-  nActive <- length(where)
-  
-  if (nActive == 0) {
-    stop("Target environment not found on stack")
-  }
-
-  if (is.primitive(st$callfun[[where[1]]])) {
-    stop("Target environment is a prmitive. Maybe it is called from do.call")
+  if (length(where) == 0) {
+    stop("Caller: environment not found on stack")
   }
   
-  r <- st[[where[1], "sysparent"]]
-  r
+  if (is.primitive(sys.function(where[1]))) {
+    stop("caller: calling function is eval or other primitive")
+  }
+  
+  parents <- sys.parents()
+  whichparent <- parents[where[1]]
+  
+  if (whichparent == where[1]) {
+    stop("Caller: caller is no longer on stack")
+  }
+  
+  frames[[whichparent]]
 }
-
 
 # TODO: replacement for match.call.
 this_call <- function() {

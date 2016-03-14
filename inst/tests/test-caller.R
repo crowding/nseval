@@ -44,7 +44,7 @@ throws_if_isnt <- function(expected, regexp = NULL, label=NULL, ...) {
 `%is%` <- expect_equal
 `%is*%` <- expect_throws_if_isnt
 
-test_that("Caller finds caller", {
+test_that("Caller finds caller", ({
   f1 <- function() {
     where <- "1"
     g()
@@ -61,7 +61,7 @@ test_that("Caller finds caller", {
   
   f1()$where %is% "1"
   f2()$where %is% "2"
-})
+}))
 
 test_that("caller defaults to environment called from", {
   f <- function() {
@@ -152,7 +152,7 @@ test_that("caller from a lazy argument in a closed environment", {
     }
     f()
   }
-  e()() %is*% "e"
+  e()() %is*% "e"  #example 3
 })
 
 test_that("caller from eval and do.call", {
