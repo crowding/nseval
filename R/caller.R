@@ -51,7 +51,6 @@
 #' @examples
 #' # For further examples please see the test cases
 #' # located under inst/tests/test-caller.R
-#' @useDynLib fexpr _caller
 caller <- function(envir=caller(environment())) {
   frames <- sys.frames()
   where <- which(vapply(frames, identical, FALSE, envir))
@@ -76,10 +75,10 @@ caller <- function(envir=caller(environment())) {
 
 # TODO: replacement for match.call.
 this_call <- function() {
-
+  stop("Implement me")
 }
 
-#' Call a function from a particular environment.
+#' Wrap a function so that it will see a particular caller or parent.frame.
 #'
 #' @param f The function to call. A name or character string may be
 #' used, which should refer to a function visible in the environment
@@ -88,24 +87,21 @@ this_call <- function() {
 #' @param envir The environment to issue the call from. If \code{\link{caller}}
 #' is called within \code{f}, it will return \code{envir}.
 #'
-#' @return A function wrapper. Normally one would immediately invoke it, as in
-#' call_from(f, e)("foo", "bar", "baz").
-#'
-#' You can also use this to insulate yourself from poorly behaved functions that
-#' use parent.frame() when they should use arg_env(), as in \link{plyr::here}.
-call_from <- function(f, envir) {
-  function(...) make_call(f, envir, args)
-}
-
-#' Wrap a function so that it will see a particular caller or parent.frame.
-#'
-#' Writing \code{call_here(f)} is equivalent to writing
-#' \code{call_from(f, environment())}.
-call_here <- function(f) {
-  here <- arg_env(f)
-  function(...) make_call(f, here, dots(...))
-}
-
-make_call <- function(f, envir, args) {
-  do.call(`(`, envir, list(f, args))
+#' @return A function wrapper. Calling it will call `f`, but from within `f` a 
+#' call to `parent.frame()` or `caller` will return `envir`. 
+#' 
+#' call_from(f, e)("foo", "bar") is similar to `eval(quote(f("foo", "bar")), envir=e)`
+#' except that the argument list is applied normally instead of being evaluated 
+#' in the target environment.
+#' 
+#' A typical use for `with_caller` is to gain some flexibility working with impolite
+#' functions that manipulate their `caller()` or `parent_frame()`
+#' @useDynLib fexpr _make_call
+#' @export
+with_caller <- function(f, envir=arg_env(f)) {
+  f_dots = arg_dots(f)
+  force(envir)
+  function(...) .Call(`_make_call`, f_dots, envir, dots(...))
+  #the stack frame should be made active?
+  #f <- function(...) eval(f, envir)
 }

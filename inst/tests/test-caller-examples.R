@@ -1,12 +1,10 @@
+#Worked examples for "caller" with interpreter-level stack traces.
 
 
-#Worked examples with stack traces.
 library(testthat)
 `%is%` <- expect_equal
 `%throws%` <- expect_error
 context("caller examples")
-#undebug(caller)
-#1
 
 test_that("Example 1", {
   where <- "0"
@@ -123,22 +121,6 @@ test_that("foo", {
 
 # Learning: If the call's callfun is a primitive, it is probably not a "real" call, at least its cloenv is not to be trusted. 
 
-test_that("caller from a lazy argument in a closed environment", {
-  where <- "0"
-  e <- function() {
-    where <- "e"
-    f <- function() {
-      where <- "f"
-      g <- function(g) {
-        where <- "g"
-        function(f) g
-      }
-      g(caller())
-    }
-    f()
-  }
-  e()() %throws% "e"
-})
 
 
 # Example 3

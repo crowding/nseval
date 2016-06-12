@@ -2,63 +2,72 @@ context("with_caller")
 
 `%is%` <- expect_equal
 
-test_that("calling from", {
+test_that("calling from somewhere up the stack", {
+  fenv <- NULL
+  genv <- NULL
+  get <- function(x) {
+    c(caller()$where,
+      parent.frame()$where)
+  }
   f <- function() {
+    fenv <<- environment()
     where <- "f"
     get <- "nope"
-    environment()
+    g()
   }
   g <- function() {
+    genv <<- environment()
     where <- "g"
     get <- "nope"
-    environment()
+    h()
   }
-  get <- function(x) {
-    caller()$where
+  h <- function() {
+    with_caller(get, fenv)() %is% c("f", "f")
+    with_caller(get, genv)() %is% c("g", "g")
   }
-  
-  with_caller(get, f()) %is% "f"
-  with_caller(get, f()) %is% "g"
+  f()
 })
 
-test_that("calling by name from", {
+test_that("with_caller by name finds in terget env?", {
+  fenv <- NULL
+  genv <- NULL
   f <- function(x) {
+    fenv <<- environment()
     this <- "x"
     that <- "a"
     get <- function() this
-    environment()
+    g()
   }
   g <- function(x) {
     this <- "y"
     that <- "b"
     get <- function() that
-    environment()
+    h()
   }
-  get <- "nope"
-  with_caller("get", f())() %is% "x" 
-  with_caller("get", g())() %is% "b" 
-  with_caller(quote(get), f())() %is% "x" 
-  with_caller(quote(get), g())() %is% "b" 
+  h <- function(x) {
+    get <- "nope"
+    #See that names and symbols are evaluated in the called environment...
+    with_caller("get", fenv)() %is% "x" 
+    with_caller("get", genv)() %is% "b" 
+    with_caller(quote(get), fenv)() %is% "x" 
+    with_caller(quote(get), genv)() %is% "b" 
+  }
+  f()
 })
 
-test_that("with_caller up the stack", {
-  fenv <- NULL
-  where <- "0"
-  f <- function() {
-    where <- "f"
+test_that("what is function called?", {
+  fenv <- NULL 
+  f <- function(f) {
     fenv <<- environment()
     g()
   }
   g <- function() {
-    where <- "g"
-    h()
-  }
-  h <- function() {
-    where <- "h"
-    with_caller(get, fenv)() %is% "f"
+    foo <- get
+    with_caller(foo, fenv)()
+#    with_caller("get", fenv)()
   }
   get <- function() {
-    caller()$where
+    sys.calls()
   }
   f()
 })
@@ -79,9 +88,10 @@ test_that("with_caller down the stack in closed env", {
     environment()
   }
   get <- function() {
-    caller()$where
+    parent.frame()$where %is% "h"
+    caller()$where $is$ "h"
   }
-  f() %is% "f"
+  f() %is% c("h", "h")
 })
 
 test_that("with_caller from de novo env.", {

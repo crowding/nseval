@@ -17,7 +17,7 @@ A \link{dots} object.
 \description{
 All bindings in the environment will be copied into a new
 \code{\dots} list. Bindings that are promises will be added to the
-\dots list without forcing, while other bindings will be wrap >ped in
+\dots list without forcing, while other bindings will be wrapped in
 an already-evaluated promise.  If `...` exists in the environment,
 all bindings it contains will be added to the \dots list. The
 output will not be in any particular order.

@@ -47,6 +47,12 @@ arg_env <- function(name,
   .Call(`_arg_env`, envir, substitute(name))
 }
 
+#` @export
+arg_env_ <- function(name,
+                     envir=arg_env(name, environment())){
+  .Call(`_arg_env`, envir, as.name(name))
+}
+
 #' ...
 #'
 #' \code{arg_expr} fetches the expression attached to an argument in the given
@@ -60,13 +66,17 @@ arg_expr <- function(name,
   .Call(`_arg_expr`, envir, substitute(name))
 }
 
+#` @export
+arg_expr_ <- function(name, envir=arg_env(name, environment())) {
+  .Call(`_arg_expr`, envir, as.name(name))
+}
 
 
 #' Convert an environment into a ... object, without forcing promises.
 #'
 #' All bindings in the environment will be copied into a new
 #' \code{\dots} list. Bindings that are promises will be added to the
-#' \dots list without forcing, while other bindings will be wrap >ped in
+#' \dots list without forcing, while other bindings will be wrapped in
 #' an already-evaluated promise.  If `...` exists in the environment,
 #' all bindings it contains will be added to the \dots list. The
 #' output will not be in any particular order.

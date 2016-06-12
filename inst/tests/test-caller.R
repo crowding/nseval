@@ -3,10 +3,10 @@ context("caller")
 expect_throws_if_isnt <- function (object, expected, ..., info = NULL, label = NULL, expected.label = NULL) 
 {
   if (is.null(label)) {
-    label <- testthat:::find_expr("object")
+    label <- as.character(substitute(object))
   }
   if (is.null(expected.label)) {
-    expected.label <- testthat:::find_expr("expected")
+    expected.label <- as.character(substitute(expected))
   }
   expect_that(object, throws_if_isnt(expected, label = expected.label, 
                                      ...), info = info, label = label)
@@ -14,9 +14,7 @@ expect_throws_if_isnt <- function (object, expected, ..., info = NULL, label = N
 
 throws_if_isnt <- function(expected, regexp = NULL, label=NULL, ...) {
   if (is.null(label)) {
-    label <- testthat:::find_expr("expected")
-  } else if (!is.character(label) || length(label) != 1) {
-    label <- deparse(label)
+    label <- as.character(substitute(expected))
   }
   function(expr) {
     res <- try(force(expr), TRUE)
@@ -24,19 +22,22 @@ throws_if_isnt <- function(expected, regexp = NULL, label=NULL, ...) {
     if (no_error) {
       same <- compare(res, expected, ...)
       if (same$equal) {
-        return(testthat::expectation(FALSE, 
-                           paste0("did not throw and equals ", label),
-                           "threw error"));
+        return(testthat::expectation("failure", 
+                           paste0("did not throw and equals ", label)));
       } else {
-        return(testthat::expectation(same$equal, 
-                                     paste0("not equal to ", label, "\n", same$message), 
-                                     paste0("equals ", label)))
+        if (same$equal) {
+          return(testthat::expectation("failure", 
+                                       paste0("not equal to ", label, "\n", same$message)))
+        } else {
+          return(testthat::expectation("success", 
+                                       paste0("equals ", label)))
+        }
       }
     }
     if (!is.null(regexp)) {
       matches(regexp, ...)(res)
     } else {
-      expectation(TRUE, "no error thrown", "threw an error")
+      expectation("success", "threw an error")
     }
   }
 }
