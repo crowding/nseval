@@ -99,9 +99,6 @@ this_call <- function() {
 #' @useDynLib fexpr _make_call
 #' @export
 with_caller <- function(f, envir=arg_env(f)) {
-  f_dots = arg_dots(f)
   force(envir)
-  function(...) .Call(`_make_call`, f_dots, envir, dots(...))
-  #the stack frame should be made active?
-  #f <- function(...) eval(f, envir)
+  function(...) .Call(`_make_call`, f, envir, dots(...))
 }

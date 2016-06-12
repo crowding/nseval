@@ -2,12 +2,27 @@ context("with_caller")
 
 `%is%` <- expect_equal
 
+test_that("with_caller passes along args", {
+  f <- function(...) {
+    here <- "f"
+    g(here, ...)
+  }
+  g <- function(...) {
+    here <- "g"
+    h(here, ...)
+  }
+  e <- list2env(list(here="no"))
+  h <- with_caller(c, e)
+  here <- "top"
+  f(here) %is% c("g", "f", "top")
+})
+
 test_that("calling from somewhere up the stack", {
   fenv <- NULL
   genv <- NULL
-  get <- function(x) {
-    c(caller()$where,
-      parent.frame()$where)
+  get <- function(expected) {
+    parent.frame()$where %is% expected
+    caller()$where %is% expected
   }
   f <- function() {
     fenv <<- environment()
@@ -22,13 +37,13 @@ test_that("calling from somewhere up the stack", {
     h()
   }
   h <- function() {
-    with_caller(get, fenv)() %is% c("f", "f")
-    with_caller(get, genv)() %is% c("g", "g")
+    with_caller(get, fenv)("f")
+    with_caller(get, genv)("g")
   }
   f()
 })
 
-test_that("with_caller by name finds in terget env?", {
+test_that("with_caller by name finds in target env", {
   fenv <- NULL
   genv <- NULL
   f <- function(x) {
@@ -39,6 +54,7 @@ test_that("with_caller by name finds in terget env?", {
     g()
   }
   g <- function(x) {
+    genv <<- environment()
     this <- "y"
     that <- "b"
     get <- function() that
@@ -46,9 +62,6 @@ test_that("with_caller by name finds in terget env?", {
   }
   h <- function(x) {
     get <- "nope"
-    #See that names and symbols are evaluated in the called environment...
-    with_caller("get", fenv)() %is% "x" 
-    with_caller("get", genv)() %is% "b" 
     with_caller(quote(get), fenv)() %is% "x" 
     with_caller(quote(get), genv)() %is% "b" 
   }
@@ -64,7 +77,7 @@ test_that("what is function called?", {
   g <- function() {
     foo <- get
     with_caller(foo, fenv)()
-#    with_caller("get", fenv)()
+    with_caller(quote(get), fenv)()
   }
   get <- function() {
     sys.calls()
@@ -89,7 +102,7 @@ test_that("with_caller down the stack in closed env", {
   }
   get <- function() {
     parent.frame()$where %is% "h"
-    caller()$where $is$ "h"
+    caller()$where %is% "h"
   }
   f() %is% c("h", "h")
 })
