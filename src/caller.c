@@ -1,7 +1,6 @@
 #include "caller.h"
 
 SEXP _make_call(SEXP f, SEXP envir, SEXP dots) {
-  //assert_type3(fdots, DOTSXP, "f_dots must be DOTSXP");
   assert_type3(envir, ENVSXP, "envir is not an environment");
   int has_args;
   
@@ -48,9 +47,6 @@ SEXP _make_call(SEXP f, SEXP envir, SEXP dots) {
   SET_PRCODE(from, call);
   SET_PRVALUE(from, R_UnboundValue);
   
-  //this may be a new test case for .caller: the stack frame of an eval called 
-  //from inside .call
-  SEXP out = PROTECT(eval(from, envir));
-  UNPROTECT(3);
-  return out;
+  UNPROTECT(2);
+  return call;
 }

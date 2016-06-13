@@ -7,6 +7,19 @@
 #'   was called. If that environment cannot be reliably determined, an error is 
 #'   thrown.
 #'   
+#'   \code{caller} is intended as a replacement for most uses of
+#'   \code{\link{parent.frame}}. Unlike \code{parent.frame}, \code{caller} will
+#'   throw an error if it cannot determine the calling environment. This tends
+#'   to happen in situations involving lazy evaluation, closures, \code{eval} or
+#'   \code{do.call}. In these same situaions, \code{parent.frame} can return
+#'   incorrect results (i.e. environments that are actually not the calling
+#'   environment) without warning, which the author finds to be a frequent 
+#'   source of bugs.
+#'   
+#'   Whenever possible, use \code{\link{arg_env}} instead of \code{caller}. Use 
+#'   \code{caller} for NSE functions that take no arguments, or to work around 
+#'   bad NSE in other people's code.
+#'   
 #'   In R, expressions are evaluated in environments; environments are created 
 #'   by function invocation. In the code
 #'   
@@ -29,19 +42,6 @@
 #'   in the lazy argument should have the same 'caller' as other code in its
 #'   lexical environment, though it has a different activation path.
 #'   
-#'   \code{caller} is intended as a replacement for most uses of
-#'   \code{\link{parent.frame}}. Unlike \code{parent.frame}, \code{caller} will
-#'   throw an error if it cannot determine the calling environment. This tends
-#'   to happen in situations involving lazy evaluation, closures, \code{eval} or
-#'   \code{do.call}. In these same situaions, \code{parent.frame} can return
-#'   incorrect results (i.e. environments that are actually not the calling
-#'   environment) without warning, which the author finds to be a frequent 
-#'   source of bugs.
-#'   
-#'   Whenever possible, use \code{\link{arg_env}} instead of \code{caller}. Use 
-#'   \code{caller} for NSE functions that take no arguments, or to work around 
-#'   bad NSE in other people's code.
-#'   
 #'   \code{caller()} with no arguments should always give the same results as 
 #'   \code{caller(environment())}, but the former amounts to calling \code{caller} twice
 #'   (as \code{caller} must discover its own caller) so the latter will be faster.
@@ -52,6 +52,10 @@
 #' # For further examples please see the test cases
 #' # located under inst/tests/test-caller.R
 caller <- function(envir=caller(environment())) {
+  #assign("trace", 
+  #       list(trace=stacktrace(), frames=sys.frames(), parents = sys.parents(), calls = sys.calls(), envir = envir),
+  #       envir = globalenv())
+  
   frames <- sys.frames()
   where <- which(vapply(frames, identical, FALSE, envir))
   
@@ -73,26 +77,25 @@ caller <- function(envir=caller(environment())) {
   frames[[whichparent]]
 }
 
-# TODO: replacement for match.call.
-this_call <- function() {
-  stop("Implement me")
-}
-
 #' Wrap a function so that it will see a particular caller or parent.frame.
 #'
-#' @param f The function to call. A name or character string may be
-#' used, which should refer to a function visible in the environment
-#' given.
+#' @param f The function to call. A symbol may be given, which must be a symbol visible 
+#' from \code{e}.
 #'
-#' @param envir The environment to issue the call from. If \code{\link{caller}}
+#' @param envir The environment to issue the call from. If \code{\link{caller}()}
 #' is called within \code{f}, it will return \code{envir}.
 #'
-#' @return A function wrapper. Calling it will call `f`, but from within `f` a 
-#' call to `parent.frame()` or `caller` will return `envir`. 
+#' @return A function wrapper. Calling it will call \code{f}, but from within \code{f} a 
+#' call to \code{parent.frame()} or \code{caller} will return \code{envir}. 
 #' 
-#' call_from(f, e)("foo", "bar") is similar to `eval(quote(f("foo", "bar")), envir=e)`
-#' except that the argument list is applied normally instead of being evaluated 
-#' in the target environment.
+#' The difference between \code{with_caller(f, e)(foo, bar)} and 
+#' \code{do.call(f, alist(foo, bar), envir=e)} is that with for \code{with_caller} the arguments
+#' \code{foo} and \code{bar} is applied normally (evaluated in the present 
+#' environment) while with \code{do.call` the arguments will be looked up in \code{e}.
+#' 
+#' To reproduce the effects of \code{do.call}, you could write
+#' \code{with_caller(f, e) %()% dots(alist(foo, bar), e)}. Note that there is independent control of 
+#' where the caller of hte function and the context of the arguments.
 #' 
 #' A typical use for `with_caller` is to gain some flexibility working with impolite
 #' functions that manipulate their `caller()` or `parent_frame()`
@@ -100,5 +103,8 @@ this_call <- function() {
 #' @export
 with_caller <- function(f, envir=arg_env(f)) {
   force(envir)
-  function(...) .Call(`_make_call`, f, envir, dots(...))
+  function(...) {
+    expr <- .Call(`_make_call`, f, envir, dots(...))
+    eval(expr, envir)
+  }
 }

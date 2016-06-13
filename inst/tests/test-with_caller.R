@@ -76,11 +76,11 @@ test_that("what is function called?", {
   }
   g <- function() {
     foo <- get
-    with_caller(foo, fenv)()
-    with_caller(quote(get), fenv)()
+    expect_true(is.function(with_caller(foo, fenv)()))
+    expect_equal(with_caller(quote(get), fenv)(), quote(get))
   }
   get <- function() {
-    sys.calls()
+    match.call()[[1]]
   }
   f()
 })
@@ -104,7 +104,7 @@ test_that("with_caller down the stack in closed env", {
     parent.frame()$where %is% "h"
     caller()$where %is% "h"
   }
-  f() %is% c("h", "h")
+  f()
 })
 
 test_that("with_caller from de novo env.", {
@@ -113,19 +113,21 @@ test_that("with_caller from de novo env.", {
     e <- new.env()
     e$where <- "e"
     e
-    with_caller(get, e) %is% "e"
-    with_caller(get2, e) %is% emptyenv()
+    with_caller(get, e)("e")
   }
-  get <- function() caller()$where
-  get2 <- function() caller(caller())
+  get <- function(expected) {
+    parent.frame()$where %is% expected
+    caller()$where %is% expected
+  }
   f()
 })
 
 test_that("arg_envs propagate through with_caller()", {
   where <- "0"
-  eenv
+  eenv <- NULL
   e <- function() {
     where <- "e"
+    eenv <<- environment()
     f()
   }
   f <- function(...) {
