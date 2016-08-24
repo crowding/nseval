@@ -1,6 +1,6 @@
 context("wrong")
 
-# This test file demonstrates some behavior of R nonstandard evalution 
+# This test file demonstrates some behavior of R nonstandard evalution
 # functions that I think is wrong, and that this package tries to correct.
 
 expect_different <- function(object, expected, ..., info=NULL, label=NULL, expected.label = NULL) {
@@ -10,7 +10,7 @@ expect_different <- function(object, expected, ..., info=NULL, label=NULL, expec
   if (is.null(expected.label)) {
     expected.label <- deparse(arg_expr(expected))
   }
-  expect_that(object, different_from(expected, label = expected.label, 
+  expect_that(object, different_from(expected, label = expected.label,
                                      ...), info = info, label = label)
 }
 
@@ -45,36 +45,36 @@ test_that("parent_frame returns garbage when called from a promise.", {
     # A problem with using parent_frame to determine a function's caller is that
     # parent.frame()'s return value can change when called at different times
     # from the same environment.
-    
+
     # To illustrate this, here is a NSE function that captures an expression and
     # returns a function that evaluates that expression.
     make_callable <- function(arg, envir=parent.frame()) {
       expr <- substitute(arg)
       function() eval(expr, envir)
     }
-    
+
     # Say we use "callable" to write "make_counter."
     make_counter <- function() {
       x <- 0 #this x should change.
       make_callable(x <- x + 1)
     }
-    
+
     # Since "make_callable" is invoked from a frame containing a local x,
     count <- make_counter()
     # we expect count() should update that local value, not this global value.
     x <<- 999 #this x should not change!
-    
+
     # Does it? As it turns out, no.
     expect_equal(count(), 1000)
     expect_equal(x, 1000) #The wrong x changed.
-    
-    # The problem is that callable's argument "envir" is lazily evaluated, so 
+
+    # The problem is that callable's argument "envir" is lazily evaluated, so
     # "parent.frame" gets called only when the true caller has fallen off the
     # stack. And when `parent.frame` is called by forcing a promise (and the
     # original caller is no longer on the stack), it can silently do a wrong
     # thing: it returns the stack frame that occasioned the evaluation of "x",
     # and NOT the caller of make_callable.
-    
+
     # A standard workaround is to force envir to evaluate before its parent frame
     # falls off the stack.
     make_callable <- function(arg, envir=parent.frame()) {
@@ -86,7 +86,7 @@ test_that("parent_frame returns garbage when called from a promise.", {
     x <- 999
     expect_equal(count(), 1)
     expect_equal(x, 999) #that's more like it.
-    
+
     # But IMO, this is WRONG! parent.frame should not change its output depending
     # on whether it is called early or late. This package provides
     # "arg_env" and "arg_expr" instead of parent.frame() and substitute(). This
@@ -103,23 +103,23 @@ test_that("parent_frame returns garbage when called from a promise.", {
   })()
 })
 
-#following test cases were borrowed from test_caller. These are all things that caller() gets right 
+#following test cases were borrowed from test_caller. These are all things that caller() gets right
 #(or throws) where parent.frame gets wrong.
 test_that("parent.frame finds parent.frame", ({
   f1 <- function() {
     where <- "1"
     g()
   }
-  
+
   f2 <- function() {
     where <- "2"
     g()
   }
-  
+
   g <- function() {
     parent.frame()
   }
-  
+
   f1()$where %but_is% "1"
   f2()$where %but_is% "2"
 }))
@@ -129,16 +129,16 @@ test_that("parent.frame defaults to environment called from", {
     where <- "f"
     h()
   }
-  
+
   g <- function() {
     where <- "g"
     h()
   }
-  
+
   h <- function() {
     parent.frame()
   }
-  
+
   f()$where %but_is% "f"
   g()$where %but_is% "g"
 })
@@ -190,7 +190,7 @@ test_that("parent.frame from eval and do.call", {
       g <- function() {
         where <- "g"
         z <<- environment()
-        
+
         parent.frame()$where %but_is% "f" # example #1
         eval(quote(parent.frame()))$where %but_is% "f"
         do.call("parent.frame", list())$where %but_is% "f"
@@ -232,7 +232,3 @@ test_that("parent.frame from eval and do.call in closed environments", {
   }
   h()
 })
-
-
-
-
