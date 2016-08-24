@@ -5,10 +5,10 @@ context("wrong")
 
 expect_different <- function(object, expected, ..., info=NULL, label=NULL, expected.label = NULL) {
   if (is.null(label)) {
-    label <- testthat:::find_expr("object")
+    label <- deparse(arg_expr(object))
   }
   if (is.null(expected.label)) {
-    expected.label <- testthat:::find_expr("expected")
+    expected.label <- deparse(arg_expr(expected))
   }
   expect_that(object, different_from(expected, label = expected.label, 
                                      ...), info = info, label = label)
@@ -16,15 +16,18 @@ expect_different <- function(object, expected, ..., info=NULL, label=NULL, expec
 
 different_from <- function(expected, label=NULL, ...) {
   if (is.null(label)) {
-    label <- find_expr(NULL)
+    label <- deparse(arg_expr(expected))
   }
   else if (!is.character(label) || length(label) != 1) {
     label <- deparse(label)
   }
   function(actual) {
     same <- compare(actual, expected, ...)
-    expectation(!same$equal, paste0("was actually equal to ", label, 
-                                    "\n", same$message), paste0("different_from ", label))
+    if (same$equal) {
+      expectation("failure", paste0("was equal to ", label))
+    } else {
+      expectation("success", "")
+    }
   }
 }
 
@@ -100,8 +103,8 @@ test_that("parent_frame returns garbage when called from a promise.", {
   })()
 })
 
-#following test cases were borrowed from test_caller.
-
+#following test cases were borrowed from test_caller. These are all things that caller() gets right 
+#(or throws) where parent.frame gets wrong.
 test_that("parent.frame finds parent.frame", ({
   f1 <- function() {
     where <- "1"
@@ -114,11 +117,11 @@ test_that("parent.frame finds parent.frame", ({
   }
   
   g <- function() {
-    parent.frame(environment())
+    parent.frame()
   }
   
-  f1()$where %should_be% "1"
-  f2()$where %should_be% "2"
+  f1()$where %but_is% "1"
+  f2()$where %but_is% "2"
 }))
 
 test_that("parent.frame defaults to environment called from", {
@@ -136,46 +139,8 @@ test_that("parent.frame defaults to environment called from", {
     parent.frame()
   }
   
-  f()$where %should_be% "f"
-  g()$where %should_be% "g"
-})
-
-test_that("parent.frame of not the immediate environment", {
-  where <- "e"
-  f <- function() {
-    where <- "f"
-    a <- environment()
-    g(a)
-  }
-  g <- function(a) {
-    where <- "g"
-    b <- environment()
-    h(a, b)
-  }
-  h <- function(a, b) {
-    where <- h
-    c <- environment()
-    parent.frame(c)$where %should_be% "g"
-    parent.frame(b)$where %should_be% "f"
-    parent.frame(a)$where %should_be% "e"
-  }
-  f()
-})
-
-test_that("parent.frame of a closed environment (contra parent.frame)", {
-  where <- "0"
-  
-  f <- function() {
-    where <- "f"
-    g()
-  }
-  
-  g <- function() {
-    where <- "g"
-    environment()
-  }
-  
-  parent.frame(g())$where %should_be% "f"
+  f()$where %but_is% "f"
+  g()$where %but_is% "g"
 })
 
 test_that("parent.frame from a lazy argument", {
@@ -193,7 +158,7 @@ test_that("parent.frame from a lazy argument", {
     }
     f()
   }
-  e() %should_be% "e"
+  e() %but_is% "e"
 })
 
 test_that("parent.frame from a lazy argument in a closed environment", {
@@ -210,7 +175,7 @@ test_that("parent.frame from a lazy argument in a closed environment", {
     }
     f()
   }
-  e()() %should_be% "e"  #example 3
+  e()() %but_is% "e"  #example 3
 })
 
 test_that("parent.frame from eval and do.call", {
@@ -226,16 +191,10 @@ test_that("parent.frame from eval and do.call", {
         where <- "g"
         z <<- environment()
         
-        parent.frame()$where %should_be% "f" # example #1
-        parent.frame(y)$where %should_be% "e"
-        eval(quote(parent.frame()))$where %should_be% "f"
-        eval(quote(parent.frame()), y)$where %should_be% "e" 
-        do.call("parent.frame", list())$where %should_be% "f"
-        do.call("parent.frame", alist(z))$where %should_be% "f" 
-        do.call("parent.frame", alist(y))$where %should_be% "e"
-        do.call("parent.frame", list(), envir=y)$where %should_be% "e"
-        do.call("parent.frame", alist(x), envir=y)$where %should_be% "0"
-        do.call("parent.frame", list(z), envir=x)$where %should_be% "f"
+        parent.frame()$where %but_is% "f" # example #1
+        eval(quote(parent.frame()))$where %but_is% "f"
+        do.call("parent.frame", list())$where %but_is% "f"
+        do.call("parent.frame", list(), envir=y)$where %but_is% "e"
       }
       g()
     }
@@ -263,16 +222,13 @@ test_that("parent.frame from eval and do.call in closed environments", {
   }
   e()
   h <- function() {
-    parent.frame()$where %should_be% "0"
-    parent.frame(y)$where %should_be% "e"
-    eval(quote(parent.frame()))$where %should_be% "0"
-    eval(quote(parent.frame()), y)$where %should_be% "e" #example 2
-    do.call("parent.frame", list())$where %should_be% "0" #example 3
-    do.call("parent.frame", alist(z))$where %should_be% "f" 
-    do.call("parent.frame", alist(y))$where %should_be% "e"
-    do.call("parent.frame", envir=y)$where %should_be% "e"
-    do.call("parent.frame", alist(x), envir=y)$where %should_be% "e"
-    do.call("parent.frame", list(z), envir=x)$where %should_be% "f"
+    parent.frame()$where %but_is% "0"
+    eval(quote(parent.frame()))$where %but_is% "0"
+    eval(quote(parent.frame()), y)$where %but_is% "e" #example 2
+    do.call("parent.frame", list())$where %but_is% "0" #example 3
+    do.call("parent.frame", list(), envir=y)$where %but_is% "e"
+    do.call("parent.frame", list(), envir=y)$where %but_is% "e"
+    do.call("parent.frame", list(), envir=x)$where %but_is% "f"
   }
   h()
 })

@@ -37,7 +37,7 @@ throws_if_isnt <- function(expected, regexp = NULL, label=NULL, ...) {
     if (!is.null(regexp)) {
       matches(regexp, ...)(res)
     } else {
-      expectation("success", "threw an error")
+      testthat::expectation("success", "threw an error")
     }
   }
 }
