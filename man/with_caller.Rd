@@ -7,11 +7,33 @@
 with_caller(f, envir = arg_env(f))
 }
 \arguments{
-\item{f}{The function to call. A symbol may be given, which must be a symbol visible 
-from \code{e}.}
+\item{f}{The function to call. A symbol may be given, which must be
+a symbol visible from \code{e}.}
 
-\item{envir}{The environment to issue the call from. If \code{\link{caller}()}
-is called within \code{f}, it will return \code{envir}.}
+\item{envir}{The environment to issue the call from. If
+\code{\link{caller}()} is called within \code{f}, it will return
+\code{envir}.}
+}
+\value{
+A function wrapper. Calling it will call \code{f}, but from
+  within \code{f} a call to \code{parent.frame()} or \code{caller}
+  will return \code{envir}.
+
+Use \code{with_caller} to deal with or wrap functions that use
+their \code{caller()} or \code{parent.frame()}. (Try not to write
+such functions though!)
+
+\code{with_caller} is intended to be safer than
+\code{\link{do.call}} for this purpose.  A function wrapped by
+with_caller passes its arguments normally, while \code{do.call}
+causes the function arguments to also be interpreted in the target
+environment.
+
+To reproduce the effects of
+\code{do.call(f, alist(foo, bar), envir=e)}, you could write
+\code{with_caller(f, e) \%()\% dots(alist(foo, bar), e)}.
+Note that there is independent control of the caller of the function and
+the context of the arguments.
 }
 \description{
 Wrap a function so that it will see a particular caller or parent.frame.

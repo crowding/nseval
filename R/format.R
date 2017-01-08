@@ -14,7 +14,7 @@ format.deparse <- function(x, ...) {
 `%(d)%` <- function(f, d) {
   n <- names(formals(d))
   if("..." %in% n) {
-    f %()% d } 
+    f %()% d }
   else {
     f %()% d[intersect(names(d), names(formals(f)))];
   }
@@ -24,10 +24,10 @@ ifelsedf <- function(d, condf, truef, falsef) {
   cond <- condf %(d)% d
   whenFalse <- if(!all(cond)) falsef %(d)% d[!cond, ] else logical(0)
   whenTrue <- if(any(cond)) truef %(d)% d[cond, ] else logical(0)
-  
+
   #type-stably allocate a sequence (assuming truef and falsef are type-stable)
   theMode <- mode(c(vector(mode(whenFalse), 0), vector(mode(whenTrue), 0)))
-  
+
   out <- vector(theMode, length(cond))
   out[cond] <- whenTrue
   out[!cond] <- whenFalse
@@ -58,18 +58,27 @@ make_names <- function (x, prefix = "X"){
 one_line <- function(x, f, width, ...) {
   l <- lapply(x, f)
   vapply(l, function(x) toString(
-    if(length(x) > 1) paste0(x[[1]], "...") else if (length(x) == 1) x else "?NULL?", width=width), "")
+    {
+      if(length(x) > 1)
+        paste0(x[[1]], "...")
+      else if (length(x) == 1)
+        x
+      else "?NULL?"
+    },
+    width=width), ""
+  )
 }
 
 format_robust <- function(x, ...) {
   tryCatch(format(x, ...), error=function(e) "?FORMAT?")
 }
 
-#' Formats a sequence of objects to show one line each.
+#' Format a sequence of objects to show one line each.
+#'
 #' Somewhat similar to format.AsIs but tries harder with language objects.
 #' @param x An object
 #'
-#' @param width 
+#' @param width the width of line to produce.
 #' @param ... parameters passed to "format"
 #'
 #' @export
@@ -85,48 +94,49 @@ format.oneline <- function(x, width=30, ...) {
   x
 }
 
-#' Format a dots object for printing. 
-#' 
+#' Format a dots object for printing.
+#'
 #' Constructs a string representation of a dots object. In this representation
 #' an unevaluated promise is printed as "\code{envir ? expr}" and an evaluated
 #' promise is shown as "\code{expr := value}".
 #' @param x A dots object.
-#'   
+#'
 #' @param compact Implies \code{show.environments=FALSE} and
 #'   \code{show.expressions=FALSE}.
 #' @param show.environments Whether to show environments for unevaluated
 #'   promises.
 #' @param show.expressions Whether to show expressions for evaluated promises.
 #' @param ... Further arguments passed to \link{format} methods.
-#'   
+#'
 #' @export
-format.... <- function(x, 
-                       compact = FALSE, 
-                       show.environments = !compact, 
+format.... <- function(x,
+                       compact = FALSE,
+                       show.environments = !compact,
                        show.expressions = !compact,
                        width=30,
                        ...) {
   dotdata <- unpack(x)
   doformat <- function(x) one_line(x, format, width=width, ...)
   dodeparse <- function(x) one_line(x, deparse, width=width, ...)
-  
+
   contents <- paste0(
     ifelse(dotdata$name != "",
            paste0(dotdata$name, " = "),
            ""),
     ifelsedf(dotdata,
              function(envir) vapply(envir, is.null, FALSE),
-             function(expr, value) 
+             function(expr, value)
                ifelsedf(df(expr=expr, value=value),
                         function(expr) vapply(expr, is.language, FALSE),
                         function(expr, value) paste0(
-                          if (show.expressions && !is.missing(expr)) 
+                          if (show.expressions && !is.missing(expr))
                             paste0(dodeparse(expr), " := ") else "",
                           doformat(value)),
                         function(value) doformat(value)),
-             function(expr, envir) paste0(if (show.environments) doformat(envir) else "", 
-                                          if (show.environments) " ? " else "? ",
-                                          dodeparse(expr))),
+             function(expr, envir) paste0(
+               if (show.environments) doformat(envir) else "",
+               if (show.environments) " ? " else "? ",
+               dodeparse(expr))),
     collapse=", "
   )
   chars = paste0("args(", contents, ")")

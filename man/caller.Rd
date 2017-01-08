@@ -11,48 +11,47 @@ caller(envir = caller(environment()))
 which \code{caller} was called.}
 }
 \value{
-The environment in which the function call that created \code{envir} 
-  was called. If that environment cannot be reliably determined, an error is 
+The environment in which the function call that created \code{envir}
+  was called. If that environment cannot be reliably determined, an error is
   thrown.
-  
-  \code{caller} is intended as a replacement for most uses of
-  \code{\link{parent.frame}}. Unlike \code{parent.frame}, \code{caller} will
-  throw an error if it cannot determine the calling environment. This tends
-  to happen in situations involving lazy evaluation, closures, \code{eval} or
-  \code{do.call}. In these same situaions, \code{parent.frame} can return
-  incorrect results (i.e. environments that are actually not the calling
-  environment) without warning, which the author finds to be a frequent 
-  source of bugs.
-  
-  Whenever possible, use \code{\link{arg_env}} instead of \code{caller}. Use 
-  \code{caller} for NSE functions that take no arguments, or to work around 
-  bad NSE in other people's code.
-  
-  In R, expressions are evaluated in environments; environments are created 
+
+  \code{caller} is a safer alternative to
+  \code{\link{parent.frame}}.  Unlike \code{parent.frame},
+  \code{caller} will throw an error if it cannot determine the
+  calling environment. This tends to happen in situations involving
+  lazy evaluation, closures, \code{eval} or \code{do.call}. In some
+  of these situations, \code{parent.frame} can return surprising
+  results.
+
+  Prefer to use \code{\link{arg_env}} instead of \code{caller} when possible.
+  Use \code{caller} for NSE functions that take no arguments, or to work
+  around bad NSE in other people's code.
+
+  In R, expressions are evaluated in environments; environments are created
   by function invocation. In the code
-  
+
   \code{X <- environment()
   F <- function() {
     Y <- environment()
     caller(Y)
-  } 
+  }
   F()}
-  
-  the environment bound to "Y" was created by calling F(), and that call occurs
-  in the environment bound to "X". We say that X is the calling environment of
-  Y.
-  
+
+  the environment bound to "Y" was created by calling F(), and that
+  call occurs in the environment bound to "X". We say that X is the
+  calling environment of Y.
+
   Note that the "caller" is in general different from the "enclosing
-  environment" which is returned by \code{\link{parent.env}}). It is also
+  environment" which is returned by \code{\link{parent.env}}. It can also be
   different from the environment in the previous frame of the execution
-  stack as returned by "parent.frame." In the case of lazy evaluation, 
+  stack as returned by "parent.frame." In the case of lazy evaluation,
   an environment may be reactivated to compute a lazy argument; the code
   in the lazy argument should have the same 'caller' as other code in its
   lexical environment, though it has a different activation path.
-  
-  \code{caller()} with no arguments should always give the same results as 
-  \code{caller(environment())}, but the former amounts to calling \code{caller} twice
-  (as \code{caller} must discover its own caller) so the latter will be faster.
+
+  \code{caller()} with no arguments should always give the same
+  results as \code{caller(environment())}, but the former amounts
+  to calling \code{caller} twice, so the latter will be faster.
 }
 \description{
 Get the calling environment of a given environment.

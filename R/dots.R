@@ -256,7 +256,7 @@ list_missing <- function(...) {
 #'  }
 #' named.list(a=1, b=2*2, stop("this is not evaluated"))
 #' @export
-dots <- function(...) 
+dots <- function(...)
   structure(if (nargs() > 0) get("...") else NULL,
             class="...")
 
@@ -409,7 +409,7 @@ is.missing.... <- function(x) {
 
 #' @export
 is.missing.default <- function(x) {
-  if (identical(x, missing_value())) 
+  if (identical(x, missing_value()))
     TRUE
   else if (is.list(x))
     vapply(x, identical, FALSE, quote(expr=))
