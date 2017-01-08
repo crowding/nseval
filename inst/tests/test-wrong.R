@@ -175,7 +175,7 @@ test_that("parent.frame from a lazy argument in a closed environment", {
     }
     f()
   }
-  e()() %but_is% "e"  #example 3
+  e()()$where %but_is% "e"  #example 3
 })
 
 test_that("parent.frame from eval and do.call", {
