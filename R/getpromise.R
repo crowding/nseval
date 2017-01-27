@@ -12,24 +12,26 @@
 #' @seealso dots get_dots
 #' @rdname arg_list
 #' @export
-#' @useDynLib fexpr _getpromise_in
+#' @useDynLib fexpr _arg_dots
 arg_dots <- function(...) {
   d <- unpack(dots(...))
-  .Call(`_getpromise_in`, d$envir, d$expr, d$name)
+  .Call(`_arg_dots`, d$envir, d$expr, d$name)
 }
 
-#' ...
+#' \code{arg_dots_} is a normally evaluating version of arg_dots.
 #'
-#' \code{arg_get} fetches arguments from a named list.
 #' @rdname arg_list
 #' @param names A character vector or list of names.
-#' @param envir The environment to look for the argument names in. By default
-#' looks in the lexical environment of the \code{name} argument.
-get_dots <- function(names, envir=arg_env(names, environment())) {
-  force(envir)
-  tags <- names(names) %||% rep("", length(names))
+#' @param envirs An environment, or list of environments, to look for
+#'   the bindings in.
+#' @param tags An optional character vector specifying output variable names.
+#' @export
+arg_dots_ <- function(names,
+                      envirs,
+                      tags = names(names) %||% vapply(names, as.character, "")) {
   names <- lapply(names, as.name)
-  .Call(`_getpromise_in`, rep(list(envir), length(names)), names, tags)
+  if (!is.list(envirs)) (envirs = rep(list(envirs), length(names)))
+  .Call(`_arg_dots`, envirs, names, tags, TRUE)
 }
 
 #' Get environment or expression from a named argument.
@@ -38,19 +40,18 @@ get_dots <- function(names, envir=arg_env(names, environment())) {
 #' un-evaluated promise).
 #' @rdname arg_env
 #' @param name A single argument name; not evaluated.
-#' @param envir The environment to look for the argument name in. By default
-#' looks in the lexical environment of the \code{name} argument.
+#' @param envir The environment to look for the argument name in.
 #' @useDynLib fexpr _arg_env
 #' @export
 arg_env <- function(name,
                     envir=arg_env(name, environment())) {
-  .Call(`_arg_env`, envir, substitute(name))
+  .Call(`_arg_env`, envir, substitute(name), TRUE)
 }
 
 #` @export
 arg_env_ <- function(name,
                      envir=arg_env(name, environment())){
-  .Call(`_arg_env`, envir, as.name(name))
+  .Call(`_arg_env`, envir, as.name(name), TRUE)
 }
 
 #' ...
@@ -58,26 +59,123 @@ arg_env_ <- function(name,
 #' \code{arg_expr} fetches the expression attached to an argument in the given
 #' environment. The effect is similar to \code{substitute(name)} but more
 #' specific.
+#'
 #' @rdname arg_env
 #' @useDynLib fexpr _arg_expr
 #' @export
 arg_expr <- function(name,
                      envir=arg_env(name, environment())) {
-  .Call(`_arg_expr`, envir, substitute(name))
+  .Call(`_arg_expr`, envir, substitute(name), TRUE)
 }
 
-#` @export
+#' ...
+#'
+#' \code{arg_expr_} is the normally evaluating version of arg_expr.
+#' @rdname arg_env
+#' @export
 arg_expr_ <- function(name, envir=arg_env(name, environment())) {
-  .Call(`_arg_expr`, envir, as.name(name))
+  .Call(`_arg_expr`, envir, as.name(name), TRUE)
 }
 
+#' ...
+#'
+#' \code{is_promise} returns TRUE if a named variable is bound to a
+#' promise. It returns a boolean vector with one entry for each name
+#' given. An error is raised if a binding does not exist.
+#'
+#' @rdname arg_env
+#' @useDynLib fexpr _is_promise
+#' @export
+#' @param ... Unquoted variable names.
+is_promise <- function(...) {
+  is_promise_(dots_expressions(...), dots_environments(...))
+}
 
-#' Convert an environment into a ... object, without forcing promises.
+#' ...
+#'
+#' \code{is_promise_} is a normally evaluating version of \code{is_promise}.
+#' @rdname arg_env
+#' @param names names of arguments to look up.
+#' @export
+is_promise_ <- function(names, envirs) {
+  mapply(FUN=function(name, envir) .Call(`_is_promise`, envir, name, TRUE),
+         lapply(names, as.name),
+         if (is.list(envirs)) envirs else list(envirs))
+}
+
+#' Tell if arguments are missing.
+#'
+#' \code{missing_} is a normally exporting equivalent of
+#' \code{\link{missing}}. It takes a number of names and environments,
+#' and checks whether the names are bound to missing arguments. To
+#' check whether values in a ... listor normal list are set to
+#' missing, use \code{\link{is.missing}}.
+#'
+#' @rdname arg_env
+#' @export
+#' @useDynLib fexpr _is_missing
+missing_ <- function(names, envirs) {
+  names <- lapply(names, as.name)
+  if (!is.list(envirs)) envirs <- list(envirs)
+  mapply(function(name, envir) .Call(`_is_missing`, envir, name, TRUE),
+         names,
+         envirs)
+}
+
+#' ...
+#'
+#' \code{is_forced} returns FALSE if an argument is bound to a promise that
+#' has not yet been forced, TRUE otherwise. An error is raised if a binding
+#' does not exist.
+#'
+#' @rdname arg_env
+#' @export
+is_forced <- function(...) {
+  is_forced_(dots_expressions(...), dots_environments(...))
+}
+
+#' ...
+#'
+#' \code{is_lazy_} is a normally evaluating version of \code{is_lazy}.
+#' @useDynLib fexpr _is_forced
+#' @rdname arg_env
+#' @export
+is_forced_ <- function(names, envirs) {
+  mapply(FUN=function(name, envir) .Call(`_is_forced`, envir, name, TRUE),
+         lapply(names, as.name),
+         if(is.list(envirs)) envirs else list(envirs))
+}
+
+#' ...
+#'
+#' \code{is_literal} returns TRUE if a binding is (or could be) a
+#' source literal. This includes singleton vectors and missing
+#' values. (R will often not bother constructing promises when a
+#' function is called a literal in source.)
+#' @rdname arg_env
+#' @export
+is_literal <- function(...) {
+  is_literal_(dots_expressions(...), dots_environments(...))
+}
+
+#' ...
+#'
+#' \code{is_literal_} is a normally evaluating version of \code{is_literal}.
+#' @rdname arg_env
+#' @useDynLib fexpr _is_literal
+#' @export
+is_literal_ <- function(names, envirs, warn=TRUE) {
+  mapply(FUN=function(name, envir) .Call(`_is_literal`, envir, name, TRUE),
+         lapply(names, as.name),
+         if (is.list(envirs)) envirs else list(envirs))
+}
+
+#' Convert an environment into a dots object, without forcing promises.
 #'
 #' All bindings in the environment will be copied into a new
 #' \code{\dots} list. Bindings that are promises will be added to the
 #' \dots list without forcing, while other bindings will be wrapped in
-#' an already-evaluated promise.  If `...` exists in the environment,
+#' an already-forced promise.  If `...` is bound in the environment,
 #' all bindings it contains will be added to the \dots list. The
 #' output will not be in any particular order.
 #'

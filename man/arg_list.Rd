@@ -2,12 +2,13 @@
 % Please edit documentation in R/getpromise.R
 \name{arg_dots}
 \alias{arg_dots}
-\alias{get_dots}
+\alias{arg_dots_}
 \title{Fetch promises associated with named arguments.}
 \usage{
 arg_dots(...)
 
-get_dots(names, envir = arg_env(names, environment()))
+arg_dots_(names, envirs, tags = names(names) \%||\% vapply(names,
+  as.character, ""))
 }
 \arguments{
 \item{...}{Variable names (unevaluated). Arguments may be named; these names
@@ -15,8 +16,10 @@ determine the names on the dots list (and not the variable names)}
 
 \item{names}{A character vector or list of names.}
 
-\item{envir}{The environment to look for the argument names in. By default
-looks in the lexical environment of the \code{name} argument.}
+\item{envirs}{An environment, or list of environments, to look for
+the bindings in.}
+
+\item{tags}{An optional character vector specifying output variable names.}
 }
 \value{
 a \code{\link{dots}} object containing the promises that are bound to
@@ -25,7 +28,7 @@ those variables in the calling environment.
 \description{
 Fetch promises associated with named arguments.
 
-\code{arg_get} fetches arguments from a named list.
+\code{arg_dots_} is a normally evaluating version of arg_dots.
 }
 \note{
 The tags on the dots object are determined by argument names;

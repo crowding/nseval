@@ -3,17 +3,44 @@
 \name{arg_env}
 \alias{arg_env}
 \alias{arg_expr}
+\alias{arg_expr_}
+\alias{is_forced}
+\alias{is_forced_}
+\alias{is_literal}
+\alias{is_literal_}
+\alias{is_promise}
+\alias{is_promise_}
+\alias{missing_}
 \title{Get environment or expression from a named argument.}
 \usage{
 arg_env(name, envir = arg_env(name, environment()))
 
 arg_expr(name, envir = arg_env(name, environment()))
+
+arg_expr_(name, envir = arg_env(name, environment()))
+
+is_promise(...)
+
+is_promise_(names, envirs)
+
+missing_(names, envirs)
+
+is_forced(...)
+
+is_forced_(names, envirs)
+
+is_literal(...)
+
+is_literal_(names, envirs, warn = TRUE)
 }
 \arguments{
 \item{name}{A single argument name; not evaluated.}
 
-\item{envir}{The environment to look for the argument name in. By default
-looks in the lexical environment of the \code{name} argument.}
+\item{envir}{The environment to look for the argument name in.}
+
+\item{...}{Unquoted variable names.}
+
+\item{names}{names of arguments to look up.}
 }
 \description{
 \code{arg_env} determines the lexical scope of an argument (which must be an
@@ -22,5 +49,32 @@ un-evaluated promise).
 \code{arg_expr} fetches the expression attached to an argument in the given
 environment. The effect is similar to \code{substitute(name)} but more
 specific.
+
+\code{arg_expr_} is the normally evaluating version of arg_expr.
+
+\code{is_promise} returns TRUE if a named variable is bound to a
+promise. It returns a boolean vector with one entry for each name
+given. An error is raised if a binding does not exist.
+
+\code{is_promise_} is a normally evaluating version of \code{is_promise}.
+
+\code{missing_} is a normally exporting equivalent of
+\code{\link{missing}}. It takes a number of names and environments,
+and checks whether the names are bound to missing arguments. To
+check whether values in a ... listor normal list are set to
+missing, use \code{\link{is.missing}}.
+
+\code{is_forced} returns FALSE if an argument is bound to a promise that
+has not yet been forced, TRUE otherwise. An error is raised if a binding
+does not exist.
+
+\code{is_lazy_} is a normally evaluating version of \code{is_lazy}.
+
+\code{is_literal} returns TRUE if a binding is (or could be) a
+source literal. This includes singleton vectors and missing
+values. (R will often not bother constructing promises when a
+function is called a literal in source.)
+
+\code{is_literal_} is a normally evaluating version of \code{is_literal}.
 }
 

@@ -378,13 +378,14 @@ as.dots.default <- function(x, .envir) {
 as.dots.literal <- function(x)
   .Call(`_as_dots_literal`, as.list(x))
 
-#' Check if list members are equal to the "missing value."
+#' Check if list items are equal to the "missing value."
 #'
 #' For \code{\dots} objects as made by \code{\link{dots}}, performs
 #' this check without forcing evaluation.
-#' @param x If given a list, compares each
-#' element with the missing value. Given a \code{\link{dots}} object,
-#' determines whether each argument is empty or missing.
+#' @param x If given a list, compares each element with the missing
+#'   value. Given a \code{\link{dots}} object, determines whether each
+#'   argument is empty or missing. If the argument is a missing
+#'   variable, returns scalar TRUE
 #' @return For \code{is.missing}, a vector of boolean values.
 #' @author Peter Meilstrup
 #' @seealso missing_value
@@ -478,6 +479,11 @@ is.missing.default <- function(x) {
   from <- .Call(`_dotslist_to_list`, arg_dots(value))
   eval(call("$<-", quote(into), name, quote(from[[length(from)]])))
   .Call(`_list_to_dotslist`, into)
+}
+
+
+forced.... <- function(...) {
+
 }
 
 #force() forces "the argument named x", while force.first.arg is

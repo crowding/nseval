@@ -1,6 +1,6 @@
 context("caller")
 
-expect_throws_if_isnt <- function (object, expected, ..., info = NULL, label = NULL, expected.label = NULL) 
+expect_throws_if_isnt <- function (object, expected, ..., info = NULL, label = NULL, expected.label = NULL)
 {
   if (is.null(label)) {
     label <- as.character(substitute(object))
@@ -8,7 +8,7 @@ expect_throws_if_isnt <- function (object, expected, ..., info = NULL, label = N
   if (is.null(expected.label)) {
     expected.label <- as.character(substitute(expected))
   }
-  expect_that(object, throws_if_isnt(expected, label = expected.label, 
+  expect_that(object, throws_if_isnt(expected, label = expected.label,
                                      ...), info = info, label = label)
 }
 
@@ -22,14 +22,14 @@ throws_if_isnt <- function(expected, regexp = NULL, label=NULL, ...) {
     if (no_error) {
       same <- compare(res, expected, ...)
       if (same$equal) {
-        return(testthat::expectation("failure", 
+        return(testthat::expectation("failure",
                            paste0("did not throw and equals ", label)));
       } else {
         if (same$equal) {
-          return(testthat::expectation("failure", 
+          return(testthat::expectation("failure",
                                        paste0("not equal to ", label, "\n", same$message)))
         } else {
-          return(testthat::expectation("success", 
+          return(testthat::expectation("success",
                                        paste0("equals ", label)))
         }
       }
@@ -41,7 +41,7 @@ throws_if_isnt <- function(expected, regexp = NULL, label=NULL, ...) {
     }
   }
 }
-  
+
 `%is%` <- expect_equal
 `%is*%` <- expect_throws_if_isnt
 
@@ -50,16 +50,16 @@ test_that("Caller finds caller", ({
     where <- "1"
     g()
   }
-  
+
   f2 <- function() {
     where <- "2"
     g()
   }
-  
+
   g <- function() {
     caller(environment())
   }
-  
+
   f1()$where %is% "1"
   f2()$where %is% "2"
 }))
@@ -69,16 +69,16 @@ test_that("caller defaults to environment called from", {
     where <- "f"
     h()
   }
-  
+
   g <- function() {
     where <- "g"
     h()
   }
-  
+
   h <- function() {
     caller()
   }
-  
+
   f()$where %is% "f"
   g()$where %is% "g"
 })
@@ -107,17 +107,17 @@ test_that("caller of not the immediate environment", {
 
 test_that("caller of a closed environment (contra parent.frame)", {
   where <- "0"
-  
+
   f <- function() {
     where <- "f"
     g()
   }
-  
+
   g <- function() {
     where <- "g"
     environment()
   }
-  
+
   caller(g())$where %is*% "f"
 })
 
@@ -168,13 +168,13 @@ test_that("caller from eval and do.call", {
       g <- function() {
         where <- "g"
         z <<- environment()
-        
+
         caller()$where %is% "f" # example #1
         caller(y)$where %is% "e"
         eval(quote(caller()))$where %is% "f"
-        eval(quote(caller()), y)$where %is% "e" 
+        eval(quote(caller()), y)$where %is% "e"
         do.call("caller", list())$where %is% "f"
-        do.call("caller", alist(z))$where %is% "f" 
+        do.call("caller", alist(z))$where %is% "f"
         do.call("caller", alist(y))$where %is% "e"
         do.call("caller", list(), envir=y)$where %is% "e"
         do.call("caller", alist(x), envir=y)$where %is% "0"
@@ -211,7 +211,7 @@ test_that("caller from eval and do.call in closed environments", {
     eval(quote(caller()))$where %is% "0"
     eval(quote(caller()), y)$where %is*% "e" #example 2
     do.call("caller", list())$where %is% "0" #example 3
-    do.call("caller", alist(z))$where %is*% "f" 
+    do.call("caller", alist(z))$where %is*% "f"
     do.call("caller", alist(y))$where %is*% "e"
     do.call("caller", envir=y)$where %is*% "e"
     do.call("caller", alist(x), envir=y)$where %is*% "e"
@@ -219,3 +219,7 @@ test_that("caller from eval and do.call in closed environments", {
   }
   h()
 })
+
+## Local Variables:
+## ess-r-package-info: ("fexpr" . "~/fexpr/")
+## End:

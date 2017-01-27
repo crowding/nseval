@@ -16,9 +16,10 @@ is.missing(x)
 \item{...}{for \code{\link{dots_missing}}, any number of
 arguments, each being checked for missingness, without being evaluated.}
 
-\item{x}{If given a list, compares each
-element with the missing value. Given a \code{\link{dots}} object,
-determines whether each argument is empty or missing.}
+\item{x}{If given a list, compares each element with the missing
+value. Given a \code{\link{dots}} object, determines whether each
+argument is empty or missing. If the argument is a missing
+variable, returns scalar TRUE}
 }
 \value{
 For \code{dots_missing}, a logical vector.

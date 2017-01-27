@@ -380,29 +380,29 @@ test_that("dots() on empty arguments", {
   m2 <- function(...) dots_missing(...)
 
   dots_other <- function(x, y, z) {
-    arg_dots(x, y, z) #makes promises set to R_MissingValue
+     arg_dots(x, y, z) #makes promises set to R_MissingValue
   }
 
   d1 <- dots(x, , z)
   d2 <- dots_other(x, , z)
 
   expect_equal(c(FALSE, TRUE, FALSE), m1(one, , three))
-  expect_equal(c(FALSE, TRUE, FALSE), 
+  expect_equal(c(FALSE, TRUE, FALSE),
                m2(one, , three)) # was FALSE, FALSE, FALSE
-  expect_equal(c(FALSE, TRUE, FALSE), 
+  expect_equal(c(FALSE, TRUE, FALSE),
                (function(...) m1(...))(one, , three))
   expect_equal(c(FALSE, TRUE, FALSE),
                (function(...) m2(...))(one, , three)) # was FALSE, FALSE, FALSE
-  expect_equal(c(FALSE, TRUE, FALSE), 
+  expect_equal(c(FALSE, TRUE, FALSE),
                (function(...) (function(...) m1(...))(...))(one, , three))
   #FALSE, FALSE, FALSE but these last two are on R
   expect_equal(c(FALSE, TRUE, FALSE), m1 %()% d1)
   expect_equal(c(FALSE, TRUE, FALSE), m1 %()% d2) # was FALSE, FALSE, FALSE
   expect_equal(c(FALSE, TRUE, FALSE), m2 %()% d1) # was FALSE, FALSE, FALSE
   expect_equal(c(FALSE, TRUE, FALSE), m2 %()% d2) # was FALSE, FALSE, FALSE
-  expect_equal(c(FALSE, TRUE, FALSE), 
+  expect_equal(c(FALSE, TRUE, FALSE),
                do.call(m1, alist(one, , three)))
-  expect_equal(c(FALSE, TRUE, FALSE), 
+  expect_equal(c(FALSE, TRUE, FALSE),
                do.call(m2, alist(one, , three)))
 })
 

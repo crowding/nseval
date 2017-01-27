@@ -1,12 +1,11 @@
 Package: fexpr
 Type: Package
-Title: Tools to manupulate lazy arguments, evaluation, promises, and ... objects.
+Title: Tools to manipulate lazy arguments, evaluation, promises, and ... objects.
 Version: 0.2
 Date: 2016-01-18
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: Provides an interface to R's builtin promise objects
-    and dots(...) argument lists.
+Description: Implements a cleaner API for manipulation of non-standard evaluation in R, covering lazy arguments, finding the calling function, and ... (varargs).
 License: MIT + file LICENSE
 Suggests:
     testthat (>= 0.2),

@@ -2,7 +2,7 @@ context("Promise extraction")
 
 `%is%` <- expect_equal
 
-test_that("can register arguments to actual environments", {
+test_that("can recover environments of arguments", {
 
   f1 <- function(a, ...) { #a=one@top, two@top
     b <- 1
@@ -28,13 +28,14 @@ test_that("can register arguments to actual environments", {
   f1(one, two)
 })
 
-test_that("arg_env error on evaluated promise", {
+test_that("arg_env error on forced promise", {
   f1 <- function(x) arg_env(x)
   f2 <- function(...) {
     list(...)
     f1(...)
   }
-  expect_error(f2(124), "evaluated")
+  expect_error(f2(12+12), "forced")
+  expect_equal(f2(124), emptyenv())
 })
 
 test_that("arg_expr should not force promise", {
@@ -48,11 +49,94 @@ test_that("arg_expr should not force promise", {
   f(y+z)
 })
 
+test_that("arg_expr and arg_env fudge when could have been literal.", {
+  # R will usually do a small optimization by not bothering to
+  # construct promises for arguments that are a literal in the
+  # source. Therefore we will have to allow these cases with arg_expr
+  # and arg_env -- returning emptyenv when it is safe to do so.
+  e <- environment()
+
+  normal <- function(x) {
+    list(arg_expr(x), arg_env(x))
+  }
+  normal(2000+3000) %is% list(quote(2000+3000), environment())
+  # for extra credit explain why optimization happens here
+  (function() normal(5000))() %is% list(5000, emptyenv())
+  # but not always here
+  # normal(5000) %is% list(5000, emptyenv())
+})
+
+test_that("arg_expr and arg_env when expression is already forced.", {
+  # But when the promise is forced?
+  force_then_expr <- function(x) {
+    force(x)
+    arg_expr(x)
+  }
+  force_then_env <- function(x) {
+    force(x)
+    arg_env(x)
+  }
+  force_then_expr(2000+3000) %is% quote(2000+3000)
+  expect_error(force_then_env(2000+3000))
+  force_then_expr(5000) %is% 5000 # not a promise
+  force_then_env(5000) %is% emptyenv() #not a promise
+  force_then_expr(5000L) %is% 5000L #not a promise
+  force_then_env(5000L) %is% emptyenv() #not a promise
+  force_then_expr(quote(x)) %is% quote(quote(x)) #language object
+  expect_error(force_then_env(quote(x)))
+})
+
+test_that("arg_expr and arg_env when expression is not a promise", {
+  # and what about bindings that are not promises?
+     nonpromise_expr <- function(x) {
+       y <- x
+       arg_expr(y)
+     }
+     nonpromise_env <- function(x) {
+       y <- x
+       arg_env(y)
+     }
+     nonpromise_expr(2000+3000) %is% 5000
+     nonpromise_env("hello") %is% emptyenv()
+     expect_warning(nonpromise_expr(c(1000, 2000)) %is% c(1000, 2000))
+     expect_warning(nonpromise_env(c(1000, 2000)) %is% emptyenv())
+     expect_error(nonpromise_expr(quote(hello)))
+     expect_error(nonpromise_env(quote(2+2)))
+})
+
+test_that("is_promise and is_forced and is_literal", {
+  try <- function(f, f_, a, b, c, cmp) {
+    d <- (c)
+    f(a, b, c, d) %is% cmp
+    f_(c("a", "b", "c", "d"), environment()) %is% cmp
+  }
+  test <- function(f, f_, a, b, c, d) {
+    d <- (c)
+    list(f(a, b, c, d),
+         f_(c("a", "b", "c", "d"), environment()))
+  }
+  # a is source literal
+  # b is lazy unforced
+  # c is lazy forced
+  # d is not lazy (so forced) or could be literal
+  {
+    function() try(is_promise, is_promise_, 1000, 10+10, 10+10,
+                   c(FALSE, TRUE, TRUE, FALSE))
+  }()
+  {
+    function() try(is_forced, is_forced_, 1000, 10+10, 10+10,
+                   c(TRUE, FALSE, TRUE, TRUE))
+  }()
+  {
+    function() test(is_literal, is_literal_, 1000, 10+10, 10+10,
+                   c(TRUE, FALSE, FALSE, TRUE))
+  }()
+})
 
 test_that("empty arguments return missing value and empty environment", {
   f1 <- function(x) arg_env(x)
   f2 <- function(x) arg_expr(x)
-  expect_identical(f1(), emptyenv())
+  expect_warning(expect_identical(f1(), emptyenv()), "missing");
   expect_identical(f2(), missing_value())
 })
 
@@ -65,7 +149,7 @@ test_that("get dotslists of args direct", {
 })
 
 test_that("get dotslist of args by name", {
-  f1 <- function(x, y) get_dots(c("x", b="y"))
+  f1 <- function(x, y) arg_dots_(c("x", b="y"), environment())
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
   expressions(d) %is% alist(one.arg, b=two.arg)
@@ -79,13 +163,36 @@ test_that("get dotslists handles missing arguments", {
   expect_identical(environments(d), list(emptyenv(), b=environment()))
 })
 
-test_that("error on missing thing", {
+test_that("error when symbol is not bound", {
   f <- function(x) arg_env(y)
   expect_error(f(), "not")
   f <- function(x) arg_expr(y)
   expect_error(f(), "not")
   f <- function(x) arg_dots(y)
   expect_error(f(), "not")
+  f <- function(x) missing_(y, environment())
+  expect_error(f(), "not")
+})
+
+test_that("missing_", {
+  f <- function(a, b, c, d, e) missing_(c("a", "b", "c", "d", "e"), environment())
+  g <- function(a, b, c, d, e) f(a, b, c, d, e)
+  x <- 10
+  y <- missing_value()
+  f( , 10, x, y, (y)) %is% c(TRUE, FALSE, FALSE, TRUE, FALSE);
+  g( , 10, x, y, (y)) %is% c(TRUE, FALSE, FALSE, TRUE, FALSE);
+})
+
+test_that("R_MissingValue bound directly", {
+  x <- missing_value()
+  expect_warning(
+   (function(x) arg_env(x))() %is% emptyenv(),
+   "missing")
+  expect_true(is.missing(
+    (function(x) arg_expr(x))() ))
+  expect_true(is.missing(
+    (function(x) arg_dots(x))() ))
+  expect_true(is_literal(x))
 })
 
 test_that("getting promises handles DDVAL (..1 etc)", {
