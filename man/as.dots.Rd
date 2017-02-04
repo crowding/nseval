@@ -25,6 +25,6 @@ Convert a list of expressions into a \code{\dots} object (a list of
 promises.)
 }
 \seealso{
-dots "%<<%" "%<<<%" "%()%" "[...." "[[....", "names...."
+dots "%<<%" "%<<<%" "%()%" "[.dots" "[[.dots", "names.dots"
 }
 

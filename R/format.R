@@ -6,7 +6,7 @@ format.deparse <- function(x, ...) {
 }
 
 #' @export
-`print....` <- function(x, ...) {
+print.dots <- function(x, ...) {
   cat(format(x, ...), "\n")
   invisible(x)
 }
@@ -109,7 +109,7 @@ format.oneline <- function(x, width=30, ...) {
 #' @param ... Further arguments passed to \link{format} methods.
 #'
 #' @export
-format.... <- function(x,
+format.dots <- function(x,
                        compact = FALSE,
                        show.environments = !compact,
                        show.expressions = !compact,

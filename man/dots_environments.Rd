@@ -4,7 +4,7 @@
 \alias{dots_environments}
 \alias{environments}
 \alias{environments<-}
-\alias{environments<-....}
+\alias{environments<-.dots}
 \title{Extract or manipulate environments contained in dots lists.}
 \usage{
 dots_environments(...)
@@ -13,7 +13,7 @@ environments(x)
 
 environments(x) <- value
 
-\method{environments}{...}(x) <- value
+\method{environments}{dots}(x) <- value
 }
 \arguments{
 \item{...}{Any arguments.}

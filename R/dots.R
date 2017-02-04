@@ -42,7 +42,7 @@ unpack <- function(x) UseMethod("unpack")
 
 #' @export
 #' @useDynLib promises _dots_unpack
-unpack.... <- function  (x) {
+unpack.dots <- function  (x) {
   x <- .Call(`_dots_unpack`, x)
   class(x$envir) <- "oneline"
   class(x$expr) <- "oneline"
@@ -68,7 +68,7 @@ expressions <- function(x) UseMethod("expressions")
 
 #' @export
 #' @rdname dots_expressions
-expressions.... <- function(x) {
+expressions.dots <- function(x) {
   y <- .Call(`_dots_unpack`, get("x"))
   unclass(structure(y$expr, names=y$name))
 }
@@ -99,7 +99,7 @@ list_quote <- dots_expressions
 
 #' @export
 #' @useDynLib promises _mutate_expressions
-`expressions<-....` <- function(x, value) {
+`expressions<-.dots` <- function(x, value) {
   .Call(`_mutate_expressions`, x, value)
 }
 
@@ -126,7 +126,7 @@ environments <- function(x) {
 }
 
 #' @export
-environments.... <- function(x) {
+environments.dots <- function(x) {
   y <- .Call(`_dots_unpack`, get("x"))
   unclass(structure(y$envir, names=y$name))
 }
@@ -141,7 +141,7 @@ environments.... <- function(x) {
 #' @export
 #' @rdname dots_environments
 #' @useDynLib promises _mutate_environments
-`environments<-....` <- function(x, value) {
+`environments<-.dots` <- function(x, value) {
   .Call(`_mutate_environments`, x, value)
 }
 
@@ -167,14 +167,14 @@ dots_names <- function(...) names(dots(...))
 #' @rdname dots_names
 #' @param x a \code{\dots} object, as constructed by \code{\link{dots}}
 #' @usage names(x)
-names.... <- function(x) .Call(`_dots_names`, x)
+names.dots <- function(x) .Call(`_dots_names`, x)
 
 #' @useDynLib promises _dotslist_to_list _list_to_dotslist
 #' @rdname dots_names
 #' @usage names(x) <- value
 #' @param value A character vector containing new names to be applied.
 #' @export
-`names<-....` <- function(x, value) {
+`names<-.dots` <- function(x, value) {
   temp <- .Call(`_dotslist_to_list`, x)
   names(temp) <- value
   .Call(`_list_to_dotslist`, temp)
@@ -242,7 +242,7 @@ list_missing <- function(...) {
 #' @return A dots object. This is currently just the raw DOTSXP with
 #' the object bit set and the class set to "..." so that method dispatch works.
 #' @author Peter Meilstrup
-#' @seealso \%<<\% \%<<<\% \%()\% [.... [[.... names....
+#' @seealso \%<<\% \%<<<\% \%()\% [.dots [[.dots names.dots
 #' @examples
 #' reverse.list <- function(...) {
 #'  d <- dots(...)
@@ -258,7 +258,7 @@ list_missing <- function(...) {
 #' @export
 dots <- function(...)
   structure(if (nargs() > 0) get("...") else NULL,
-            class="...")
+            class="dots")
 
 #' Return an empty symbol.
 #'
@@ -326,7 +326,7 @@ missing_value <- function(n) {
     UseMethod("%()%", arglist)
 
 #' @export
-`%()%....` <- function(f, arglist) {
+`%()%.dots` <- function(f, arglist) {
   # this method elegant but doesn't work on some
   # nonstandard-eval functions (e.g. alist $()$ dots(...) just returns
   # quote(...))?
@@ -351,7 +351,7 @@ missing_value <- function(n) {
 #' @return An object of class \code{\dots}. For \code{as.dots}, the
 #' list items are treated as expressions to be evaluated. For
 #' \code{as.dots.literal}, the items are treated as literal values.
-#' @seealso dots "%<<%" "%<<<%" "%()%" "[...." "[[....", "names...."
+#' @seealso dots "%<<%" "%<<<%" "%()%" "[.dots" "[[.dots", "names.dots"
 #' @aliases as.dots.literal
 #' @export
 as.dots <- function(x, .envir=arg_env(x, environment())) {
@@ -362,10 +362,10 @@ as.dots <- function(x, .envir=arg_env(x, environment())) {
 as_dots <- function(x, .envir) UseMethod("as.dots")
 
 #' @export
-as.dots.... <- function(x, .envir=arg_env(x, environment())) x
+as.dots.dots <- function(x, .envir=arg_env(x, environment())) x
 
 #' @export
-as.list.... <- function(x, .envir=arg_env(x, environment()), ...) list %()% x
+as.list.dots <- function(x, .envir=arg_env(x, environment()), ...) list %()% x
 
 #' @export
 as.dots.default <- function(x, .envir) {
@@ -393,7 +393,7 @@ as.dots.literal <- function(x)
 is.missing <- function(x) if (missing(x)) TRUE else UseMethod("is.missing")
 
 #' @export
-is.missing.... <- function(x) {
+is.missing.dots <- function(x) {
   out <- logical(length(x))
   if (length(x) > 0) {
     assign("...", x)
@@ -420,7 +420,7 @@ is.missing.default <- function(x) {
 
 #' @export
 #' @useDynLib promises _list_to_dotslist
-`[....` <- function(x, ...) {
+`[.dots` <- function(x, ...) {
   temp <- .Call(`_dotslist_to_list`, x)
   temp <- temp[...]
   .Call(`_list_to_dotslist`, temp)
@@ -428,17 +428,17 @@ is.missing.default <- function(x) {
 
 #' @export
 #' @useDynLib promises _dotslist_to_list
-`[[....` <- function(x, ...) {
+`[[.dots` <- function(x, ...) {
   temp <- .Call(`_dotslist_to_list`, x)
   do.call(force.first.arg, list(temp[[...]]))
 }
 
 #' @export
-`[<-....` <- function(x, ix, value) UseMethod("[<-....", value)
+`[<-.dots` <- function(x, ix, value) UseMethod("[<-.dots", value)
 
 #' @export
 #' @useDynLib promises _dotslist_to_list _list_to_dotslist
-`[<-........` <- function(x, ix, ..., value) {
+`[<-.dots.dots` <- function(x, ix, ..., value) {
   into <- .Call(`_dotslist_to_list`, x)
   from <- .Call(`_dotslist_to_list`, value)
   into[ix, ...] <- from
@@ -448,7 +448,7 @@ is.missing.default <- function(x) {
 #' @export
 #' @useDynLib promises _list_to_dotslist
 #' @useDynLib promises _dotslist_to_list
-`[<-.....default` <- function(x, ix, ..., value) {
+`[<-.dots.default` <- function(x, ix, ..., value) {
   into <- .Call(`_dotslist_to_list`, x)
   from <- .Call(`_dotslist_to_list`, as.dots.literal(value))
   into[ix, ...] <- from
@@ -458,7 +458,7 @@ is.missing.default <- function(x) {
 #' @export
 #' @useDynLib promises _list_to_dotslist
 #' @useDynLib promises _dotslist_to_list
-`[[<-....` <- function(x, ..., value) {
+`[[<-.dots` <- function(x, ..., value) {
   into <- .Call(`_dotslist_to_list`, x)
   into[[...]] <- as.dots.literal(value)[[1]]
   .Call(`_list_to_dotslist`, into)
@@ -466,7 +466,7 @@ is.missing.default <- function(x) {
 
 #' @export
 #' @useDynLib promises _dotslist_to_list
-`$....` <- function(x, name) {
+`$.dots` <- function(x, name) {
   temp <- .Call(`_dotslist_to_list`, x)
   do.call(force.first.arg, list(do.call(`$`, list(temp, name))))
 }
@@ -474,7 +474,7 @@ is.missing.default <- function(x) {
 #' @export
 #' @useDynLib promises _dotslist_to_list
 #' @useDynLib promises _list_to_dotslist
-`$<-....` <- function(x, name, value) {
+`$<-.dots` <- function(x, name, value) {
   into <- .Call(`_dotslist_to_list`, x)
   from <- .Call(`_dotslist_to_list`, arg_dots(value))
   eval(call("$<-", quote(into), name, quote(from[[length(from)]])))
@@ -482,7 +482,7 @@ is.missing.default <- function(x) {
 }
 
 
-forced.... <- function(...) {
+forced.dots <- function(...) {
 
 }
 

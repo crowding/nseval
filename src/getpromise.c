@@ -501,7 +501,7 @@ SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
       arg_get(VECTOR_ELT(envirs, i), VECTOR_ELT(names, i), PROMISE, warni);
     SETCAR(output_iter, promise);
   }
-  setAttrib(output, R_ClassSymbol, ScalarString(mkChar("...")));
+  setAttrib(output, R_ClassSymbol, ScalarString(mkChar("dots")));
   UNPROTECT(1);
   return(output);
 }

@@ -138,7 +138,7 @@ SEXP _as_dots_literal(SEXP list) {
   
   if (len == 0) {
     dotlist = PROTECT(allocVector(VECSXP, 0));
-    setAttrib(dotlist, R_ClassSymbol, ScalarString(mkChar("...")));
+    setAttrib(dotlist, R_ClassSymbol, ScalarString(mkChar("dots")));
     UNPROTECT(1);
     return dotlist;
   } else {
@@ -159,7 +159,7 @@ SEXP _as_dots_literal(SEXP list) {
       SET_TAG(iter, install(CHAR(STRING_ELT(names, i)) ));
     }
   }
-  setAttrib(dotlist, R_ClassSymbol, ScalarString(mkChar("...")));
+  setAttrib(dotlist, R_ClassSymbol, ScalarString(mkChar("dots")));
   UNPROTECT(1);
   return dotlist;
 }
@@ -212,7 +212,7 @@ SEXP _list_to_dotslist(SEXP list) {
   } else {
     output = PROTECT(allocVector(VECSXP, 0));
   }
-  setAttrib(output, R_ClassSymbol, ScalarString(mkChar("...")));
+  setAttrib(output, R_ClassSymbol, ScalarString(mkChar("dots")));
   UNPROTECT(1);
   return output;
 }

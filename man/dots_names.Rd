@@ -3,9 +3,9 @@
 \name{dots_names}
 \alias{dots_names}
 \alias{names}
-\alias{names....}
+\alias{names.dots}
 \alias{names<-}
-\alias{names<-....}
+\alias{names<-.dots}
 \title{Extract or change the argument names of \code{\dots} arguments.}
 \usage{
 dots_names(...)

@@ -3,14 +3,14 @@
 \name{expressions}
 \alias{dots_expressions}
 \alias{expressions}
-\alias{expressions....}
+\alias{expressions.dots}
 \alias{expressions<-}
 \alias{list_quote}
 \title{Extract unevaluated expressions.}
 \usage{
 expressions(x)
 
-\method{expressions}{...}(x)
+\method{expressions}{dots}(x)
 
 dots_expressions(...)
 
