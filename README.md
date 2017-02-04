@@ -1,77 +1,92 @@
-fexpr
+promises
 ======
 
-The `fexpr` package provides an interface to R's promise objects and
-dot (...) argument lists.
-
-A "[fexpr](wiki)" is a type of nonstandard-evaluating function present in
-certain languages of the Lisp family. Fexprs [can be used][shutt] to
-to implement syntactic abstractions such as new types of control flow,
-or domain-specific languages. R's implementation of lazy evaluation in
-terms of promises essentially means that ordinary R functions are
-fexprs.
+The `promises` package implements a tidy, (hygeinic) API to
+nonstandard evaluation in R, covering nonstandard evaluation,
+laziness, promises, and "..."  argument lists.
 
 [shutt]: http://www.wpi.edu/Pubs/ETD/Available/etd-090110-124904/
 [wiki]: https://en.wikipedia.org/wiki/Fexpr
 
 R's traditional tools for doing nonstandard evaluation (`substitute`,
 `parent.frame`, `match.call`) are non-orthogonal and tend to exhibit
-some scope problems in use. Using `fexpr` interface, nonstandard
-evaluating functions can be constructed using a more orthogonal,
-explicit style.
+some scope problems in use. Using the `promises` package, nonstandard
+evaluation can be written in a more explicit style.
 
-## Access to promises
+## Laziness via promises
 
-R functions evaluate their arguments lazily. When R invokes a
-function, the function arguments are lazily bound to _promises_.  Each
-promise is a triple of three values: the environment in which the
-argument appeared, the expression that
+As you probably know, R evaluates function arguments lazily. In R's
+case laziness is implemented via _promises_. A promise is a data
+object that exists in either a forced or unforced state. In the forced
+state it contains a value, while in the unforced state it contains a
+recipe to create a value (in R, an expression and an environment to
+evaluate it in.)
 
-The `fexpr` package allow inspection of each part of a promise.
+When R invokes a function, the function arguments are bound to
+promises. During standard evaluation, when the R interpreter requires
+the value of a variable which is bound to an unforced promise, R
+evaluates the expression contained in the promise. Then the promise is
+converted to a forced promise.
 
-
+_Nonstandard evaluation_ is the bypassing of the standard evaluation
+process using functions that inspect promises without forcing
+them. The `promises` package contains a set of useful functions for
+inspecting promises, including `arg_env` which accesses the
+environment of unforced promises (which is not otherwise exposed in
+R's standard library.)
 
 ### Why to use `arg_env`, not `parent.frame`
 
-Here's a problem that happens with traditional R metaprogramming....
+The problem with parent.frame() is that it prevents a function from
+being wrapped.
+
+Using `arg_env` instead of `parent.frame()` makes it easier to wrap
+functions that do nonstandard evaluation. Here's an example.
+
+# EXAMPLE
+
+Using arg_env instead of parent_frame also allows non-standard-evaluating
+functions to be composable. (example with dlply and glm functions)
+
+## caller and with_caller
+
+In writing NSE functions you should as much as possible use `arg_env`
+to determine where arguments come from. First convert all uses of
+`parent.frame()` into `arg_env()`.  Where a function is called from is
+another thing, called `caller()`. This is actually a bit different
+from what `parent.frame()` does. `caller()` guards against giving
+surprising (wrong) results in situations involving lazy evaluation or
+when the caller can no longer be determined -- it prefers to throw
+errors instead.
 
 ## Argument lists and `...`
 
-Promises can be put into a special type of list.
+In R, to write a function that takes any number of arguments, we use
+the symbol `...`, which represents a sort of list of arguments. This
+is somewhat similar to Python's solution of `*args, **kwargs`, except
+that while in Python variadic arguments are stored in first-calss data
+structures, in R the `...` is opaque. It's tricky to do things like
+take the second argument, or take all the odd arguments, or obtain a
+list of argument names, or concatenate two argument lists
+together. The only thing you can do with a `...` when you have it is
+to pass them all to another function's argument list.
 
-Variadic arguments (`...`) and missing values are two of the trickiest
-spots of R's semantics, and there are very few tools to work with them
--- besides `missing` there's `substitute` and `do.call`, both of which
-are hairy and mostly serve other purposes. Mostly people treat `...`
-as an opaque block to pass along to another function. This package
-contains a number of functions that let you work explicitly with `...`
-lists, concatenating and subsetting them, while still allowing R's
-lazy-evaluation semantics to do the right thing. So a function using
-`dots` can decide whether and when to evaluate each of its unnamed
-arguments:
+But under the hood, a `...` is just a named list of promises. The
+`promises` package provides a `dots` class and accessor functions that
+let you manipulate sequences of promises the same way as you would
+manipulate other kinds of lists.
 
-```r
-inSomeOrder <- function(...) invisible(list %()% sample(dots(...)))
-inSomeOrder(print("Boing!"), print("Boom"), print("Tschack!"), print("Ping"),
-            print("Zong"), print("Pssh"))
-# [1] "Boing!"
-# [1] "Zong"
-# [1] "Ping"
-# [1] "Boom"
-# [1] "Pssh"
-# [1] "Tschack!"
-```
+As an example, consider trying to implement the R library function
+`switch`. This takes any number of arguments, and uses the argument
+`expr` -- either a number or a name -- to decide which of the other
+arguments to evaluate. But "accessing unevaluated arguments by index
+or name" isn't easy expressible in pure R, so `switch` has a C
+implementation.
 
-For a more pointed example, consider `switch`. Switch takes its first
-argument and uses it to decide which if its subsequent arguments to
-evaluate.
-
-Consider trying to implement an R function that has the behavior of
-`switch` properly (not as a C function, and not inspecting the stack
-using `match.call()` or `parent.frame()` which are evil.) This is
-doable in pure R but wacky and slow -- the only way I can see to
-selectively evaluate one named argument is to build a function that
-takes that argument:
+It's actually possible to implement `switch` in pure R, but... coming
+up with a solution requires more under-the-hood R mechanics than you
+might care to know. I can do it by synthesizing a function with the
+right arglist to match the required argument:
 
 ```r
 switch2 <- function(expr, ...) {
@@ -93,7 +108,8 @@ switch2 <- function(expr, ...) {
 }
 ```
 
-But with a direct interface to manipulate dotlists, `switch` is easy:
+The point of this digression is that with a direct interface to
+manipulate argument lists, `switch` is easy:
 
 ```r
 switch3 <- function(expr, ...) {
@@ -101,36 +117,14 @@ switch3 <- function(expr, ...) {
 }
 ```
 
-You may also use `dots_unpack()` to inspect the contents of
-as-yet-unevaluated dots objects, exposing R's promise mechanism:
-
-```r
-x <- 1
-y <- 2
-d <- dots(a=x, b=y, c=x+y)
-unpack(d)
-#   name         envir  expr value
-# a    a <environment>     x  NULL
-# b    b <environment>     y  NULL
-# c    c <environment> x + y  NULL
-# > y <- 3
-(function(b, ...) b) %()% d #force the "b" slot to evaluate
-# [1] 3
-unpack(d)
-#   name         envir  expr value
-# a    a <environment>     x  NULL
-# b    b          NULL     y     3
-# c    c <environment> x + y  NULL
-c %()% d
-# a b c
-# 1 3 4
-> unpack(d)
-#   name envir  expr value
-# a    a  NULL     x     1
-# b    b  NULL     y     3
-# c    c  NULL x + y     4
-```
-
 ## Missing arguments.
 
-In R, function arguments may be "missing." When this happens...
+When a function  defined as having an argument but that argument is not given, that argument is "missing.
+
+For example,
+
+f <- function(x) missing(x)
+f(1)
+f()
+
+

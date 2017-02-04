@@ -5,22 +5,6 @@
 #'
 #' @return The environment in which the function call that created \code{envir}
 #'   was called. If that environment cannot be reliably determined, an error is
-#'   thrown.
-#'
-#'   \code{caller} is a safer alternative to
-#'   \code{\link{parent.frame}}.  Unlike \code{parent.frame},
-#'   \code{caller} will throw an error if it cannot determine the
-#'   calling environment. This tends to happen in situations involving
-#'   lazy evaluation, closures, \code{eval} or \code{do.call}. In some
-#'   of these situations, \code{parent.frame} can return surprising
-#'   results.
-#'
-#'   Prefer to use \code{\link{arg_env}} instead of \code{caller} when possible.
-#'   Use \code{caller} for NSE functions that take no arguments, or to work
-#'   around bad NSE in other people's code.
-#'
-#'   In R, expressions are evaluated in environments; environments are created
-#'   by function invocation. In the code
 #'
 #'   \code{X <- environment()
 #'   F <- function() {
@@ -105,7 +89,7 @@ caller <- function(envir=caller(environment())) {
 #' \code{with_caller(f, e) \%()\% dots(alist(foo, bar), e)}.
 #' Note that there is independent control of the caller of the function and
 #' the context of the arguments.
-#' @useDynLib fexpr _make_call
+#' @useDynLib promises _make_call
 #' @export
 with_caller <- function(f, envir=arg_env(f)) {
   force(envir)

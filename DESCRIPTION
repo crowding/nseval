@@ -1,11 +1,11 @@
-Package: fexpr
+Package: promises
 Type: Package
-Title: Tools to manipulate lazy arguments, evaluation, promises, and ... objects.
-Version: 0.2
-Date: 2016-01-18
+Title: A tidy API for lazy and non-standard evaluation.
+Version: 1.0
+Date: 2017-01-23
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: Implements a cleaner API for manipulation of non-standard evaluation in R, covering lazy arguments, finding the calling function, and ... (varargs).
+Description: A library for working with lazy and non-standard evalution in R, covering inspection of unevaluated arguments, manipulation of ... argument lists, and creation of calls.
 License: MIT + file LICENSE
 Suggests:
     testthat (>= 0.2),

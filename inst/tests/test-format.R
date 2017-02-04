@@ -24,16 +24,16 @@ test_that("format dots", {
     force_first_and_a(...)
     dots(...)
   }
-  
+
   e <- format(environment())
-  
+
   d <- dots_forced(4, a=x+2, b+1, c=3+3)
-  
+
   format(d) %is% paste0("args(4, a = x + 2 := 4, ", e, " ? b + 1, c = ", e, " ? 3 + 3)")
   format(d, show.environments=FALSE) %is% paste0("args(4, a = x + 2 := 4, ? b + 1, c = ? 3 + 3)")
   format(d, show.expressions=FALSE) %is% paste0("args(4, a = 4, ", e, " ? b + 1, c = ", e, " ? 3 + 3)")
   format(d, compact=TRUE) %is% paste0("args(4, a = 4, ? b + 1, c = ? 3 + 3)")
-  
+
   format(dots(a, b, c)) %is% paste0("args(", e, " ? a, ", e, " ? b, ", e, " ? c)")
 })
 

@@ -12,7 +12,7 @@
 #' @seealso dots get_dots
 #' @rdname arg_list
 #' @export
-#' @useDynLib fexpr _arg_dots
+#' @useDynLib promises _arg_dots
 arg_dots <- function(...) {
   d <- unpack(dots(...))
   .Call(`_arg_dots`, d$envir, d$expr, d$name)
@@ -41,7 +41,7 @@ arg_dots_ <- function(names,
 #' @rdname arg_env
 #' @param name A single argument name; not evaluated.
 #' @param envir The environment to look for the argument name in.
-#' @useDynLib fexpr _arg_env
+#' @useDynLib promises _arg_env
 #' @export
 arg_env <- function(name,
                     envir=arg_env(name, environment())) {
@@ -61,7 +61,7 @@ arg_env_ <- function(name,
 #' specific.
 #'
 #' @rdname arg_env
-#' @useDynLib fexpr _arg_expr
+#' @useDynLib promises _arg_expr
 #' @export
 arg_expr <- function(name,
                      envir=arg_env(name, environment())) {
@@ -84,7 +84,7 @@ arg_expr_ <- function(name, envir=arg_env(name, environment())) {
 #' given. An error is raised if a binding does not exist.
 #'
 #' @rdname arg_env
-#' @useDynLib fexpr _is_promise
+#' @useDynLib promises _is_promise
 #' @export
 #' @param ... Unquoted variable names.
 is_promise <- function(...) {
@@ -113,7 +113,7 @@ is_promise_ <- function(names, envirs) {
 #'
 #' @rdname arg_env
 #' @export
-#' @useDynLib fexpr _is_missing
+#' @useDynLib promises _is_missing
 missing_ <- function(names, envirs) {
   names <- lapply(names, as.name)
   if (!is.list(envirs)) envirs <- list(envirs)
@@ -137,7 +137,7 @@ is_forced <- function(...) {
 #' ...
 #'
 #' \code{is_lazy_} is a normally evaluating version of \code{is_lazy}.
-#' @useDynLib fexpr _is_forced
+#' @useDynLib promises _is_forced
 #' @rdname arg_env
 #' @export
 is_forced_ <- function(names, envirs) {
@@ -162,7 +162,7 @@ is_literal <- function(...) {
 #'
 #' \code{is_literal_} is a normally evaluating version of \code{is_literal}.
 #' @rdname arg_env
-#' @useDynLib fexpr _is_literal
+#' @useDynLib promises _is_literal
 #' @export
 is_literal_ <- function(names, envirs, warn=TRUE) {
   mapply(FUN=function(name, envir) .Call(`_is_literal`, envir, name, TRUE),
@@ -182,7 +182,7 @@ is_literal_ <- function(names, envirs, warn=TRUE) {
 #' @param envir An environment.
 #' @param include_missing Whether to include "missing" bindings in the dotslist.
 #' @return A \link{dots} object.
-#' @useDynLib fexpr _env_to_dots
+#' @useDynLib promises _env_to_dots
 #' @export
 env2dots <- function(envir, include_missing=FALSE) {
   .Call(`_env_to_dots`, envir, ls(envir=envir, all.names=TRUE), include_missing)
@@ -202,7 +202,7 @@ env2dots <- function(envir, include_missing=FALSE) {
 #' @param size The size of the new environment.
 #' @param hash Whether the new environment should use a hashtable.
 #' @return An environment object.
-#' @useDynLib fexpr _dots_to_env
+#' @useDynLib promises _dots_to_env
 #' @export
 dots2env <- function(dots, envir = NULL,
                      parent = arg_env(dots, environment()),

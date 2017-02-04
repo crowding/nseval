@@ -422,33 +422,33 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
 }
 
 SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn) {
-  Rprintf("Getting %s of binding `%s`\n", get_enum_string(type), CHAR(PRINTNAME(name)));
+  /* Rprintf("Getting %s of binding `%s`\n", get_enum_string(type), CHAR(PRINTNAME(name))); */
   SEXP binding = do_findBinding(name, envir);
   if (TYPEOF(binding) == PROMSXP) {
-    Rprintf("Got a promise\n");
+    /* Rprintf("Got a promise\n"); */
     while (TYPEOF(PREXPR(binding))  == PROMSXP) {
-      Rprintf("It's a wrapped promise\n");
+      /* Rprintf("It's a wrapped promise\n"); */
       binding = PREXPR(binding);
     }
     if (PRVALUE(binding) != R_UnboundValue) {
-      Rprintf("It's already forced\n");
+      /* Rprintf("It's already forced\n"); */
       return arg_get_from_forced_promise(name, binding, type, warn);
     } else {
-      Rprintf("It's unforced\n");
+      /* Rprintf("It's unforced\n"); */
       return arg_get_from_unforced_promise(binding, type, warn);
     }
   } else {
-    Rprintf("It's not a promise\n");
+    /* Rprintf("It's not a promise\n"); */
     return arg_get_from_nonpromise(name, binding, type, warn);
   }
 }
 
 SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM type, int warn) {
-  Rprintf("Getting %s of binding `%s`\n",
-          test_enum_string(type), CHAR(PRINTNAME(name)));
+  /* Rprintf("Getting %s of binding `%s`\n", */
+  /*         test_enum_string(type), CHAR(PRINTNAME(name))); */
   SEXP binding = do_findBinding(name, envir);
   while (TYPEOF(binding) == PROMSXP && TYPEOF(PREXPR(binding)) == PROMSXP) {
-    Rprintf("Got a wrapped promise\n");
+    /* Rprintf("Got a wrapped promise\n"); */
     binding = PREXPR(binding);
   }
   if (TYPEOF(binding) == PROMSXP) {
