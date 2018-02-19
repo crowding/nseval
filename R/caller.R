@@ -58,8 +58,13 @@ caller <- function(envir=caller(environment())) {
     stop("caller: caller is no longer on stack")
   }
 
-  frames[[whichparent]]
+  if(whichparent == 0) {
+    globalenv()
+  } else {
+    frames[[whichparent]]
+  }
 }
+
 
 #' Wrap a function so that it will see a particular caller or parent.frame.
 #'

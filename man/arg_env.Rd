@@ -4,13 +4,13 @@
 \alias{arg_env}
 \alias{arg_expr}
 \alias{arg_expr_}
+\alias{is_promise}
+\alias{is_promise_}
+\alias{missing_}
 \alias{is_forced}
 \alias{is_forced_}
 \alias{is_literal}
 \alias{is_literal_}
-\alias{is_promise}
-\alias{is_promise_}
-\alias{missing_}
 \title{Get environment or expression from a named argument.}
 \usage{
 arg_env(name, envir = arg_env(name, environment()))
@@ -38,13 +38,12 @@ is_literal_(names, envirs, warn = TRUE)
 
 \item{envir}{The environment to look for the argument name in.}
 
-\item{...}{Unquoted variable names.}
+\item{...}{Any number of variable names; not evaluated.}
 
 \item{names}{names of arguments to look up.}
 }
 \description{
-\code{arg_env} determines the lexical scope of an argument (which must be an
-un-evaluated promise).
+\code{arg_env} determines the lexical scope of an argument bound in
 
 \code{arg_expr} fetches the expression attached to an argument in the given
 environment. The effect is similar to \code{substitute(name)} but more
@@ -58,11 +57,9 @@ given. An error is raised if a binding does not exist.
 
 \code{is_promise_} is a normally evaluating version of \code{is_promise}.
 
-\code{missing_} is a normally exporting equivalent of
+\code{missing_} is a normally evaluating equivalent of
 \code{\link{missing}}. It takes a number of names and environments,
-and checks whether the names are bound to missing arguments. To
-check whether values in a ... listor normal list are set to
-missing, use \code{\link{is.missing}}.
+and checks whether the names are bound to missing arguments.
 
 \code{is_forced} returns FALSE if an argument is bound to a promise that
 has not yet been forced, TRUE otherwise. An error is raised if a binding
@@ -77,4 +74,3 @@ function is called a literal in source.)
 
 \code{is_literal_} is a normally evaluating version of \code{is_literal}.
 }
-

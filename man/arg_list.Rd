@@ -3,7 +3,7 @@
 \name{arg_dots}
 \alias{arg_dots}
 \alias{arg_dots_}
-\title{Fetch promises associated with named arguments.}
+\title{Fetch a list of promises by name.}
 \usage{
 arg_dots(...)
 
@@ -26,7 +26,7 @@ a \code{\link{dots}} object containing the promises that are bound to
 those variables in the calling environment.
 }
 \description{
-Fetch promises associated with named arguments.
+Fetch a list of promises by name.
 
 \code{arg_dots_} is a normally evaluating version of arg_dots.
 }
@@ -34,10 +34,6 @@ Fetch promises associated with named arguments.
 The tags on the dots object are determined by argument names;
 variable names are discarded.
 }
-\author{
-Peter Meilstrup
-}
 \seealso{
 dots get_dots
 }
-

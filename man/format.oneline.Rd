@@ -16,4 +16,3 @@
 \description{
 Somewhat similar to format.AsIs but tries harder with language objects.
 }
-

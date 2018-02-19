@@ -1,31 +1,5 @@
 #include "vadr.h"
-
-SEXP emptypromise() {
-  SEXP out = PROTECT(allocSExp(PROMSXP));
-  SET_PRCODE(out, R_MissingArg);
-  SET_PRENV(out, R_EmptyEnv);
-  SET_PRVALUE(out, R_UnboundValue);
-  UNPROTECT(1);
-  return out;
-}
-
-SEXP new_promise(SEXP expr, SEXP env) {
-  SEXP out = PROTECT(allocSExp(PROMSXP));
-  SET_PRCODE(out, expr);
-  SET_PRENV(out, env);
-  SET_PRVALUE(out, R_UnboundValue);
-  UNPROTECT(1);
-  return out;
-}
-
-SEXP new_forced_promise(SEXP expr, SEXP value) {
-  SEXP out = PROTECT(allocSExp(PROMSXP));
-  SET_PRCODE(out, expr);
-  SET_PRENV(out, R_EmptyEnv);
-  SET_PRVALUE(out, value);
-  UNPROTECT(1);
-  return out;
-}
+#include "promises.h"
 
 /* because this is not exposed in Rinternals.h for some reason */
 SEXP do_ddfindVar(SEXP symbol, SEXP envir) {
@@ -73,144 +47,6 @@ SEXP do_findPromise(SEXP name, SEXP envir) {
           CHAR(PRINTNAME(name)));
   }
   return binding;
-}
-
-/* If not a promise, wrap in a promise. */
-/* the arg_promise needs to also reflect changes in arg_env and arg_expr */
-SEXP make_into_promise(SEXP in) {
-  if (TYPEOF(in) == PROMSXP) {
-    while (TYPEOF(PREXPR(in)) == PROMSXP) {
-      in = PREXPR(in);
-    }
-    return in;
-  } else {
-    /* wrap in a promise */
-    SEXP out = PROTECT(allocSExp(PROMSXP));
-    SET_PRENV(out, R_EmptyEnv);
-    SET_PRVALUE(out, in);
-    SET_PRCODE(out, in);
-    UNPROTECT(1);
-    return out;
-  }
-}
-
-/* Extract named variables from an environment into a dotslist */
-SEXP _env_to_dots(SEXP envir, SEXP names, SEXP missing) {
-  assert_type(envir, ENVSXP);
-  assert_type(names, STRSXP);
-  int use_missing = asLogical(missing);
-  int length = LENGTH(names);
-  SEXP out = R_NilValue;
-  SEXP tail = R_NilValue;
-  for (int i = 0; i < length; i++) {
-    SEXP sym = install(CHAR(STRING_ELT(names, i)));
-    SEXP found = findVar(sym, envir);
-    if (found == R_UnboundValue) {
-      error("Variable `%s` was not found.",
-            CHAR(PRINTNAME(sym)));
-    }
-    /* check for missing variables */
-    if (!use_missing) {
-      SEXP unwrapped = found;
-      while (TYPEOF(unwrapped) == PROMSXP)
-        unwrapped = PRCODE(unwrapped);
-      if (unwrapped == R_MissingArg) {
-        continue;
-      }
-    }
-    /* append new dotsxp */
-    if (out == R_NilValue) {
-      out = PROTECT(allocSExp(DOTSXP));
-      tail = out;
-    } else {
-      SEXP new = allocSExp(DOTSXP);
-      SETCDR(tail, new);
-      tail = new;
-    }
-    /* descend into ... if that's what we have */
-    if (sym == R_DotsSymbol && found != R_MissingArg) {
-      assert_type(found, DOTSXP);
-      while (1) {
-        SEXP tag = TAG(found);
-        SET_TAG(tail, tag);
-        SETCAR(tail, CAR(found));
-        found = CDR(found);
-        if (found != R_NilValue) {
-          SEXP new = allocSExp(DOTSXP);
-          SETCDR(tail, new);
-          tail = new;
-        } else {
-          break;
-        }
-      }
-    } else {
-      SET_TAG(tail, sym);
-      SEXP made = make_into_promise(found);
-      SETCAR(tail, made);
-    }
-  }
-  if (out == R_NilValue) {
-    out = PROTECT(allocVector(VECSXP, 0));
-  };
-  setAttrib(out, R_ClassSymbol, ScalarString(mkChar("...")));
-  UNPROTECT(1);
-  return out;
-}
-
-/* Add the entries in dots to the given environment;
- * if untagged, append to ... */
-SEXP _dots_to_env(SEXP dots, SEXP envir) {
-  assert_type(dots, DOTSXP);
-  assert_type(envir, ENVSXP);
-  SEXP newdots = R_NilValue;
-  SEXP newdots_tail = newdots;
-  for(SEXP iter = dots; iter != R_NilValue; iter = CDR(iter)) {
-    if (TAG(iter) == R_NilValue) {
-      /* no tag, so we store the value in "newdots" to be later assigned to ... */
-      if (newdots == R_NilValue) {
-        SEXP olddots = findVar(R_DotsSymbol, envir);
-        if (olddots != R_UnboundValue) {
-          /* there is already a binding for ..., so copy it to 'newdots'.*/
-          assert_type(dots, DOTSXP);
-          for (SEXP iter = olddots; iter != R_NilValue; iter = CDR(iter)) {
-            SEXP copied = PROTECT(allocSExp(DOTSXP));
-            SETCAR(copied, CAR(iter));
-            SET_TAG(copied, TAG (iter));
-            SETCDR(copied, R_NilValue);
-            if (newdots == R_NilValue) {
-              newdots = copied;
-              newdots_tail = copied;
-            } else {
-              SETCDR(newdots_tail, copied);
-              UNPROTECT(1);
-              newdots_tail = copied;
-            }
-          }
-        }
-      }
-      /* append new ... entry */
-      SEXP new = PROTECT(allocSExp(DOTSXP));
-      SETCAR(new, CAR(iter));
-      SETCDR(new, R_NilValue);
-      SET_TAG(new, R_NilValue);
-      if (newdots == R_NilValue) {
-        newdots = new;
-        newdots_tail = new;
-      } else {
-        SETCDR(newdots_tail, new);
-        UNPROTECT(1);
-        newdots_tail = new;
-      }
-    } else {
-      /* dots entry with tag, assigns to variable */
-      defineVar(TAG(iter), CAR(iter), envir);
-    }
-  }
-  if (newdots != R_NilValue) {
-    defineVar(R_DotsSymbol, newdots, envir);
-    UNPROTECT(1);
-  }
-  return envir;
 }
 
 /* selector for things arg_get finds */
@@ -479,6 +315,13 @@ SEXP _arg_expr(SEXP envir, SEXP name, SEXP warn) {
   return arg_get(envir, name, EXPR, asLogical(warn));
 }
 
+SEXP _arg_promise(SEXP envir, SEXP name, SEXP warn) {
+  SEXP prom = PROTECT(arg_get(envir, name, PROMISE, asLogical(warn)));
+  SEXP retval = promsxp_to_closxp(prom);
+  UNPROTECT(1);
+  return retval;
+}
+
 SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
   assert_type(envirs, VECSXP);
   assert_type(names, VECSXP);
@@ -498,7 +341,7 @@ SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
       SET_TAG(output_iter, install(CHAR(STRING_ELT(tags, i))));
     }
     SEXP promise =
-      arg_get(VECTOR_ELT(envirs, i), VECTOR_ELT(names, i), PROMISE, warni);
+      arg_get(VECTOR_ELT(envirs, i), VECTOR_ELT(names, i), PROMISE, asLogical(warn));
     SETCAR(output_iter, promise);
   }
   setAttrib(output, R_ClassSymbol, ScalarString(mkChar("dots")));

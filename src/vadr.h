@@ -14,4 +14,8 @@ void assert_type3(SEXP, SEXPTYPE, const char *);
 int recycle_length(int i, int j);
 SEXP allocate_dots(int length);
 
+SEXP emptypromise();
+SEXP new_promise(SEXP expr, SEXP env);
+SEXP new_forced_promise(SEXP expr, SEXP value);
+
 #endif

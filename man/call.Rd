@@ -7,33 +7,25 @@
 f \%()\% arglist
 }
 \arguments{
-\item{f}{a function, to be called, or to to have arguments attached to.}
+\item{f}{a function, to be called, or to to have arguments attached
+to.}
 
-\item{arglist}{a vector, optionally with names, or an object of class
-\code{...} as produced by \code{\link{dots}}.}
+\item{arglist}{A dots object, or something that can be converted
+into a dots object.}
 }
 \value{
 The result of calling the function with the arguments
-provided. When \code{x} is a \code{\dots} object, its contents are
-passed inithout evaluating. When \code{x} is another type of
-sequence its elements are put in the value slots of
-already-evaluated promises. This is slightly different behavior
-from \code{\link{do.call}(f, as.list(x), quote=TRUE)}, which passes
-unevaluated promises with expressions wrapped in
-\code{link{quote}}. This makes a difference if \code{f} performs
-nonstandard evaluation.
+  provided. When \code{x} is a \code{\dots} object, its contents
+  are passed inithout evaluating. When \code{x} is another type of
+  sequence its elements are put in the value slots of
+  already-evaluated promises. This is slightly different behavior
+  from \code{\link{do.call}(f, as.list(x), quote=TRUE)}, which
+  passes unevaluated promises with expressions wrapped in
+  \code{link{quote}}. This makes a difference if \code{f} performs
+  nonstandard evaluation.
 }
 \description{
 These operators help in passing arbitrary lists of arguments to
-functions, with a more convenient interface than
-\code{\link{do.call}}. The partial application operator allows
-saving some arguments with a reference to a function so the
-resulting function can be passed elsewhere.
+functions, with a more flexiple interface than
+\code{\link{do.call}}.
 }
-\note{
-"Curry" is a slight misnomer for partial function application.
-}
-\author{
-Peter Meilstrup
-}
-

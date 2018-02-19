@@ -12,11 +12,13 @@ Suggests:
     roxygen2 (>= 2.2.2),
     knitr (>= 1.2),
     plyr (>= 1.8.1),
-    ggplot2(>= 1.0.1)
+    ggplot2(>= 1.0.1),
+    lazyeval(>= 0.2.0)
 Collate:
     'caller.R'
     'dots.R'
     'getpromise.R'
+    'conversions.R'
     'format.R'
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

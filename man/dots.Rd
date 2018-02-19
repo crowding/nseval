@@ -2,39 +2,58 @@
 % Please edit documentation in R/dots.R
 \name{dots}
 \alias{dots}
-\title{Capture a list of \dots arguments as an object.}
+\alias{dots_}
+\title{Capture a list of arguments as an object.}
 \usage{
 dots(...)
+
+dots_(promises, exprs, envs)
 }
 \arguments{
 \item{...}{Any number of arguments.}
+
+\item{promises}{A list of promise objects.}
+
+\item{exprs}{An expression or list of expressions (if
+\code{promises} is not given)}
+
+\item{envs}{An environment or list of environments (if \code{promises}
+is not given)}
 }
 \value{
-A dots object. This is currently just the raw DOTSXP with
-the object bit set and the class set to "..." so that method dispatch works.
+A 'dots' object which captures the expressions and IDs of
+  each argument.
 }
 \description{
-\code{dots} and methods of class \code{...} provide a more
-convenient interface to capturing lists of unevaluated arguments
-and applying them to functions.
+A dots object represents a named list of unevaluated arguments. It
+is a representation of the special symbol `...` that appears in R
+code.
+
+\code(dots_) is the standard-evaluating constructor for a dots
+object.
+}
+\details{
+\code{d <- dots(...)} captures the contents of ... without
+evaluating any, and returns a list of class "code", each element of
+which is a \code{\link{promise}}. This extends,
+e.g. \code{substitute(list(...))[[2]]} by capturing environments
+along with expressions.
+
+\code{d <- dots(foo, quux=bar+baz)} captures the given unevaluated
+arguments in a dots object, like \code{\link{alist}()}, but also
+taking references to the present environment.)
 }
 \examples{
-reverse.list <- function(...) {
- d <- dots(...)
- list \%()\% rev(d)
-}
-reverse.list("a", b="bee", c="see")
 
 named.list <- function(...) {
+ # Drop arguments that are not named
  d <- dots(...)
  list \%()\% d[names(d) != ""]
- }
+}
 named.list(a=1, b=2*2, stop("this is not evaluated"))
 }
-\author{
-Peter Meilstrup
-}
 \seealso{
-\%<<\% \%<<<\% \%()\% [.dots [[.dots names.dots
-}
+\%()\%
 
+promise
+}

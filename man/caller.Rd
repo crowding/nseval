@@ -44,4 +44,3 @@ Get the calling environment of a given environment.
 # For further examples please see the test cases
 # located under inst/tests/test-caller.R
 }
-

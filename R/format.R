@@ -11,8 +11,9 @@ print.dots <- function(x, ...) {
   invisible(x)
 }
 
+# call function using data frame as args, ignoring unmatched
 `%(d)%` <- function(f, d) {
-  n <- names(formals(d))
+  n <- names(formals(f))
   if("..." %in% n) {
     f %()% d }
   else {

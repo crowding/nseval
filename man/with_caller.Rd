@@ -38,4 +38,3 @@ the context of the arguments.
 \description{
 Wrap a function so that it will see a particular caller or parent.frame.
 }
-

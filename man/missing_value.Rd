@@ -14,30 +14,43 @@ missing values with this many elements.}
 A symbol with empty name, or a list of such.
 }
 \description{
-The empty symbol (that is, the symbol whose string representation is
-\code{""} is used to represent missing values in the R
-language; for instance in the value of formal function arguments
-when there is no default; in the expression slot of a promise when
-a missing argument is given; and bound to the value of a variable
-when it is called with a missing value. When computing on the
-language, then, you may need to explicitly invoke the "missing"
-value.
+The missing value has two related uses. One is "at parse time" when
+it is used to represent empty arguments. The other is "at run time"
+when it is bound to function arguments that were not given any value.
+}
+\details{
+Manipulating expressions ("computing on the language") means we
+have to deal with the first use case, because we have to be able to
+make expressions that have empty arguments, like the first index in
+\code{arr[,c]}.
+
+The second use of the missing sigil makes this tricky. Generally it
+is a bad idea to assign a bare missing_value to a variable or use
+one as the argument to a function, because this makes R think that
+the variable \b{is} missing rather than \b{contains a} missing. For
+instance, you can say
+
+\code{x <- list(missing_value(), 2, 3)}
+
+and get a valid list, but this:
+
+\code{a <- missing_value(); b <- 2; c <- 3
+x <- list(a, b, c)}
+
+fails with an error about missing variable "a". When dealing with
+missing_values, then, best to keep them wrapped up in lists.
 }
 \examples{
+
+You may encounter values when programming using R expressions, 
 # These statements are equivalent:
 quote(function(x, y=1) x+y)
-call("function", pairlist(x=missing_value(), y=1), quote(x+y))
+call("function", pairlist(x=missing_value(), y=1), call("+", as.name("x"), as.name("y"))
 
 # These statements are also equivalent:
 quote(df[,1])
 substitute(df[row,col], list(row = missing_value(), col = 1))
-
-# These statements are also equivalent:
-quote(function(a, b, c) print("hello"))
-call("function", pairlist(a=missing_value, b=missing_value, c=missing_value)),
-                 quote(print("hello")))
 }
 \seealso{
-list_missing dots_missing
+list_missing
 }
-

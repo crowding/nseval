@@ -23,3 +23,30 @@ int recycle_length(int i, int j) {
   }
   return n;
 }
+
+SEXP emptypromise() {
+  SEXP out = PROTECT(allocSExp(PROMSXP));
+  SET_PRCODE(out, R_MissingArg);
+  SET_PRENV(out, R_EmptyEnv);
+  SET_PRVALUE(out, R_UnboundValue);
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP new_promise(SEXP expr, SEXP env) {
+  SEXP out = PROTECT(allocSExp(PROMSXP));
+  SET_PRCODE(out, expr);
+  SET_PRENV(out, env);
+  SET_PRVALUE(out, R_UnboundValue);
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP new_forced_promise(SEXP expr, SEXP value) {
+  SEXP out = PROTECT(allocSExp(PROMSXP));
+  SET_PRCODE(out, expr);
+  SET_PRENV(out, R_EmptyEnv);
+  SET_PRVALUE(out, value);
+  UNPROTECT(1);
+  return out;
+}

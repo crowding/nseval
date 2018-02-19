@@ -1,12 +1,11 @@
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-#' Fetch promises associated with named arguments.
+#' Fetch a list of promises by name.
 #'
 #' @param ... Variable names (unevaluated). Arguments may be named; these names
 #' determine the names on the dots list (and not the variable names)
 #' @return a \code{\link{dots}} object containing the promises that are bound to
 #' those variables in the calling environment.
-#' @author Peter Meilstrup
 #' @note The tags on the dots object are determined by argument names;
 #' variable names are discarded.
 #' @seealso dots get_dots
@@ -15,7 +14,30 @@
 #' @useDynLib promises _arg_dots
 arg_dots <- function(...) {
   d <- unpack(dots(...))
-  .Call(`_arg_dots`, d$envir, d$expr, d$name)
+  dts <- .Call(`_arg_dots`, d$envir, d$expr, d$name)
+  .Call(`_dotsxp_to_flist`, dts)
+}
+
+#' Fetch a single promise by name from an environment.
+#'
+#' @param name the name to look up. For \code{arg_promise} this is a symbol
+#'   and not evaluated; for \code{arg_promise_} this is a symbol or
+#'   character.
+#' @rdname arg_promise
+#' @return A promise object.
+#' @export
+arg_promise <- function(name) {
+  pr <- arg_promise_(quote(name), environment())
+  arg_promise_(body(pr), environment(pr))
+}
+
+#' ..
+#' @param env  The environment to look in.
+#' @rdname arg_promise
+#' @useDynLib promises _arg_promise
+#' @export
+arg_promise_ <- function(name, env) {
+  .Call(`_arg_promise`, env, as.name(name), TRUE)
 }
 
 #' \code{arg_dots_} is a normally evaluating version of arg_dots.
@@ -31,13 +53,14 @@ arg_dots_ <- function(names,
                       tags = names(names) %||% vapply(names, as.character, "")) {
   names <- lapply(names, as.name)
   if (!is.list(envirs)) (envirs = rep(list(envirs), length(names)))
-  .Call(`_arg_dots`, envirs, names, tags, TRUE)
+  dts <- .Call(`_arg_dots`, envirs, names, tags, TRUE)
+  .Call(`dotsxp_to_flist`, dts)
 }
 
 #' Get environment or expression from a named argument.
 #'
-#' \code{arg_env} determines the lexical scope of an argument (which must be an
-#' un-evaluated promise).
+#' \code{arg_env} determines the lexical scope of an argument bound in
+# the present environment.
 #' @rdname arg_env
 #' @param name A single argument name; not evaluated.
 #' @param envir The environment to look for the argument name in.
@@ -48,7 +71,7 @@ arg_env <- function(name,
   .Call(`_arg_env`, envir, substitute(name), TRUE)
 }
 
-#` @export
+#' @export
 arg_env_ <- function(name,
                      envir=arg_env(name, environment())){
   .Call(`_arg_env`, envir, as.name(name), TRUE)
@@ -86,9 +109,10 @@ arg_expr_ <- function(name, envir=arg_env(name, environment())) {
 #' @rdname arg_env
 #' @useDynLib promises _is_promise
 #' @export
-#' @param ... Unquoted variable names.
+#' @param ... Any number of variable names; not evaluated.
 is_promise <- function(...) {
-  is_promise_(dots_expressions(...), dots_environments(...))
+  d <- dots(...)
+  is_promise_(exprs(d), envs(d))
 }
 
 #' ...
@@ -103,13 +127,11 @@ is_promise_ <- function(names, envirs) {
          if (is.list(envirs)) envirs else list(envirs))
 }
 
-#' Tell if arguments are missing.
+#' Detect if arguments are missing.
 #'
-#' \code{missing_} is a normally exporting equivalent of
+#' \code{missing_} is a normally evaluating equivalent of
 #' \code{\link{missing}}. It takes a number of names and environments,
-#' and checks whether the names are bound to missing arguments. To
-#' check whether values in a ... listor normal list are set to
-#' missing, use \code{\link{is.missing}}.
+#' and checks whether the names are bound to missing arguments.
 #'
 #' @rdname arg_env
 #' @export
@@ -131,7 +153,8 @@ missing_ <- function(names, envirs) {
 #' @rdname arg_env
 #' @export
 is_forced <- function(...) {
-  is_forced_(dots_expressions(...), dots_environments(...))
+  d <- dots(...)
+  is_forced_(exprs(d), envs(d))
 }
 
 #' ...
@@ -155,7 +178,8 @@ is_forced_ <- function(names, envirs) {
 #' @rdname arg_env
 #' @export
 is_literal <- function(...) {
-  is_literal_(dots_expressions(...), dots_environments(...))
+  d <- dots(...)
+  is_literal_(exprs(d), envs(d))
 }
 
 #' ...
@@ -165,52 +189,9 @@ is_literal <- function(...) {
 #' @useDynLib promises _is_literal
 #' @export
 is_literal_ <- function(names, envirs, warn=TRUE) {
-  mapply(FUN=function(name, envir) .Call(`_is_literal`, envir, name, TRUE),
-         lapply(names, as.name),
-         if (is.list(envirs)) envirs else list(envirs))
-}
-
-#' Convert an environment into a dots object, without forcing promises.
-#'
-#' All bindings in the environment will be copied into a new
-#' \code{\dots} list. Bindings that are promises will be added to the
-#' \dots list without forcing, while other bindings will be wrapped in
-#' an already-forced promise.  If `...` is bound in the environment,
-#' all bindings it contains will be added to the \dots list. The
-#' output will not be in any particular order.
-#'
-#' @param envir An environment.
-#' @param include_missing Whether to include "missing" bindings in the dotslist.
-#' @return A \link{dots} object.
-#' @useDynLib promises _env_to_dots
-#' @export
-env2dots <- function(envir, include_missing=FALSE) {
-  .Call(`_env_to_dots`, envir, ls(envir=envir, all.names=TRUE), include_missing)
-}
-
-#' Convert an a ... object into an environment, without forcing promises.
-#'
-#' All named entries in the dots object will be bound to
-#' variables in the given environment. Unnamed entries
-#' will be appended to any existing value of `...` in the order
-#' in which they appear. Promises will not be forced.
-#'
-#' @param dots The dots object to convert.
-#' @param envir if not NULL, an environment to populate. If NULL, a new
-#' environment will be created.
-#' @param parent If creating a new environment, the parent to use.
-#' @param size The size of the new environment.
-#' @param hash Whether the new environment should use a hashtable.
-#' @return An environment object.
-#' @useDynLib promises _dots_to_env
-#' @export
-dots2env <- function(dots, envir = NULL,
-                     parent = arg_env(dots, environment()),
-                     hash = (length(dots) > 100),
-                     size = max(29L, length(dots))) {
-  force(parent)
-  if (is.null(envir))
-    envir <- new.env(hash = hash, parent = parent, size = size)
-
-  .Call(`_dots_to_env`, dots, envir)
+  mapply(FUN=function(name, envir) {
+    .Call(`_is_literal`, envir, as.name(name), TRUE)
+  },
+  names,
+  if (is.list(envirs)) envirs else list(envirs))
 }

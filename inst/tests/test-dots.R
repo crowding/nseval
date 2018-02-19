@@ -26,7 +26,6 @@ with_setup <- function(setup=NULL, ..., teardown=NULL) {
 }
 
 ## DOTSXP UNPACKING --------------------------------------------------
-
 test_that("dots_unpack() method extracts dots information into a data frame", {
   expect_equal(nrow(dots_unpack()), 0)
 
@@ -97,46 +96,26 @@ test_that("dots_unpack(...) descends through promise chains if necessary", {
 })
 
 ## these should also be in reference to dots objects
-test_that("dots_missing", {
-  expect_equivalent(logical(0), dots_missing())
+test_that("dots missingness", {
+  expect_equivalent(logical(0), is.missing(dots()))
   with_setup(
     setup={
       if (exists("a")) rm(a, inherits=TRUE)
       unmissing <- 1
       b <- missing_value()
     },
-    #test both the dots_missing form and the is.missing.... form
-    thunk <- dots_missing,
-    thunk <- function(...) is.missing(dots(...)),
+    thunk <- 1,
     #actual testing in the teardown
     teardown={
       expect_equal(c(   FALSE, FALSE,     c=TRUE, FALSE, d=FALSE, TRUE),
-                   thunk(   a, unmissing, c=,     4,     d=x+y,       ))
-
-      #this currently (R 2.15.2) answers "b" differently in some cases.
-      #My opionion is this is a bug in R, so don't check right now.
-      ## wrap <- function(...) {
-      ##   thunk(...)
-      ## }
-      ## #                                   *WHAT*
-      ## expect_equal(c(   FALSE, FALSE,     FALSE, c=TRUE, FALSE, d=FALSE, TRUE),
-      ##              wrap(    a, unmissing, b,     c=,     4,     d=x+y,       ))
+     is.missing(dots(   a, unmissing, c=,     4,     d=x+y,       )) )
 
       #And this check for missingness does not eval
       expect_equal(c(FALSE, c=TRUE, FALSE),
-                   thunk(stop("no"), c=, stop("no")))
+                   is.missing(dots(stop("no"), c=, stop("no"))))
       rm(unmissing)
       rm(b)
-    })})
-
-test_that("dots_names", {
-  expect_equal(c("", "", "c", "", "d", ""),
-               dots_names(a, b, c=, 4, d=x+y, ) )
-
-  #and dots_names does not eval dots
-  expect_equal(c("", "a"),
-               dots_names(stop("no"), a=stop("no")))
-  expect_equivalent(NULL, dots_names())
+    })
 })
 
 test_that("is.missing on non-dotlists", {
@@ -149,9 +128,32 @@ test_that("is.missing on non-dotlists", {
   is.missing(missing_value()) %is% TRUE
 })
 
+test_that("dots elements are promises", {
+  d <- dots(a=1+1, b, c=d)
+  class(d[[1]]) %is% "promise"
+  class(d[[2]]) %is% "promise"
+  class(d[[3]]) %is% "promise"
+})
+
+test_that("arg_promise a missing", {
+  f <- function(x) {
+    arg_promise(x)
+  }
+  expect_identical(expr(f()), missing_value())
+})
+
+test_that("promise missingness", {
+  x <- promise()
+  y <- promise_(expr = missing_value(), env = environment())
+  z <- promise(what)
+  is.missing(x) %is% TRUE
+  is.missing(y) %is% TRUE
+  is.missing(z) %is% FALSE
+})
+
 test_that("list_missing", {
-  expect_equal(list_missing(1, 2, 3),
-               list(1,2,3))
+  expect_equivalent(list_missing(1, 2, 3),
+                    list(1, 2, 3)) # names may or may not be NULL
 
   expect_equal(list_missing(1, 2, , "three"),
                alist(1, 2, , "three"))
@@ -179,12 +181,12 @@ test_that("list_missing evaluates arguments in the original scopes", {
                list(four="four", one="one", two="two", three="three"))
 })
 
-test_that("dots_expressions", {
+test_that("dots_exprs", {
   x <- 4
-  f <- function(x, ...) {dots_expressions(...)}
+  f <- function(x, ...) {exprs(dots(...))}
   f(one, two, y=x<-3) %is% alist(two, y=x<-3)
   x %is% 4
-  f <- function(x, ...) {expressions(dots(...))}
+  f <- function(x, ...) {exprs(dots(...))}
   f(one, two, y=x<-3) %is% alist(two, y=x <-3)
   x %is% 4
 })
@@ -202,7 +204,7 @@ test_that("expression mutator", local({
     ## arguments came from.
     ## So e1$temp1 == 6 and e2$temp2 = 66
     x <- dots(...)
-    expressions(x) <- list_quote(temp1 <- "6", temp2 <- "66")
+    exprs(x) <- list_quote(temp1 <- "6", temp2 <- "66")
     list %()% x
     unpack(x)
   }
@@ -227,19 +229,21 @@ test_that("expression mutator", local({
   e1$temp1 %is% "6"
   e2$temp2 %is% "66"
 
-  #it is an error to set expressions for fulfilled promises
+  #it is NOT an error to set expressions for fulfilled promises?
   forced <- function(...) {list(...); dots(...)}
   r <- 3
   x <- forced(r+2)
   y <- dots(r+2)
-  expect_error(expressions(x) <- alist(r+1))
-  expressions(y) <- alist(r+1)
-  y[[1]] %is% 4
-
+  #forced promises get emptyenv as their environment
+  exprs(x) <- alist(r+1)
+  #which means value cannot be obtained.
+  expect_error(value(x[[1]]), "could not find")
+  exprs(y) <- alist(r+1)
+  value(y[[1]]) %is% 4
 }))
 
-test_that("dots_environments and mutator", local({
-  expect_equivalent(dots_environments(), list())
+test_that("dots_envs and mutator", local({
+  expect_equivalent(envs(dots()), list())
   f1 <- function(...) {
     where <- "e1E"
     f2(..., toupper(where))
@@ -253,23 +257,22 @@ test_that("dots_environments and mutator", local({
   }
 
   test <- f1()
-  environments(test)[[1]]$where %is% "e1E"
-  environments(test)[[2]]$where %is% "e2E"
-  as.list(test) %is% list("E1E", "e2e")
+  envs(test)[[1]]$where %is% "e1E"
+  envs(test)[[2]]$where %is% "e2E"
 
-  test <- f1(accessor=dots_environments)
+  test <- f1(accessor=function(...) envs(dots(...)))
   test[[1]]$where %is% "e1E"
   test[[2]]$where %is% "e2E"
 
   test <- f1()
-  environments(test) <- rev(environments(test))
-  as.list(test) %is% list("E2E", "e1e")
+  envs(test) <- rev(envs(test))
+  value(test) %is% list("E2E", "e1e")
 }))
 
 test_that("expressions unpacks bytecode", {
   f <- function(x) dots(y=x+1)
   f <- compiler::cmpfun(f)
-  expressions(f(5)) %is% alist(y=x+1)
+  exprs(f(5)) %is% alist(y=x+1)
 })
 
 test_that("list_quote", {
@@ -321,20 +324,20 @@ test_that("as.dots() converts expressions to dotslists w.r.t. a given env", {
   x <- 3
   f1 <- function(l) {
     x <- 1
-    as.dots(l)
+    as.dots.exprs(l)
   }
   f2 <- function(l) {
     x <- 2
-    as.dots(l)
+    as.dots.exprs(l)
   }
   c %()% f1(alist(x)) %is% 1
   c %()% f2(alist(x)) %is% 2
-  c %()% as.dots(alist(x)) %is% 3
+  c %()% as.dots.exprs(alist(x)) %is% 3
 })
 
 test_that("as.dots() is idempotent on dots objects", {
   x <- 3
-  l <- as.dots(alist(x))
+  l <- as.dots.exprs(alist(x))
   f <- function(l) {
     x <- 4
     as.dots(l)
@@ -345,19 +348,18 @@ test_that("as.dots() is idempotent on dots objects", {
 })
 
 test_that("as.dots.literal puts literal things into dots", {
-  list %()% as.dots.literal(alist(a, b, c, d)) %is% alist(a,b,c,d)
-  list %()% as.dots.literal(list(quote(...))) %is% list(quote(...))
+  list %()% as.dots.literal(alist(1, 123L, 3, "6")) %is% alist(1, 123L, 3, "6")
+  ## language objects as promise values are currently banned while
+  ## there isn't a representation the representation for forced
+  ## promises.
+  # list %()% as.dots.literal(alist(a, b, c, d)) %is% alist(a,b,c,d)
+  # list %()% as.dots.literal(list(quote(...))) %is% list(quote(...))
 })
 
 test_that("dots() et al with empty inputs", {
-  #note that there isn't such a thing as an empty dotslist, and this
-  #(a) complicates evaluating "..." etc, and (b) complicates making a
-  #dotslist the basis of the class (as it will have to be something
-  #else to match a zero value.)
-  #So test variants of dots apply, curry, and cdots, with  empty dotslists.
   f <- function(x=4, y=2) x * y
   a <- dots()
-  b <- as.dots(c())
+  b <- as.dots(logical(0))
   c <- list(1);
   d <- dots(2);
 
@@ -367,17 +369,17 @@ test_that("dots() et al with empty inputs", {
 
 test_that("dots() on empty arguments", {
   x <- dots(, b=z)
-  expect_identical(expressions(x), list(missing_value(), b=quote(z)))
-  expect_identical(environments(x), list(emptyenv(), b=environment()))
+  expect_identical(exprs(x), list(missing_value(), b=quote(z)))
+  expect_identical(envs(x), list(emptyenv(), b=environment()))
   y <- x[1]
   names(y) <- "foo"
-  expect_identical(expressions(y), list(foo=missing_value()))
+  expect_identical(exprs(y), list(foo=missing_value()))
 
   #check that missingness is computed and propagated correctly.
   #the following have now been fixed.
   #ref: https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15707
   m1 <- function(x,y,z) c(missing(x), missing(y), missing(z))
-  m2 <- function(...) dots_missing(...)
+  m2 <- function(...) is.missing(dots(...))
 
   dots_other <- function(x, y, z) {
      arg_dots(x, y, z) #makes promises set to R_MissingValue
@@ -410,7 +412,7 @@ test_that("dots methods on empty dots", {
   x <- dots()
   is.missing(x) %is% logical(0)
   names(x) %is% NULL
-  expect_that(expressions(x), is_equivalent_to(list()))
+  expect_that(exprs(x), is_equivalent_to(list()))
   test_that(unpack(x),
             is_equivalent_to(list(
                 name=character(0), envir=list(), expr=list(), value=list())))
@@ -430,11 +432,11 @@ test_that("dots [] operator subsets without forcing promises", {
       x <- 4
       c %()% a[3] %is% 8
       y <- 2
-      c %()% a %is% c(3,r=4,8)
+      c %()% a %is% c(4, r=2, 6)
     }, {
       c %()% a[2:3] %is% c(r=4, 7)
       x <- 2
-      c %()% a %is% c(2,r=4,7)
+      c %()% a %is% c(2, r=4, 6)
     }, {
       c %()% a["r"] %is% c(r=4)
     }
@@ -449,7 +451,8 @@ test_that("[<-.... replacement operator can take values from another dotsxp", {
       x <- 2; y<-3;
       d <- dots(a=x, b=y, c=x+y)
     }, {
-      d[2] <- 10
+      expect_error(d[2] <- 10, "convert")
+      d[2] <- promise(10)
       y <- 4
       c %()% d %is% c(a=2, b=10, c=6)
     }, {
@@ -459,48 +462,47 @@ test_that("[<-.... replacement operator can take values from another dotsxp", {
     })
 })
 
-test_that("dots [[]] and $ operators force ONE promise and return the value.", {
+test_that("dots [[]] and $ operators extract unforced promises.", {
   with_setup(
     setup={
-      x <- 2; y <-3
+      x <- 2; y <- 3
       d <- dots(a=x, b=y, c=x+y)
     },
     {
-      d[[2]] %is% 3
+      d[[2]] %is% promise(y)
       x <- 1
-      d[[1]] %is% 1
+      value(d[[1]]) %is% 1
     },
     {
       x <- 4
-      d$c %is% 7
+      d$c %is% promise(x+y)
       x <- 3
-      d[["a"]] %is% 3
+      value(d[["a"]]) %is% 3
     }
     )
 })
 
-test_that("'expressions' unpacks expressions from a dotslist", {
+test_that("'exprs' unpacks expressions from a dotslist", {
   d <- dots(1, x=x+1, stop("should not evaluate"))
-  expect_equal(expressions(d), alist(1, x=x+1, stop("should not evaluate")))
+  expect_equal(exprs(d), alist(1, x=x+1, stop("should not evaluate")))
 })
 
-test_that("dots [[<- and $<- inject evaluated promises into a dotslist", {
-  #it's impossible to inject unevaluated promises this way; <-
-  #forces its RHS. This way is consistent with [[ anyway.
+test_that("dots [[<- and $<-", {
+  #it's impossible to capture unevaluated promises from a
+  #subassignment call; <- forces its RHS. This way is consistent with
+  #[[ anyway.
   with_setup(
       setup={
         x <- "x"; y <- 3
         d <- dots(a=x, b=y, c=x+y)
       }, {
-        d[[2]] <- x
+        d[[2]] <- promise(x)
         x <- 4
-        d[[2]] %is% "x"
-        #expressions(d)[2] %is% quote(x) #Nope, no.
+        value(d[[2]]) %is% 4
       }, {
-        d$b <- x
+        d$b <- promise(x)
         x <- 4
-        d$b %is% "x"
-        #expressions(d)["b"] %is% quote("x")
+        value(d) %is% list(a=4, b=4, c=x+y)
       }
   )
 })
@@ -521,4 +523,63 @@ test_that("dots names<- method can set tags w/o forcing", {
       y <- 4
       c %()% d %is% c(foo=2, bar=4, baz=6) }
     )
+})
+
+test_that("dots_", {
+  y <- 4
+  z <- 100
+  e <- dots2env(dots(x=1+y, y=1+z, `+`=`+`))
+  d <- dots_(promise_(expr=quote(y+x), env=e))
+  value(d) %is% list(106)
+
+  e <- list2env(list(y = 12), parent=environment())
+  d <- dots_(exprs=alist(y=y+1, x=1+y, z=2*y), envs = e)
+  value(d) %is% list(y=13, x=13, z=24)
+})
+
+test_that("arg_promise, arg_promise_", {
+  f <- function(x) {
+    arg_promise(x)
+  }
+
+  g <- function(x, y, switch) arg_promise_(switch, environment())
+
+  expr(f(d+2)) %is% quote(d+2)
+  expr(g(x+1, t+y, "y")) %is% quote(t+y)
+})
+
+test_that("promise, promise_", {
+  pr <- promise(y+1)
+  y <- 3
+  value(pr) %is% 4
+
+  e <- list2env(list(y=12), parent=environment())
+  pr <- promise_(quote(y*3), e)
+  value(pr) %is% 36
+})
+
+test_that("value of dots", {
+  y <- 4
+  x <- 1
+  e <- dots(x=y+1, y=x+3)
+  value(e) %is% list(x=5, y=4)
+})
+
+test_that("value of promise", {
+  x <- 4
+  e <- promise(x+5)
+  x <- 8
+  value(e) %is% 13
+})
+
+test_that("function_, make an empty closure", {
+  r <- function_(NULL, missing_value(), emptyenv())
+  expect_identical(missing_value(), body(r))
+  expect_identical(formals(r), NULL)
+  expect_equal(formals(r), NULL)
+})
+
+test_that("get_dots returns promise objects", {
+  r <- dots(1, a, 3)
+  class(r[[1]])  %is% "promise"
 })

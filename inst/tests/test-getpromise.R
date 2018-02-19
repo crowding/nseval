@@ -18,11 +18,11 @@ test_that("can recover environments of arguments", {
     arg_expr(a) %is% quote(b)
     arg_expr(b) %is% quote(where)
     arg_expr(c) %is% quote(where)
-    dots_expressions(...) %is% alist(two)
+    exprs(dots(...)) %is% alist(two)
     arg_env(a)$where %is% "f2"
     arg_env(b)$where %is% "f2"
     arg_env(c)$where %is% "f1"
-    dots_environments(...)[[1]]$where %is% "top"
+    envs(dots(...))[[1]]$where %is% "top"
   }
   where <- "top"
   f1(one, two)
@@ -105,7 +105,7 @@ test_that("arg_expr and arg_env when expression is not a promise", {
 })
 
 test_that("is_promise and is_forced and is_literal", {
-  try <- function(f, f_, a, b, c, cmp) {
+  try <- function(f, f_, a, b, c, cmp, d) {
     d <- (c)
     f(a, b, c, d) %is% cmp
     f_(c("a", "b", "c", "d"), environment()) %is% cmp
@@ -120,11 +120,11 @@ test_that("is_promise and is_forced and is_literal", {
   # c is lazy forced
   # d is not lazy (so forced) or could be literal
   {
-    function() try(is_promise, is_promise_, 1000, 10+10, 10+10,
+    function() test(is_promise, is_promise_, 1000, 10+10, 10+10,
                    c(FALSE, TRUE, TRUE, FALSE))
   }()
   {
-    function() try(is_forced, is_forced_, 1000, 10+10, 10+10,
+    function() test(is_forced, is_forced_, 1000, 10+10, 10+10,
                    c(TRUE, FALSE, TRUE, TRUE))
   }()
   {
@@ -132,6 +132,11 @@ test_that("is_promise and is_forced and is_literal", {
                    c(TRUE, FALSE, FALSE, TRUE))
   }()
 })
+
+(function () {
+  f <- function(x) arg_promise(x)
+  f(100)
+})()
 
 test_that("empty arguments return missing value and empty environment", {
   f1 <- function(x) arg_env(x)
@@ -152,7 +157,7 @@ test_that("get dotslist of args by name", {
   f1 <- function(x, y) arg_dots_(c("x", b="y"), environment())
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
-  expressions(d) %is% alist(one.arg, b=two.arg)
+  exprs(d) %is% alist(one.arg, b=two.arg)
   expect_identical(environments(d), list(environment(), b=environment()))
 })
 
@@ -164,13 +169,13 @@ test_that("get dotslists handles missing arguments", {
 })
 
 test_that("error when symbol is not bound", {
-  f <- function(x) arg_env(y)
+  f <- function(x) arg_env(yweqr)
   expect_error(f(), "not")
-  f <- function(x) arg_expr(y)
+  f <- function(x) arg_expr(yqwer)
   expect_error(f(), "not")
-  f <- function(x) arg_dots(y)
+  f <- function(x) arg_dots(yafsd)
   expect_error(f(), "not")
-  f <- function(x) missing_(y, environment())
+  f <- function(x) missing_("yyyyy", environment())
   expect_error(f(), "not")
 })
 

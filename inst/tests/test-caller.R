@@ -220,6 +220,18 @@ test_that("caller from eval and do.call in closed environments", {
   h()
 })
 
+test_that("caller from toplevel", {
+  # was getting this bug:
+  ## > f <- function(env=caller()) env
+  ## > f()
+  ## Error in frames[[whichparent]] (from caller.R#37) : 
+  ##   attempt to select less than one element in integerOneIndex
+  # which was caused by the 
+
+  # hold on. how can we test for this?
+  # uh.
+})
+
 ## Local Variables:
 ## ess-r-package-info: ("fexpr" . "~/fexpr/")
 ## End:
