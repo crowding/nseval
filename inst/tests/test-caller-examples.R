@@ -1,11 +1,11 @@
 #Worked examples for "caller" with interpreter-level stack traces.
 
-
 library(testthat)
 `%is%` <- expect_equal
 `%throws%` <- expect_error
 context("caller examples")
 
+#debug(caller)
 test_that("Example 1", {
   where <- "0"
   x <- y <- z <- NULL
@@ -18,9 +18,11 @@ test_that("Example 1", {
       g <- function() {
         where <- "g"
         z <<- environment()
-        caller()$where %is% ""
+        caller()$where %is% "f"
       }
+      g()
     }
+    f()
   }
   e()
 })

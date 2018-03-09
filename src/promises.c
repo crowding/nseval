@@ -1,11 +1,61 @@
 #include "vadr.h"
 #include "promises.h"
 
-int _is_forced_f(SEXP clos) {
+/* Immutable promise objects (quotations) are stored by this package as
+   CLOSXPS with a class attribute.  For unforced quotations, the
+   environment and body slots are filled, while the arg slot is
+   empty. For forced quotations, the environment is set to R_EmptyEnv,
+   and the body to the value.  In both cases the arglist is empty. */
+
+SEXP _quotation(SEXP envir, SEXP expr, SEXP value) {
+  SEXP out = PROTECT(allocSExp(CLOSXP));
+  SET_FORMALS(out, R_NilValue);
+  SEXP prom;
+  
+  if (envir == R_NilValue) {
+    /* already-forced promise. Record a PROMSXP in the body. */
+    prom = PROTECT(allocSExp(PROMSXP));
+    SET_PRENV(prom, R_NilValue);
+    SET_PRCODE(prom, expr);
+    SET_PRVALUE(prom, value);
+    SET_CLOENV(out, R_EmptyEnv);
+    SET_BODY(out, expr);
+    UNPROTECT(1);
+  } else {
+    assert_type(envir, ENVSXP);
+    if (value != R_NilValue) {
+      error("Can't make a promise with both an env and a value");
+    } else {
+      SET_CLOENV(out, envir);
+      SET_BODY(out, expr);
+    }
+  }
+
+  setAttrib(out, R_ClassSymbol, mkString("quotation"));
+
+  UNPROTECT(1);
+  return out;
+}
+
+/* Test if a quotation is "forced" */
+int forced_quotation(SEXP clos) {
   return CLOENV(clos) == R_EmptyEnv && TYPEOF(BODY(clos)) == PROMSXP;
 }
 
-SEXP promsxp_to_closxp(SEXP prom) {
+/* Test if a quotation is "forced" */
+SEXP _forced_quotation(SEXP clos) {
+  return ScalarLogical(forced_quotation(clos));
+}
+
+SEXP _expr_quotation(SEXP q) {
+  if (forced_quotation(q)) {
+    return PREXPR(CLOENV(q));
+  } else {
+    return BODY(q);
+  }
+}
+
+SEXP promsxp_to_quotation(SEXP prom) {
   assert_type(prom, PROMSXP);
   SEXP out = PROTECT(allocSExp(CLOSXP));
   
@@ -15,7 +65,7 @@ SEXP promsxp_to_closxp(SEXP prom) {
   }
 
   if (PRENV(prom) == R_NilValue) {
-    /* forced promise. We'll just stuff it in the body for now? */
+    /* forced promise. We'll put the original promise into the body. */
     SET_CLOENV(out, R_EmptyEnv);
     SET_BODY(out, prom);
     SET_FORMALS(out, R_NilValue);
@@ -24,7 +74,7 @@ SEXP promsxp_to_closxp(SEXP prom) {
     SET_BODY(out, PREXPR(prom));
     SET_FORMALS(out, R_NilValue);
   }
-  setAttrib(out, R_ClassSymbol, mkString("promise"));
+  setAttrib(out, R_ClassSymbol, mkString("quotation"));
 
   UNPROTECT(1);
   return out;
@@ -39,16 +89,12 @@ SEXP empty_closure() {
   return out;
 }
 
-SEXP closxp_to_promsxp(SEXP clos) {
+SEXP quotation_to_promsxp(SEXP clos) {
   assert_type(clos, CLOSXP);
   SEXP out;
-  if (_is_forced_f(clos)) {
-    /* forced promise. in the case of forced promises we just unwrap
-       the promsxp. */
+  if (forced_quotation(clos)) {
+    /* In the case of forced promises we return the same promsxp. */
     return BODY(clos);
-    SET_PRVALUE(out, BODY(clos));
-    SET_PRCODE(out, BODY(clos));
-    SET_PRENV(out, R_NilValue);
   } else {
     out = PROTECT(allocSExp(PROMSXP));
     SET_PRVALUE(out, R_UnboundValue);
@@ -61,14 +107,14 @@ SEXP closxp_to_promsxp(SEXP clos) {
 
 
 /* If not a promise, wrap in a promise. */
-SEXP make_into_promise(SEXP in) {
+SEXP make_into_promsxp(SEXP in) {
   if (TYPEOF(in) == PROMSXP) {
     while (TYPEOF(PREXPR(in)) == PROMSXP) {
       in = PREXPR(in);
     }
     return in;
   } else {
-    /* wrap in a promise */
+    /* wrap in a forced promise */
     SEXP out = PROTECT(allocSExp(PROMSXP));
     SET_PRENV(out, R_EmptyEnv);
     SET_PRVALUE(out, in);

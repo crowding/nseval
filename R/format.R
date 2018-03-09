@@ -130,7 +130,7 @@ format.dots <- function(x,
                ifelsedf(df(expr=expr, value=value),
                         function(expr) vapply(expr, is.language, FALSE),
                         function(expr, value) paste0(
-                          if (show.expressions && !is.missing(expr))
+                          if (show.expressions && !missing(expr))
                             paste0(dodeparse(expr), " := ") else "",
                           doformat(value)),
                         function(value) doformat(value)),
@@ -140,6 +140,6 @@ format.dots <- function(x,
                dodeparse(expr))),
     collapse=", "
   )
-  chars = paste0("args(", contents, ")")
+  chars = paste0("dots(", contents, ")")
   format.default(chars, ...)
 }

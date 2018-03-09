@@ -315,13 +315,6 @@ SEXP _arg_expr(SEXP envir, SEXP name, SEXP warn) {
   return arg_get(envir, name, EXPR, asLogical(warn));
 }
 
-SEXP _arg_promise(SEXP envir, SEXP name, SEXP warn) {
-  SEXP prom = PROTECT(arg_get(envir, name, PROMISE, asLogical(warn)));
-  SEXP retval = promsxp_to_closxp(prom);
-  UNPROTECT(1);
-  return retval;
-}
-
 SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
   assert_type(envirs, VECSXP);
   assert_type(names, VECSXP);
@@ -347,6 +340,13 @@ SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
   setAttrib(output, R_ClassSymbol, ScalarString(mkChar("dots")));
   UNPROTECT(1);
   return(output);
+}
+
+SEXP _arg(SEXP envir, SEXP name, SEXP warn) {
+  SEXP prom = PROTECT(arg_get(envir, name, PROMISE, asLogical(warn)));
+  SEXP retval = promsxp_to_quotation(prom);
+  UNPROTECT(1);
+  return retval;
 }
 
 SEXP _is_promise(SEXP envir, SEXP name, SEXP warn) {

@@ -12,30 +12,30 @@ which \code{caller} was called.}
 }
 \value{
 The environment in which the function call that created \code{envir}
-  was called. If that environment cannot be reliably determined, an error is
+was called. If that environment cannot be reliably determined, an error is
 
-  \code{X <- environment()
+\code{X <- environment()
   F <- function() {
     Y <- environment()
     caller(Y)
   }
   F()}
 
-  the environment bound to "Y" was created by calling F(), and that
-  call occurs in the environment bound to "X". We say that X is the
-  calling environment of Y.
+the environment bound to "Y" was created by calling F(), and that
+call occurs in the environment bound to "X". We say that X is the
+calling environment of Y.
 
-  Note that the "caller" is in general different from the "enclosing
-  environment" which is returned by \code{\link{parent.env}}. It can also be
-  different from the environment in the previous frame of the execution
-  stack as returned by "parent.frame." In the case of lazy evaluation,
-  an environment may be reactivated to compute a lazy argument; the code
-  in the lazy argument should have the same 'caller' as other code in its
-  lexical environment, though it has a different activation path.
+Note that the "caller" is in general different from the "enclosing
+environment" which is returned by \code{\link{parent.env}}. It can also be
+different from the environment in the previous frame of the execution
+stack as returned by "parent.frame." In the case of lazy evaluation,
+an environment may be reactivated to compute a lazy argument; the code
+in the lazy argument should have the same 'caller' as other code in its
+lexical environment, though it has a different activation path.
 
-  \code{caller()} with no arguments should always give the same
-  results as \code{caller(environment())}, but the former amounts
-  to calling \code{caller} twice, so the latter will be faster.
+\code{caller()} with no arguments should always give the same
+results as \code{caller(environment())}, but the former amounts
+to calling \code{caller} twice, so the latter will be faster.
 }
 \description{
 Get the calling environment of a given environment.

@@ -46,28 +46,23 @@ SEXP _set_dots(SEXP dots, SEXP env) {
   return R_NilValue;
 }
 
-/* set_dots will have a similar logic. */
-SEXP _get_expr(SEXP clos) {
-  assert_type(clos, CLOSXP);
-  if (_is_forced_f(clos)) {
-    return PRCODE(BODY(clos));
-  } else {
-    return BODY(clos);
-  }
-}
-
 /* measure the length of a dots object. */
 int _dots_length(SEXP dots) {
-  SEXP s; int length;
+  SEXP s;
+  int length;
   switch (TYPEOF(dots)) {
+  case NILSXP:
+    return 0;
+    break;
   case VECSXP:
     if (LENGTH(dots) == 0) return 0;
     break;
+  case LISTSXP:
   case DOTSXP:
     for (s = dots, length = 0; s != R_NilValue; s = CDR(s)) length++;
     return length;
   }
-  error("Expected a dots object");
+  error("Expected dotlist or pairlist, got %s", type2char(TYPEOF(dots)));
   return 0;
 }
 
@@ -92,7 +87,7 @@ SEXP _dots_unpack(SEXP dots) {
   SEXP input_names = getAttrib(dots, R_NamesSymbol);
   
   for (int i = 0; i < length; i++) {
-    SEXP item = PROTECT(closxp_to_promsxp(VECTOR_ELT(dots, i)));
+    SEXP item = PROTECT(quotation_to_promsxp(VECTOR_ELT(dots, i)));
     SEXP tag = (input_names == R_NilValue) ? R_BlankString : STRING_ELT(input_names, i); 
 
     if ((TYPEOF(PRENV(item)) != ENVSXP) && (PRENV(item) != R_NilValue))
@@ -134,11 +129,6 @@ SEXP _dots_names(SEXP dots) {
   SEXP names, s;
   int i, length;
 
-  if ((TYPEOF(dots) == VECSXP) && (LENGTH(dots) == 0))
-    return R_NilValue;
-  else if ((TYPEOF(dots) != DOTSXP) && (TYPEOF(dots) != LISTSXP))
-    error("Expected dotlist or pairlist, got %s", type2char(TYPEOF(dots)));
-  
   length = _dots_length(dots);
 
   int made = 0;
@@ -161,14 +151,10 @@ SEXP _dots_names(SEXP dots) {
 SEXP _dots_exprs(SEXP dots) {
   SEXP names, s, expressions;
   int i, length;
-
-  if ((TYPEOF(dots) == VECSXP) && (LENGTH(dots) == 0))
-    return R_NilValue;
-  else if ((TYPEOF(dots) != DOTSXP) && (TYPEOF(dots) != LISTSXP))
-    error("Expected dotlist or pairlist, got %s", type2char(TYPEOF(dots)));
   
-  names = PROTECT(_dots_names(dots));
   length = _dots_length(dots);
+  names = PROTECT(_dots_names(dots));
+
   PROTECT(expressions = allocVector(VECSXP, length));
 
   for (s = dots, i = 0; i < length; s = CDR(s), i++) {
@@ -184,8 +170,32 @@ SEXP _dots_exprs(SEXP dots) {
     setAttrib(expressions, R_NamesSymbol, names);
 
   UNPROTECT(2);
-  
   return(expressions);
+}
+
+SEXP _dots_envs(SEXP dots) {
+  SEXP names, s, envs;
+  int i, length;
+
+  length = _dots_length(dots);
+  names = PROTECT(_dots_names(dots));
+  PROTECT(envs = allocVector(VECSXP, length));
+
+  for (s = dots, i = 0; i < length; s = CDR(s), i++) {
+    SEXP item = CAR(s);
+    // if we have an unevluated promise whose code is another promise, descend
+    while ((PRENV(item) != R_NilValue) && (TYPEOF(PRCODE(item)) == PROMSXP)) {
+      item = PRENV(item);
+    }
+    SET_VECTOR_ELT(envs, i, PREXPR(item));    
+  }
+
+  if (names != R_NilValue)
+    setAttrib(envs, R_NamesSymbol, names);
+
+  UNPROTECT(2);
+  
+  return(envs);
 }
 
 SEXP _as_dots_literal(SEXP list) {
@@ -291,7 +301,7 @@ SEXP _flist_to_dotsxp(SEXP flist) {
         SET_TAG(output_iter, R_NilValue);
       }
       SEXP clos = VECTOR_ELT(flist, i);
-      SETCAR(output_iter, closxp_to_promsxp(clos));
+      SETCAR(output_iter, quotation_to_promsxp(clos));
     }
     UNPROTECT(1);
     return output;
@@ -344,9 +354,9 @@ SEXP promisish_to_closxp(SEXP x) {
   if (x == R_MissingArg) {
     out = PROTECT(empty_closure());
   } else {
-    out = PROTECT(promsxp_to_closxp(x));
+    out = PROTECT(promsxp_to_quotation(x));
   }
-  setAttrib(out, R_ClassSymbol, mkString("promise"));
+  setAttrib(out, R_ClassSymbol, mkString("quotation"));
   UNPROTECT(1);
   return out;
 }
@@ -390,11 +400,7 @@ SEXP concat(SEXP first, SEXP second) {
     SEXP newfirst = PROTECT(duplicate(first));
     SEXP tail = newfirst;
     while (CDR(tail) != R_NilValue) tail = CDR(tail);
-#ifdef SWITCH_TO_REFCNT
-    INCREMENT_REFCNT(second);w
-#else
-    SET_NAMED(second, 2);
-#endif
+    INCREMENT_REFCNT(second);
     SETCDR(tail, second);
     UNPROTECT(1);
     return newfirst;
@@ -472,8 +478,8 @@ SEXP _env_to_dots(SEXP envir, SEXP names, SEXP missing, SEXP expand) {
         }
       }
     } else {
-      append_item(&head, &tail, DOTSXP, sym, make_into_promise(found));
-    }    
+      append_item(&head, &tail, DOTSXP, sym, make_into_promsxp(found));
+    }   
   }
   SEXP out = PROTECT(_dotsxp_to_flist(head));
   setAttrib(out, R_ClassSymbol, ScalarString(mkChar("dots")));

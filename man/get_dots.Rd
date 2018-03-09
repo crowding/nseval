@@ -12,7 +12,7 @@ get_dots(env = caller(environment()))
 \item{env}{The environment to look in.}
 }
 \value{
-the contents of `...` converted to a `dots` object.
+the contents of \code{...} converted to a \code{dots} object.
 }
 \description{
 Inspect "..." in some environment to make sure that If there is no

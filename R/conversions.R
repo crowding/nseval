@@ -21,7 +21,7 @@ as.dots.dots <- function(x) x
 #' @export
 as.dots.list <- function(x)
 {
-  structure(mapply(FUN=as.promise, x), class="dots")
+  structure(mapply(FUN=as.quo, x), class="dots")
 }
 
 #' Capture promises present in an environment and construct a dots object.
@@ -54,14 +54,14 @@ as.dots.default <- function(x) {
 #' @export
 as.dots.lazy_dots <- function(x)
 {
-  structure(lapply(x, as.promise), class="dots")
+  structure(lapply(x, as.quo), class="dots")
 }
 
 #' Convert a list of expressions into a dots object.
 #'
 #' @param exprs a list of expressions
 #' @param env An environment or list of environments.
-#. @return a \link{dots} object with the given expressions. 
+#. @return a \link{dots} object with the given expressions.
 #' @export
 as.dots.exprs <- function(exprs, env = arg_env(exprs)) {
   force(env)
@@ -74,8 +74,9 @@ as.dots.exprs <- function(exprs, env = arg_env(exprs)) {
 #'   value and an expression, but not an environment.)
 #' @param x a list.
 #' @rdname as.dots
-#' @useDynLib promises _as_dots_literal
 #' @export
+#' @useDynLib nse _dotsxp_to_flist
+#' @useDynLib nse _as_dots_literal
 as.dots.literal <- function(values) {
   .Call(`_dotsxp_to_flist`, .Call(`_as_dots_literal`, as.list(values)))
 }
@@ -88,7 +89,7 @@ as.dots.literal <- function(values) {
 #' @param include_missing Whether to include "missing" bindings.
 #' @param expand_dots Whether to unpack the contents of `...`.
 #' @return A \link{dots} object.
-#' @useDynLib promises _env_to_dots
+#' @useDynLib nse _env_to_dots
 env2dots <- function(env,
                      names = ls(envir = env, all.names = TRUE),
                      include_missing = TRUE,
@@ -125,9 +126,10 @@ goodname <- function(x) !(x %in% c(NA_character_, ""))
 #' @param parent if \code{envir} is non-NULL; See
 #'   \code{\link{new.env}}.
 #' @return An environment object.
-#' @useDynLib promises _dots_to_env
 #' @aliases as.environment.dots
 #' @export
+#' @useDynLib nse _flist_to_dotsxp
+#' @useDynLib nse _dots_to_env
 dots2env <- function(dots,
                      names = NULL,
                      with_dots = TRUE,
@@ -152,87 +154,59 @@ dots2env <- function(dots,
   }
 }
 
-
-
-#' ...
-#'
-#' \code{as.list} on a dots object returns a list of closures.
+#' Explicitly create closure objects.
 #' @export
-as.list.dots <- function(x, ...) {
-  unclass(x)
-}
-
-#' Explicitly create function objects.
-#' @export
+#' @param args Either NULL, or a named list of default value expressions
+#'   (which may be missing_value() to indicate no default).
+#' @param body An expression for the body of the function.
+#' @param env The environment to create a function from.
 function_ <- function(args, body, env = caller(environment())) {
   f <- do.call("function", list(as.pairlist(args), body), envir=environment())
   environment(f) <- env
   f
 }
 
-#' Create a representation of a promise.
-#'
-#' A promise contains two data items: an expression, and an
-#' environment.  \code{promise} captures its argument without
-#' evaluating and returns a promise object.
-promise <- function(x) arg_promise(x)
-
-#' \code{promise_} is normally evaluating and constructs a promise
-#' from an expression and an environment.
-#'
-#' @param expr The expression.
-#' @param env The environment.
-#' @return A representation of a promise.
-#' @rdname promise
 #' @export
-promise_ <- function(expr, env) {
-  structure(function_(NULL, expr, env), class="promise")
+as.quo <- function(x) {
+  UseMethod("as.quo")
 }
 
 #' @export
-as.promise <- function(x) {
-  UseMethod("as.promise")
-}
-
-#' @export
-as.promise.function <- function(x) {
-  if (is.primitive(x)) stop("can't convert primitive to promise")
+as.quo.function <- function(x) {
+  if (is.primitive(x)) stop("can't convert primitive to quotation")
   f <- formals(x)
   if (length(f) != 0) {
-    stop("can only convert function to promise if it has no args")
+    stop("can only convert function to quotation if it has no args")
   }
-  promise_(body(x), environment(x))
+  quo_(body(x), environment(x))
 }
 
 #' @export
-as.promise.promise <- function(x) x
+as.quo.quo <- function(x) x
 
 #' @export
-as.promise.default <- function(x) {
+as.quo.default <- function(x) {
   if (mode(x) == "list") {
     expr <- x$expr
     env <- x$env
   } else {
     expr <- x
-    stop(paste0("can't convert ", class(x)[1] ," to a promise"))
+    stop(paste0("can't convert ", class(x)[1] ," to a quo"))
   }
-  promise_(expr, env)
+  quo_(expr, env)
 }
 
 #' @export
-as.promise.formula <- function(x) {
+as.quo.formula <- function(x) {
   expr <- x[[2]]
   env <- attr(x, ".Environment")
-  promise_(expr, env)
+  quo_(expr, env)
 }
 
 #' @export
-as.promise.lazy <- function(x) {
-  promise_(x$expr, x$env)
+as.quo.lazy <- function(x) {
+  quo_(x$expr, x$env)
 }
-
-#' @export
-as.promise.promise <- function(x) x
 
 #' @export
 as.lazy_dots <- function(x, env) {

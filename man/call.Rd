@@ -15,14 +15,14 @@ into a dots object.}
 }
 \value{
 The result of calling the function with the arguments
-  provided. When \code{x} is a \code{\dots} object, its contents
-  are passed inithout evaluating. When \code{x} is another type of
-  sequence its elements are put in the value slots of
-  already-evaluated promises. This is slightly different behavior
-  from \code{\link{do.call}(f, as.list(x), quote=TRUE)}, which
-  passes unevaluated promises with expressions wrapped in
-  \code{link{quote}}. This makes a difference if \code{f} performs
-  nonstandard evaluation.
+provided. When \code{x} is a \code{\dots} object, its contents
+are passed inithout evaluating. When \code{x} is another type of
+sequence its elements are put in the value slots of
+already-evaluated promises. This is slightly different behavior
+from \code{\link{do.call}(f, as.list(x), quote=TRUE)}, which
+passes unevaluated promises with expressions wrapped in
+\code{link{quote}}. This makes a difference if \code{f} performs
+nonstandard evaluation.
 }
 \description{
 These operators help in passing arbitrary lists of arguments to

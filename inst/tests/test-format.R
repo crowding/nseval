@@ -3,9 +3,10 @@ context("formatting")
 `%is%` <- function(...) expect_equal(..., expected.label = ..2)
 
 test_that("dots_unpack has a print method that works", {
-  capture.output(dots_unpack(a, b, c, d, 4, e)) #should go without error
-}
-)
+  x <- capture.output(dots_unpack(a, b, c, d, 4, e))
+  expect_equal(length(x), 7)
+})
+
 silently <- function(x, output_callback = force) {
   y <- NULL
   output_callback(capture.output(y <- print(x)))
@@ -37,7 +38,7 @@ test_that("format dots", {
   format(dots(a, b, c)) %is% paste0("args(", e, " ? a, ", e, " ? b, ", e, " ? c)")
 })
 
-test_that("multiline format doesn't throw errors", {
-  format(dots(a = function(x){x}))
-  format(as.dots.literal(list(a = function(x){x})))
+test_that("format outputs one line", {
+  expect_equal(length(format(dots(a = function(x){x}))), 1)
+  expect_equal(length(as.dots.literal(list(a = function(x){x}))), 1)
 })

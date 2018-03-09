@@ -104,39 +104,47 @@ test_that("arg_expr and arg_env when expression is not a promise", {
      expect_error(nonpromise_env(quote(2+2)))
 })
 
-test_that("is_promise and is_forced and is_literal", {
-  try <- function(f, f_, a, b, c, cmp, d) {
-    d <- (c)
-    f(a, b, c, d) %is% cmp
-    f_(c("a", "b", "c", "d"), environment()) %is% cmp
+test_that("is_promise and is_forced and is_literal and is_missing", {
+  test <- function(f, f_, a, b, c, d, cmp, e) {
+    e <- (c)
+    f(a, b, c, d, e) %is% cmp
+    f_(c("a", "b", "c", "d", "e"), environment()) %is% cmp
   }
-  test <- function(f, f_, a, b, c, d) {
+
+  dbg <- function(f, f_, a, b, c, d, cmp, e) {
     d <- (c)
-    list(f(a, b, c, d),
-         f_(c("a", "b", "c", "d"), environment()))
+    list(f(a, b, c, d, e),
+         f_(c("a", "b", "c", "d", "e"), environment()),
+         cmp)
   }
-  # a is source literal
+  # a is source literal (when running from testthat)
   # b is lazy unforced
   # c is lazy forced
   # d is not lazy (so forced) or could be literal
   {
-    function() test(is_promise, is_promise_, 1000, 10+10, 10+10,
-                   c(FALSE, TRUE, TRUE, FALSE))
+    function() (test(is_promise, is_promise_,
+                     1000, 10+10, 10+10, ,
+                     c(FALSE, TRUE, TRUE, FALSE)))
   }()
+
   {
-    function() test(is_forced, is_forced_, 1000, 10+10, 10+10,
+    function() test(is_forced, is_forced_,
+                    1000, 10+10, 10+10, ,
                    c(TRUE, FALSE, TRUE, TRUE))
   }()
+
   {
-    function() test(is_literal, is_literal_, 1000, 10+10, 10+10,
-                   c(TRUE, FALSE, FALSE, TRUE))
+    function() test(is_literal, is_literal_,
+                    1000, 10+10, 10+10, ,
+                    c(TRUE, FALSE, FALSE, TRUE))
+  }()
+
+  {
+    function() test(is_missing, is_missing_,
+                    1000, 10+10, 10+10, ,
+                    c(FALSE, FALSE, FALSE, TRUE))
   }()
 })
-
-(function () {
-  f <- function(x) arg_promise(x)
-  f(100)
-})()
 
 test_that("empty arguments return missing value and empty environment", {
   f1 <- function(x) arg_env(x)
@@ -149,8 +157,8 @@ test_that("get dotslists of args direct", {
   f1 <- function(x, y) arg_dots(x, b=y)
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
-  expressions(d) %is% alist(one.arg, b=two.arg)
-  expect_identical(environments(d), list(environment(), b=environment()))
+  exprs(d) %is% alist(one.arg, b=two.arg)
+  expect_identical(envs(d), list(environment(), b=environment()))
 })
 
 test_that("get dotslist of args by name", {
@@ -158,14 +166,14 @@ test_that("get dotslist of args by name", {
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
   exprs(d) %is% alist(one.arg, b=two.arg)
-  expect_identical(environments(d), list(environment(), b=environment()))
+  expect_identical(envs(d), list(environment(), b=environment()))
 })
 
 test_that("get dotslists handles missing arguments", {
   f1 <- function(x, y) arg_dots(x, b=y)
   d <- f1(, two.arg)
-  is.missing(expressions(d)) %is% c(TRUE, b=FALSE)
-  expect_identical(environments(d), list(emptyenv(), b=environment()))
+  missing_(exprs(d)) %is% c(TRUE, b=FALSE)
+  expect_identical(envs(d), list(emptyenv(), b=environment()))
 })
 
 test_that("error when symbol is not bound", {
@@ -213,7 +221,7 @@ test_that("getting promises handles DDVAL (..1 etc)", {
 })
 
 all.identical <- function(list) {
-  falsefalse <- environment() #unique for this invocation
+  falsefalse <- environment() #unique sigil for this invocation
   ident <- function(x, y) if (identical(x, y)) x else falsefalse
   answer <- Reduce(ident, list)
   !identical(answer, falsefalse)
@@ -229,10 +237,10 @@ test_that("environment to dots", {
 
   sort(names(d)) %is% c("", "a", "f", "z")
   names(d)[[order(names(d))[[1]]]] <- "anewname"
-  (expressions(d)[sort(names(d))]
+  (exprs(d)[sort(names(d))]
    %is% alist(a=one + two, anewname=five, f=four, z=thingy))
-  expect_true(all.identical(environments(d)[c("anewname", "a", "f")]))
-  expect_false(identical(environments(d)[["z"]], environments(d)[["a"]]))
+  expect_true(all.identical(envs(d)[c("anewname", "a", "f")]))
+  expect_false(identical(envs(d)[["z"]], envs(d)[["a"]]))
 })
 
 test_that("dotlist to environment", {

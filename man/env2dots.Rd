@@ -15,7 +15,7 @@ default extracts all bindings.}
 
 \item{include_missing}{Whether to include "missing" bindings.}
 
-\item{expand_dots}{Whether to unpack the contents of `...`.}
+\item{expand_dots}{Whether to unpack the contents of \code{...}.}
 }
 \value{
 A \link{dots} object.

@@ -18,29 +18,23 @@ e.g. \code{dots_unpack(...)}.}
 \item{x}{A \code{\link{dots}} object.}
 }
 \value{
-A data frame, with one row for each element of
-\code{\...}, and columns: \describe{ \item{"name"}{The name of
-each argument, or "" if present.}  \item{"envir"}{The enviroment
-the promise came from.}  \item{"expr"}{The expression attached to
-the promise. If the promise has been evaluated, this will be NULL.}
+A data frame, with one row for each element of \code{\...},
+and columns: \describe{ \item{"name"}{The name of each argument,
+or "" if present.}  \item{"envir"}{The enviroment the promise
+came from.}  \item{"expr"}{The expression attached to the
+promise. If the promise has been evaluated, this will be NULL.}
 \item{"value"}{The value attached to the promise. If the promise
 has not been evaluated, this will be NULL.}}
 }
 \description{
-This unpacks the contents of a \dots object, returning the results
-in a data frame. In the R implementation, a \dots object is a list
-of promises , usually bound to the special name \code{"..."} and,
-when bound to that name, given special dispensation by the R
-interpreter when appearing in the argument list of a call. Dots
-objects are normally opaque to R code, and usually don't appear as
-first-class objects in user code, though you can obtain one
-object in base R by using \code{get("...")}.
+\code{unpack} transforms the contents of a \dots object, into a data
+frame with columns "name", "expr", "envir" and "value".
 }
 \note{
-There are some problems with R printing data frames
-containing lists of language objects (and more problems when
-working with "missing value" objects.) Therefore this sets the
-class on the columns to one that has a special as.character method.
+There are some issues with R printing data frames containing
+lists of language objects (and more problems when working with
+"missing value" objects.) Therefore this sets the class on the
+columns to one that has a special as.character method.
 }
 \seealso{
 dots_names dots_missing dots_exprs dots

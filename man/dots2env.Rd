@@ -42,5 +42,5 @@ An environment object.
 \description{
 All named entries in the dots object will be bound to
 variables. Unnamed entries will be appended to any existing value
-of `...` in the order in which they appear.
+of \code{...} in the order in which they appear.
 }

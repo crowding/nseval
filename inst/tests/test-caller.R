@@ -1,44 +1,20 @@
 context("caller")
 
-expect_throws_if_isnt <- function (object, expected, ..., info = NULL, label = NULL, expected.label = NULL)
-{
-  if (is.null(label)) {
-    label <- as.character(substitute(object))
-  }
-  if (is.null(expected.label)) {
-    expected.label <- as.character(substitute(expected))
-  }
-  expect_that(object, throws_if_isnt(expected, label = expected.label,
-                                     ...), info = info, label = label)
-}
+`%||%` <- function(a, b) if (is.null(a)) b else a
 
-throws_if_isnt <- function(expected, regexp = NULL, label=NULL, ...) {
-  if (is.null(label)) {
-    label <- as.character(substitute(expected))
-  }
-  function(expr) {
-    res <- try(force(expr), TRUE)
-    no_error <- !inherits(res, "try-error")
-    if (no_error) {
-      same <- compare(res, expected, ...)
-      if (same$equal) {
-        return(testthat::expectation("failure",
-                           paste0("did not throw and equals ", label)));
-      } else {
-        if (same$equal) {
-          return(testthat::expectation("failure",
-                                       paste0("not equal to ", label, "\n", same$message)))
-        } else {
-          return(testthat::expectation("success",
-                                       paste0("equals ", label)))
-        }
-      }
-    }
-    if (!is.null(regexp)) {
-      matches(regexp, ...)(res)
-    } else {
-      testthat::expectation("success", "threw an error")
-    }
+expect_throws_if_isnt <- function (object, expected, ...,
+                                   info = NULL, label = NULL,
+                                   expected.label = NULL)
+{
+  act <- list(val = try(force(object), TRUE),
+              lab = as.character(label %||% arg_expr(object)))
+  expected <- list(val = force(expected),
+                   lab = as.character(expected.label %||% arg_expr(expected)))
+  if (inherits(act$val, "try-error")) {
+    expect(TRUE)
+  } else {
+    expect(all.equal(act$val, expected$val),
+           sprintf("%s not equal to %v", act$label, expected$label))
   }
 }
 
@@ -218,18 +194,6 @@ test_that("caller from eval and do.call in closed environments", {
     do.call("caller", list(z), envir=x)$where %is*% "f"
   }
   h()
-})
-
-test_that("caller from toplevel", {
-  # was getting this bug:
-  ## > f <- function(env=caller()) env
-  ## > f()
-  ## Error in frames[[whichparent]] (from caller.R#37) : 
-  ##   attempt to select less than one element in integerOneIndex
-  # which was caused by the 
-
-  # hold on. how can we test for this?
-  # uh.
 })
 
 ## Local Variables:

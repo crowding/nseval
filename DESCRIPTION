@@ -1,11 +1,12 @@
-Package: promises
+Package: nse
 Type: Package
-Title: A tidy API for lazy and non-standard evaluation.
-Version: 1.0
-Date: 2017-01-23
+Title: The Missing API For Non-Standard Evaluation in R.
+Version: 0.2
+Date: 2018-03-04
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: A library for working with lazy and non-standard evalution in R, covering inspection of unevaluated arguments, manipulation of ... argument lists, and creation of calls.
+Description: Allows R code to de- and reconstruct calls, lazy arguments
+             (promises) and '...' lists, with safer defaults.
 License: MIT + file LICENSE
 Suggests:
     testthat (>= 0.2),
@@ -16,9 +17,11 @@ Suggests:
     lazyeval(>= 0.2.0)
 Collate:
     'caller.R'
+    'quo.R'
     'dots.R'
     'getpromise.R'
     'conversions.R'
     'format.R'
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
+Roxygen: list(markdown=TRUE)

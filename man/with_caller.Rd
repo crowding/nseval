@@ -16,8 +16,8 @@ a symbol visible from \code{e}.}
 }
 \value{
 A function wrapper. Calling it will call \code{f}, but from
-  within \code{f} a call to \code{parent.frame()} or \code{caller}
-  will return \code{envir}.
+within \code{f} a call to \code{parent.frame()} or \code{caller}
+will return \code{envir}.
 
 Use \code{with_caller} to deal with or wrap functions that use
 their \code{caller()} or \code{parent.frame()}. (Try not to write

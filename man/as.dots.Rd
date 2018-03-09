@@ -19,19 +19,19 @@ as.dots(x)
 }
 \value{
 An object of class \code{\dots}. For \code{as.dots}, the
-  list items are treated as data values, and create already-forced
-  promises. For \code{as.dots.exprs}, values are treated as the
-  expressions of new unforced promises.
+list items are treated as data values, and create already-forced
+promises. For \code{as.dots.exprs}, values are treated as the
+expressions of new unforced promises.
 }
 \description{
 Convert a list of expressions into a \code{\dots} object (a list of
 promises.)
 
 \code(as.dots.literal) injects a list of literal values into a dots
-  object consisting of forced promises. (A forced promise records a
-  value and an expression, but not an environment.)
+object consisting of forced promises. (A forced promise records a
+value and an expression, but not an environment.)
 }
 \seealso{
 dots "%<<%" "%<<<%" "%()%" "[.dots" "[[.dots",
-  "names.dots"
+"names.dots"
 }

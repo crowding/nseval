@@ -11,7 +11,7 @@
 All bindings in the environment (but not those from its parents) will be
 copied into a new \code{\dots} list. Bindings that are promises
 will be added to the \dots list without forcing, while other
-bindings will be wrapped in an already-forced promise.  If `...` is
+bindings will be wrapped in an already-forced promise.  If \code{...} is
 bound in the environment, all bindings it contains will be added to
 the \dots list. The output will not be in any particular order.
 }

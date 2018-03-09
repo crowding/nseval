@@ -2,10 +2,18 @@
 % Please edit documentation in R/conversions.R
 \name{function_}
 \alias{function_}
-\title{Explicitly create function objects.}
+\title{Explicitly create closure objects.}
 \usage{
 function_(args, body, env = caller(environment()))
 }
+\arguments{
+\item{args}{Either NULL, or a named list of default value expressions
+(which may be missing_value() to indicate no default).}
+
+\item{body}{An expression for the body of the function.}
+
+\item{env}{The environment to create a function from.}
+}
 \description{
-Explicitly create function objects.
+Explicitly create closure objects.
 }

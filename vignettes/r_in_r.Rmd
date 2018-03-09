@@ -1,0 +1,200 @@
+---
+title: An R Interpreter in R
+---
+
+Probably the best advice you can give about metaprogramming is that it
+should be minimized.
+
+Think of the "standard" or baseline behavior of R as a baseline which
+you are making certain minimal exceptions to.  Sure, introduce new
+syntax, but don't break scoping -- sure, bend the rules of scoping,
+but don't break the operational logic -- sure, have a different
+operational logic here, but let namesspacing behave normally.
+
+This suggests a sort of principle for the design of metaprogramming
+facilities, rephrasing [Shutt][1]: 1:
+https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf
+
+* A baseline: A metaprogramming API *must* allow you to, at least, implement
+  the host language in terms of itself.
+  * A guideline: A metaprogramming API _should_ have defaults or
+    nudges that allow the package developer to deviate minimally from
+    the host language's rules (i.e. minimizing user surprise).
+
+Many issues encountered with the base R metaprogramming API arise can
+be blamed on breaking these rules. For instance, you access the
+unevaluated parse tree of an argument using `substitute(x)`, but
+`substutute` divorces the program text from the lexical
+environment. But associating program text with environments is how R
+normally keeps track of scope! So if you want to extend syntax, you end
+up breaking scoping in the bargain.
+
+This principle also suggests a test to make sure we are on the right
+track with the `nse` package: use it to implement R in R.
+
+Specifically, I'll implement `eval` with R-level implementations of
+function calling, name lookup, closures, and lazy evaluation, using
+R-level imitations of NSE builtins like `function` `{`, `for`, `<<-` such,
+while deferring to R to provide data structures like environments.
+An attempt to model the S3/S4 dispatch, condition system, etc, are not made.
+
+The hope is that this exercise may reveal pressure points and needed
+methods that will inform the design of the package.
+
+Things learned.
+* Nomenclature.
+  * Functions ending in `_` work on quotations and args, while
+    corresponding to functions that work by NSE.
+    * force(x) -> force_(arg(x))
+    * () -> value_(arg(x))
+    * `function` -> function_
+  * Functions that operate on quos and args that don't end in `_`:
+    * forced()
+* Need a way to construct a forced promise.
+* Decent way to emulate <- - unwrapping would be good too.
+
+
+To start with, here is a set of builtins.
+
+```{R}
+builtins <- as.environment(list(
+  `{` = function(...) {
+    x <- dots(...)
+    for (i = 1:length(x)) {
+      if (!missing(x[[i]])) { #permit superfluous semicolons
+        if (i == length(x)) {
+          return value_(x[[i]], eval=reval)
+        }
+        if (!missing_(x[[i]])) {
+          force_(x[[i]], eval=reval) 
+          x[[i]] <- NULL
+        }
+      }
+    }
+    return NULL
+  },
+
+  `(` = function(x) {
+    return value_(arg(x), eval=reval)
+  },
+
+  `if` = function(x, y, z) {
+    if (value_(x[[i]], eval=reval)) {
+      force_(y[[i]], eval=reval)
+    } else {
+      value(y[[i]], eval=reval)
+    }
+  },
+
+  `switch` = function(EXPR, ...) {
+    on <- value_(arg(EXPR), eval=reval)
+    alts <- dots(...)
+    if (is.numeric(on)) {
+      value_(alts[[on]])
+    } else {
+      if (on %in% names(alts)) {
+        return value_(d[[on]])
+      } else {
+        if (names(alts)[[length(alts)]] %in% c("", NULL)) {
+          value_(alts[[length(alts)]], eval=reval)
+        }
+      } else NULL
+    }
+    d <- dots(...)
+  },
+
+  `while` <- function(cond, body) {
+    cond <- arg(cond)
+    body <- arg(body)
+    while(force_(cond)) {
+      force_(body)
+    }
+  },
+
+  `break` <- function(cond, body) {
+    
+  },
+
+  `repeat` <- function(body) {
+    body <- arg(body)
+    repeat {
+      force_(body)
+    }
+  },
+
+  `function` = function(formals, body) {
+    function_(arg_expr(formals), arg_expr(body), caller())
+  },
+
+  `<-` = function(lval, rval) {
+    lval <- arg(lval)
+    rval <- arg(rval)
+    munge_assignment(lval, rval,
+                     then = function(lval, rval) {
+                       assign(env(lval), value_(rval))
+                     })
+  },
+
+  `<<-` = function(lval, rval) {
+    lval <- arg(lval)
+    rval <- arg(rval)
+    munge_assignment(lval, rval,
+                     then = function(lval, rval) {
+                       where <- find(lval, parent.env(env(lval)))
+                       assign(expr(lval), value_(rval), envir = env(lval))
+                       # maybe where[[expr(lval)]] %<-% value_(rval)
+                     })
+  }
+})) # builtins <- as.environment(list()) {
+
+munge_assignment <- function(lval, rval) {
+  switch(mode(expr(lval)) {
+    "name"=list(lval, rval),
+    "character"=list(lval, rval),
+    "call"={
+      munge_lval(something(lval), something(rval))
+    }
+    })
+  }
+}
+```
+
+Having cleared our throat, now it's time to consider how to tackle 'eval'.
+
+```
+reval <- function(expr, env) {
+  switch(mode(expr), 
+         name = {
+           if (where <- find(expr, env)) {
+             if (is_promise_(expr, env)) {
+               #force a binding
+               arg <- arg_get_(expr, env)
+               result <- force_(arg, eval=reval)
+               where <- force_(arg, eval=reval)
+             } else {
+               get(expr, env, mode=value)
+             }
+           } else {
+             
+           }
+         },
+         call = {
+
+         },
+         {
+           stop("Could not switch")
+         }
+         
+  }
+             
+ else {
+
+      }
+    },
+    call = {
+      f <- reval(expr[[1]], env)
+    },
+    )
+}
+
+```

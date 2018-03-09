@@ -94,8 +94,8 @@ caller <- function(envir=caller(environment())) {
 #' \code{with_caller(f, e) \%()\% dots(alist(foo, bar), e)}.
 #' Note that there is independent control of the caller of the function and
 #' the context of the arguments.
-#' @useDynLib promises _make_call
 #' @export
+#' @useDynLib nse _make_call
 with_caller <- function(f, envir=arg_env(f)) {
   force(envir)
   function(...) {
