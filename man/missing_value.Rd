@@ -39,8 +39,8 @@ a <- missing_value(); b <- 2; c <- 3
 x <- list(a, b, c)
 
 fails with an error about the missing variable "a". When dealing
-with missing_values, then, best to keep them wrapped up in lists or
-other objects.
+with missing values, then, best to keep them wrapped up in lists ,
+quotations
 }
 \examples{
 # These expressions are equivalent:

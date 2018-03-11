@@ -277,11 +277,11 @@ test_that("dots_envs and mutator", local({
 # when invoked via ESS, with the error:
 # `* namespace found within global environments`
 #
-## test_that("expressions unpacks bytecode", {
-##   f <- function(x) dots(y=x+1)
-##   f <- compiler::cmpfun(f)
-##   exprs(f(5)) %is% alist(y=x+1)
-## })
+test_that("expressions unpacks bytecode", {
+  f <- function(x) dots(y=x+1)
+  f <- compiler::cmpfun(f)
+  exprs(f(5)) %is% alist(y=x+1)
+})
 
 test_that("dots_exprs", {
   a <- dots_exprs(a, b, d=c, d, e)
@@ -291,16 +291,15 @@ test_that("dots_exprs", {
   expect_equal(b, alist(a+b, z, foo, wat=bar))
 })
 
-#FIXME: this passes from testthat but fails from toplevel.
-## test_that("dots_exprs is pointer-stable", {
-##   f <- function() {
-##     x <- dots_exprs(a, c+d)
-##     x <- str_match(capture.output(.internal(inspect(x))),
-##                    "^  @([0-9a-f]*) 06 langsxp")[,2]
-##     x[!is.na(x)]
-##   }
-##   expect_equal(f(), f())
-## })
+test_that("dots_exprs is pointer-stable", {
+  f <- function() {
+    x <- dots_exprs(a, c+d)
+    x <- str_match(capture.output(.Internal(inspect(x))),
+                   "^  @([0-9a-f]*) 06 langsxp")[,2]
+    x[!is.na(x)]
+  }
+  expect_equal(f(), f())
+})
 
 ## DOTS OBJECT, CALLING AND CURRYING -------------------------------------
 
@@ -329,7 +328,7 @@ test_that("%()% and %<<% on vectors respects tags", {
   paste %()% c(sep="monkey", 1, 2, 3) %is% "1monkey2monkey3"
 })
 
-test_that("as.dots() converts expressions to dotslists w.r.t. a given env", {
+test_that("as.dots.exprs() converts expressions to dotslists w.r.t. a given env", {
   x <- 3
   f1 <- function(l) {
     x <- 1
@@ -356,13 +355,10 @@ test_that("as.dots() is idempotent on dots objects", {
   c %()% l %is% 5
 })
 
-test_that("as.dots.literal puts literal things into dots", {
-  list %()% as.dots.literal(alist(1, 123L, 3, "6")) %is% alist(1, 123L, 3, "6")
-  ## language objects as promise values are currently banned while
-  ## there isn't a representation the representation for forced
-  ## promises.
-  # list %()% as.dots.literal(alist(a, b, c, d)) %is% alist(a,b,c,d)
-  # list %()% as.dots.literal(list(quote(...))) %is% list(quote(...))
+test_that("as.dots.literal puts literal values into dots", {
+  exprs(as.dots.literal(alist(1, 123L, 3, "6"))) %is% alist(1, 123L, 3, "6")
+  exprs(as.dots.literal(alist(a, b, c, d))) %is% alist(a,b,c,d)
+  exprs(as.dots.literal(list(quote(...)))) %is% list(quote(...))
 })
 
 test_that("dots() et al with empty inputs", {
@@ -388,7 +384,7 @@ test_that("dots() on empty arguments", {
   #the following have now been fixed.
   #ref: https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15707
   m1 <- function(x,y,z) c(missing(x), missing(y), missing(z))
-  m2 <- function(...) is.missing(dots(...))
+  m2 <- function(...) missing_(dots(...))
 
   dots_other <- function(x, y, z) {
      args(x, y, z) #makes promises set to R_MissingValue
@@ -419,7 +415,7 @@ test_that("dots() on empty arguments", {
 
 test_that("dots methods on empty dots", {
   x <- dots()
-  is.missing(x) %is% logical(0)
+  missing_(x) %is% logical(0)
   names(x) %is% NULL
   expect_that(exprs(x), is_equivalent_to(list()))
   expect_equivalent(unpack(x), list(name=character(0), envir=list(), expr=list(), value=list()))
@@ -459,7 +455,7 @@ test_that("[<-.... replacement operator can take values from another dotsxp", {
       d <- dots(a=x, b=y, c=x+y)
     }, {
       expect_error(d[2] <- 10, "convert")
-      d[2] <- promise(10)
+      d[2] <- quo(10)
       y <- 4
       c %()% d %is% c(a=2, b=10, c=6)
     }, {
@@ -476,13 +472,13 @@ test_that("dots [[]] and $ operators extract unforced promises.", {
       d <- dots(a=x, b=y, c=x+y)
     },
     {
-      d[[2]] %is% promise(y)
+      d[[2]] %is% quo(y)
       x <- 1
       value(d[[1]]) %is% 1
     },
     {
       x <- 4
-      d$c %is% promise(x+y)
+      d$c %is% quo(x+y)
       x <- 3
       value(d[["a"]]) %is% 3
     }
@@ -495,19 +491,16 @@ test_that("'exprs' unpacks expressions from a dotslist", {
 })
 
 test_that("dots [[<- and $<-", {
-  #it's impossible to capture unevaluated promises from a
-  #subassignment call; <- forces its RHS. This way is consistent with
-  #[[ anyway.
   with_setup(
       setup={
         x <- "x"; y <- 3
         d <- dots(a=x, b=y, c=x+y)
       }, {
-        d[[2]] <- promise(x)
+        d[[2]] <- quo_(x, environment())
         x <- 4
         value(d[[2]]) %is% 4
       }, {
-        d$b <- promise(x)
+        d$b <- quo(x)
         x <- 4
         value(d) %is% list(a=4, b=4, c=x+y)
       }
@@ -533,20 +526,22 @@ test_that("dots names<- method can set tags w/o forcing", {
 })
 
 test_that("dots_", {
-  y <- 4
-  z <- 100
-  e <- dots2env(dots(x=1+y, y=1+z, `+`=`+`))
-  d <- dots_(quo_(expr=quote(y+x), env=e))
-  value(d) %is% list(106)
-
   e <- list2env(list(y = 12), parent=environment())
   d <- dots_(exprs=alist(y=y+1, x=1+y, z=2*y), envs = e)
   value(d) %is% list(y=13, x=13, z=24)
 })
 
-test_that("arg_promise, arg_promise_", {
+test_that("dotlist", {
+  y <- 4
+  z <- 100
+  e <- dots2env(dots(x=1+y, y=1+z, `+`=`+`))
+  d <- dotlist(quo_(expr=quote(y+x), env=e))
+  value(d) %is% list(106)
+})
+
+test_that("arg_, arg_", {
   f <- function(x) {
-    arg_promise(x)
+    arg(x)
   }
 
   g <- function(x, y, sw) arg_(sw, environment())

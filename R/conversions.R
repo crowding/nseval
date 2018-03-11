@@ -131,12 +131,12 @@ goodname <- function(x) !(x %in% c(NA_character_, ""))
 #' @useDynLib nse _flist_to_dotsxp
 #' @useDynLib nse _dots_to_env
 dots2env <- function(dots,
+                     env = new.env(hash = hash, parent = parent, size = size),
                      names = NULL,
                      with_dots = TRUE,
                      hash = (length(dots) > 100),
                      size = max(29L, length(dots)),
-                     parent = emptyenv(),
-                     envir = new.env(hash = hash, parent = parent, size = size)) {
+                     parent = emptyenv()) {
   if (is.null(names)) {
     names <- filter(names(dots) %||% c(), goodname)
   }
@@ -146,11 +146,11 @@ dots2env <- function(dots,
     dotlist <- .Call(`_flist_to_dotsxp`, dots[m])
     dots[m] <- NULL
     extras <- .Call(`_flist_to_dotsxp`, dots)
-    .Call(`_dots_to_env`, dotlist, envir, extras)
+    .Call(`_dots_to_env`, dotlist, env, extras)
   } else {
     dots <- dots[names]
     dotlist <- .Call(`_flist_to_dotsxp`, dots)
-    .Call(`_dots_to_env`, dotlist, envir, NULL)
+    .Call(`_dots_to_env`, dotlist, env, NULL)
   }
 }
 
@@ -170,6 +170,9 @@ function_ <- function(args, body, env = caller(environment())) {
 as.quo <- function(x) {
   UseMethod("as.quo")
 }
+
+#' @export
+as.quo.quotation <- identity
 
 #' @export
 as.quo.function <- function(x) {

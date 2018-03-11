@@ -15,7 +15,7 @@ set_dots(env, dots, append = FALSE)
 the environment has one.}
 }
 \value{
-the updated environment, invisibly.
+The updated environment, invisibly.
 }
 \description{
 If an empty dotlist is given, the "..." binding is set to the

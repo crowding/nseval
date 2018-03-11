@@ -5,9 +5,9 @@
 \alias{as.environment.dots}
 \title{Convert a dots object into promises bound in an envrionment.}
 \usage{
-dots2env(dots, names = NULL, with_dots = TRUE, hash = (length(dots) >
-  100), size = max(29L, length(dots)), parent = emptyenv(),
-  envir = new.env(hash = hash, parent = parent, size = size))
+dots2env(dots, env = new.env(hash = hash, parent = parent, size = size),
+  names = NULL, with_dots = TRUE, hash = (length(dots) > 100),
+  size = max(29L, length(dots)), parent = emptyenv())
 }
 \arguments{
 \item{dots}{The dots object to convert.}

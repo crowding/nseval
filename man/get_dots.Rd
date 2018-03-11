@@ -2,9 +2,7 @@
 % Please edit documentation in R/dots.R
 \name{get_dots}
 \alias{get_dots}
-\title{Inspect "..." in some environment to make sure that If there is no
-"..." in the given environment, or it is missing, returns an empty
-dotslist.}
+\title{Retrieve the bindimg of "..." from a given environment.}
 \usage{
 get_dots(env = caller(environment()))
 }
@@ -15,7 +13,5 @@ get_dots(env = caller(environment()))
 the contents of \code{...} converted to a \code{dots} object.
 }
 \description{
-Inspect "..." in some environment to make sure that If there is no
-"..." in the given environment, or it is missing, returns an empty
-dotslist.
+Retrieve the bindimg of "..." from a given environment.
 }

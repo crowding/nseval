@@ -194,7 +194,7 @@ test_that("convert dots to environment", {
   substitute(q, e) %is% quote(arbitraryArgument)
 
   #and with specified names,
-  e <- dots2env(d, "a")
+  e <- dots2env(d, names="a")
   sort(ls(e, all.names=TRUE)) %is% c("...", "a")
   names(get_dots(e)) %is% c("q", "", "b")
 
@@ -213,14 +213,14 @@ test_that("convert dots to environment", {
   ab_env <- function(a, b, ...) environment()
   e <- ab_env(a=a, b=b, c=c, d=d, e=e)
   d <- dots(c=33, e=34, b=35)
-  e <- dots2env(d, names=c("c"), envir=e)
+  e <- dots2env(d, names=c("c"), env=e, with_dots = FALSE)
 
   names(get_dots(e)) %is% c("c", "d", "e", "e", "b")
 
   #or if use_dots is false, extra args aren'
   e <- ab_env(a=a, b=b, c=c, d=d, e=e)
   d <- dots(c=33, e=34, b=35)
-  e <- dots2env(d, names=c("c"), envir=e, with_dots = FALSE)
+  e <- dots2env(d, env=e, names=c("c"), with_dots = FALSE)
 })
 
 test_that("convert formulas to dots", {

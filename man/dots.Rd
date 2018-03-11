@@ -12,7 +12,7 @@
 \alias{dots_names}
 \alias{envs<-.dots}
 \alias{dots}
-\alias{dots_}
+\alias{dotlist}
 \title{\code{exprs(dots(...))} extracts a list of expressions, one per element
 of a \code{\link{dots}} object.}
 \usage{
@@ -38,7 +38,7 @@ dots_names(...)
 
 dots(...)
 
-dots_(..., exprs, envs)
+dotlist(...)
 }
 \arguments{
 \item{x}{A dots object (see \code{\link{dots}}).}
@@ -47,17 +47,9 @@ dots_(..., exprs, envs)
 
 \item{value}{A list of expressions.}
 
-\item{exprs}{An expression or list of expressions (if
-\code{promises} is not given)}
-
-\item{envs}{An environment or list of environments (if \code{promises}
-is not given)}
-
 \item{x}{a \code{[dots]} object.}
 
 \item{value}{A replacement list.}
-
-\item{...}{promise objects, dots objects, lists of things and things}
 }
 \value{
 A named list of expressions. The mutator \code{exprs<-}
@@ -92,9 +84,6 @@ special variable \code{...}. Unlike \code{...}, a \code{dots} is an immutable
 (evaluating does not change it), first-class (you can store it in
 any variable, not just \code{...}) data object (The R interpreter passes
 it along like data rather than triggering argument splicing).
-
-\code(dots_) is the standard-evaluating constructor for a dots
-object.
 }
 \details{
 \code{d <- dots(...)} captures the contents of ... without
@@ -118,6 +107,4 @@ named.list(a=1, b=2*2, stop("this is not evaluated"))
 }
 \seealso{
 \%()\%
-
-promise
 }

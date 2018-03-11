@@ -219,3 +219,12 @@ is_missing_ <- function(exprs, envs) {
   names,
   if (is.list(envs)) envs else list(envs))
 }
+
+# Determine which environment
+locate <- function(x) {
+  locate(x, arg_env(x, environment()))
+}
+
+locate <- function(x) {
+  locate(x, arg_env(x, environment()))
+}

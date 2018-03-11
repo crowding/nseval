@@ -203,33 +203,38 @@ dots <- function(...) {
 }
 
 #' @export
-as.dots.promise <- function(x) {
+as.dots.quotation <- function(x) {
   structure(list(x), class="dots")
 }
 
 
-#' \code(dots_) is the standard-evaluating constructor for a dots
-#' object.
+#' dotc casts each of its arguments to a dotlist, and concatenates
+#' the lot, returning a dotlist
 #'
+#' @param ... Things that can be converted to args or dots.
+#' @seealso quo
+#' @export
+dotc <- function(...) {
+  as.dots(list(...))
+}
+
 #' @rdname dots
-#' @param ... promise objects, dots objects, lists of things and things
-#' @seealso promise
-#' @param exprs An expression or list of expressions (if
-#'   \code{promises} is not given)
-#' @param envs An environment or list of environments (if \code{promises}
-#'   is not given)
-dots_ <- function(..., exprs, envs) {
-  if (missing(promises)) {
-    if (!is.list(exprs)) {
-      exprs <- list(exprs)
-    }
-    if (!is.list(envs)) {
-      envs <- list(envs)
-    }
-    structure(mapply(FUN=quo_, exprs, envs, SIMPLIFY=FALSE), class="dots")
-  } else {
-    as.dots(promises)
+#' @export
+dotlist <- function(...) {
+  as.dots(c(...))
+}
+
+#' @export
+#' @param exprs An expression or list of expressions.
+#' @param envs An environment or list of environments.
+dots_ <- function(exprs, envs) {
+  if (!is.list(exprs)) {
+    exprs <- list(exprs)
   }
+  if (!is.list(envs)) {
+    envs <- list(envs)
+  }
+  structure(mapply(FUN=quo_, exprs, envs, SIMPLIFY=FALSE), class="dots")
 }
 
 #' R's missing value.
@@ -258,8 +263,8 @@ dots_ <- function(..., exprs, envs) {
 #'     x <- list(a, b, c)
 #'
 #' fails with an error about the missing variable "a". When dealing
-#' with missing_values, then, best to keep them wrapped up in lists or
-#' other objects.
+#' with missing values, then, best to keep them wrapped up in lists ,
+#' quotations
 #'
 #' @param n Optional; a number. If provided, will return a list of
 #' missing values with this many elements.
@@ -325,10 +330,10 @@ missing_value <- function(n) {
 #' @param dots a \code{\link{dots}} object.
 #' @param append Whether to append to an existing binding for "..." if
 #'   the environment has one.
-#' @return the updated environment, invisibly.
-#' @export
+#' @return The updated environment, invisibly.
 #' @useDynLib nse _set_dots
 #' @useDynLib nse _flist_to_dotsxp
+#' @export
 set_dots <- function(env, dots, append=FALSE) {
   if (append) {
     dots = c(get_dots(env), dots);
@@ -337,9 +342,7 @@ set_dots <- function(env, dots, append=FALSE) {
   invisible(env)
 }
 
-#' Inspect "..." in some environment to make sure that If there is no
-#' "..." in the given environment, or it is missing, returns an empty
-#' dotslist.
+#' Retrieve the bindimg of "..." from a given environment.
 #'
 #' @param env The environment to look in.
 #' @return the contents of `...` converted to a `dots` object.
