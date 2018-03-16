@@ -3,7 +3,7 @@
 \name{arg}
 \alias{arg}
 \alias{arg_}
-\title{Fetch an argument by name from an environment.}
+\title{Fetch an argument by name from the present environment.}
 \usage{
 arg(name)
 
@@ -20,7 +20,5 @@ character.}
 A \link{quo} object.
 }
 \description{
-Fetch an argument by name from an environment.
-
-..
+Fetch an argument by name from the present environment.
 }

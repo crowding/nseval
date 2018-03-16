@@ -4,20 +4,20 @@
 \alias{set_dots}
 \title{Set the binding of "..." in an environment.}
 \usage{
-set_dots(env, dots, append = FALSE)
+set_dots(env, d, append = FALSE)
 }
 \arguments{
 \item{env}{The environment to update.}
 
-\item{dots}{a \code{\link{dots}} object.}
+\item{d}{a \code{\link{dots}} object.}
 
-\item{append}{Whether to append to an existing binding for "..." if
-the environment has one.}
+\item{append}{if TRUE, the values should be appended to the
+existing binding. If false, existing binding for "..." will be
+replaced.}
 }
 \value{
 The updated environment, invisibly.
 }
 \description{
-If an empty dotlist is given, the "..." binding is set to the
-missing value.
+If an empty dotlist is given, the "..." binding is cleared.
 }

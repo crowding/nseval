@@ -1,51 +1,82 @@
-promises
+nse
 ======
 
-The `promises` package implements a tidy, (hygeinic) API to
-nonstandard evaluation in R, covering nonstandard evaluation,
-laziness, promises, and "..."  argument lists.
+`nse` is the missing API for non-standard evaluation and
+metaprogramming in R. `nse` is intended to reflect R the way R
+actually works.
 
-[shutt]: http://www.wpi.edu/Pubs/ETD/Available/etd-090110-124904/
-[wiki]: https://en.wikipedia.org/wiki/Fexpr
+### Why `nse` is needed
 
-R's traditional tools for doing nonstandard evaluation (`substitute`,
-`parent.frame`, `match.call`) are non-orthogonal and tend to exhibit
-some scope problems in use. Using the `promises` package, nonstandard
-evaluation can be written in a more explicit style.
+In the beginning, there was S, and S had metaprogramming built in,
+using functions like `substitute`, `match.call`, `do.call`, `quote`,
+`alist`, `eval`, and so on. R was made to emulate those facilities.
+But S did not have lexical scoping or the notion of an environment,
+whereas R does. It turns out the S interface is not sufficient to
+capture R behavior, with consequences such as:
 
-## Laziness via promises
+  * `match.call()` loses information about argument scopes so normally
+    occurring function calls often can't be captured in a reproducible
+    form;
+  * `do.call` can't reproduce many situations that occur in normal
+    evaluation in R;
+  * `parent.frame()` tells you something almost but not entirely
+    unlike what you actually need to know in most situations;
+  * it's difficult to wrap around nonstandard-evaluating functions;
+  * it's difficult to use a nonstandard-evaluating function as an
+    argument to a higher order function;
+  * any mixture of metaprogramming and `...` rapidly turns painful;
 
-As you probably know, R evaluates function arguments lazily. In R's
-case laziness is implemented via _promises_. A promise is a data
-object that exists in either a forced or unforced state. In the forced
-state it contains a value, while in the unforced state it contains a
-recipe to create a value (in R, an expression and an environment to
-evaluate it in.)
+and so on. As a result, R functions that use the S metaprogramming API
+often end up with unintended behaviors that don't "fit" R: they lose
+track of variable scope, suffer name collisions, can't be easily
+wrapped, and so on.
 
-When R invokes a function, the function arguments are bound to
-promises. During standard evaluation, when the R interpreter requires
-the value of a variable which is bound to an unforced promise, R
-evaluates the expression contained in the promise. Then the promise is
-converted to a forced promise.
+The good news is that you can simply replace most uses of
+`match.call`, `parent.frame`, `do.call` and such with their
+equivalents from `nse`, and may have fewer of these kinds of problems.
 
-_Nonstandard evaluation_ is the bypassing of the standard evaluation
-process using functions that inspect promises without forcing
-them. The `promises` package contains a set of useful functions for
-inspecting promises, including `arg_env` which accesses the
-environment of unforced promises (which is not otherwise exposed in
-R's standard library.)
+### Who NSE is for
 
-### Why to use `arg_env`, not `parent.frame`
+`nse` might be for you if:
 
-The problem with parent.frame() is that it prevents a function from
-being wrapped.
+* You've been befuddled by trying to use the above functions;
+* You're been befuddled by other people's code that uses the above
+  functions and need to work around it;
+* You want to understand better what "goes on" "under the hood" when R
+  is running.
 
-Using `arg_env` instead of `parent.frame()` makes it easier to wrap
-functions that do nonstandard evaluation. Here's an example.
+### What `nse` does
+
+`nse` introduces three S3 classes: `quotation`, `dots`, and `call`,
+which mirror R's promises, `...`, and function invocations,
+respectively. Unlike their counterparts, these are ordinary data
+objects, and can be manipulated as such.
+
+* A `quotation` combines an R expression with an environment.  There
+  are also `forced` quotations, which pair an expression with a value.
+
+* A `dots` is a named list of quotations.
+
+* A `call` is a quotation (the head of the call) combined with a dots
+  (the arguments).
+
+There is a set of consistently-named accessors and constructors for
+capturing, constructing, and manipulating these objects.
+
+### What `nse` doesn't do
+
+`nse` does not implement quasiquotation or hygeinic macros or DSLs or
+pattern matching or static analysis or automated code refactoring, but
+it is intended to be a solid foundation to build those kinds of
+facilities on!
+
+`nse` doesn't introduce new syntax -- the only nonstandard evaluation
+in its own interface is name lookup and quoting, and
+standard-evaluating equivalents are always there.
 
 # EXAMPLE
 
-Using arg_env instead of parent_frame also allows non-standard-evaluating
+Using `arg_env` instead of `parent_frame` also allows non-standard-evaluating
 functions to be composable. (example with dlply and glm functions)
 
 ## caller and with_caller
@@ -64,29 +95,29 @@ errors instead.
 In R, to write a function that takes any number of arguments, we use
 the symbol `...`, which represents a sort of list of arguments. This
 is somewhat similar to Python's solution of `*args, **kwargs`, except
-that while in Python variadic arguments are stored in first-calss data
+that while in Python variadic arguments are stored in first-class data
 structures, in R the `...` is opaque. It's tricky to do things like
 take the second argument, or take all the odd arguments, or obtain a
-list of argument names, or concatenate two argument lists
-together. The only thing you can do with a `...` when you have it is
-to pass them all to another function's argument list.
+list of argument names without forcing them, or concatenating two
+argument lists together. The only thing you can do with a `...` when
+you have it is to pass them all to another function's argument list.
 
 But under the hood, a `...` is just a named list of promises. The
-`promises` package provides a `dots` class and accessor functions that
+`nse` package provides a `dots` class and accessor functions that
 let you manipulate sequences of promises the same way as you would
 manipulate other kinds of lists.
 
 As an example, consider trying to implement the R library function
 `switch`. This takes any number of arguments, and uses the argument
 `expr` -- either a number or a name -- to decide which of the other
-arguments to evaluate. But "accessing unevaluated arguments by index
-or name" isn't easy expressible in pure R, so `switch` has a C
-implementation.
+arguments to return, only forcing that argument. But in base R it is
+difficult to access unevaluated arguments by index or name, so
+`switch` has a C implementation.
 
-It's actually possible to implement `switch` in pure R, but... coming
-up with a solution requires more under-the-hood R mechanics than you
-might care to know. I can do it by synthesizing a function with the
-right arglist to match the required argument:
+It's actually possible to implement `switch` in base R, but... coming
+up with a solution requires a bit of tinkering. I can do it by
+synthesizing a function with the right arglist to match the required
+argument. The weirdest part was working out how names like `..3` work.
 
 ```r
 switch2 <- function(expr, ...) {
@@ -113,13 +144,14 @@ manipulate argument lists, `switch` is easy:
 
 ```r
 switch3 <- function(expr, ...) {
-  dots(...)[[expr]]
+  force_(dots(...)[[expr]])
 }
 ```
 
 ## Missing arguments.
 
-When a function  defined as having an argument but that argument is not given, that argument is "missing.
+When a function defined as having an argument but that argument is not
+given, that argument is "missing."
 
 For example,
 
@@ -127,4 +159,11 @@ f <- function(x) missing(x)
 f(1)
 f()
 
+## Similar paackages
 
+Some other packages have been written along similar lines:
+
+* rlang
+* lazyeval
+* pryr
+* vadr, which this package is a rewrite from.

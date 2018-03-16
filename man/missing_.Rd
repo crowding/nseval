@@ -3,11 +3,15 @@
 \name{list_missing}
 \alias{list_missing}
 \alias{missing_}
-\title{Check for blank expression.}
+\title{Check for missing_value()s.}
 \usage{
 list_missing(...)
 
-missing_(x)
+missing_(x, unwrap = TRUE)
+}
+\arguments{
+\item{unwrap}{Whether to descend through unevaluated promises
+using \link{unwrap} before deciding if a promise is missing.}
 }
 \value{
 \code{list_missing} A list containing the values of all arguments, including
@@ -15,16 +19,16 @@ missing values. That is, \code{list_missing} works like
 \code{list}, but does not complain about missing arguments,
 instead representing them directly.
 
-a vector of boolean values
+a vector of boolean values.
 }
 \description{
 For \code{\link{dots}} and \code{\link{quo}} objects, checks whether the expressions are missing
 without evaluating.
 }
 \details{
-For lists, check if they are identical to R's "missing value"
+For lists, check if they are identical to R's "missing value."
 
-Checking for missing elements of \code{...}, without forcing, can be
+Checking for missing arguments of \code{...}, without forcing, can be
 useful if you need to implement array subsetting like \code{`[`},
 where a missing argument means to take all indexes on that
 dimension.
@@ -36,7 +40,7 @@ errors on missing arguments. Meanwile, using
 but stripts them of their environments (breaking hygeine).
 
 Instead, use \code{x <- list_missing(...)}
-and \link{is_missing}(x) to detect missing arguments.
+and \link{missing_}(x) to detect missing arguments.
 
 [[2]: R:[2
 }

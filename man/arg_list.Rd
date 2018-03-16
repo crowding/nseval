@@ -3,31 +3,34 @@
 \name{args}
 \alias{args}
 \alias{args_}
-\title{Fetch an argument from an environment by name.}
+\title{Fetch argument from an environment by name, returning a dots list.}
 \usage{
 args(...)
 
-args_(names, envs, tags = names(names) \%||\% vapply(names, as.character, ""))
+args_(names, envs, tags = names(names))
 }
 \arguments{
 \item{...}{Variable names (unevaluated). Arguments may be named; these names
-determine the names on the dots list (and not the variable names)}
+determine the names on the dots list (and not the variable names).}
 
 \item{names}{A character vector or list of names.}
 
 \item{envs}{An environment, or list of environments, to look for
 the bindings in.}
 
-\item{tags}{An optional character vector specifying output variable names.}
+\item{tags}{An optional character vector specifying output variable
+names. If this is NULL, the input names themselves will be
+duplicated. By default this uses the names attribute of the names
+argument.}
 }
 \value{
 a \code{\link{dots}} object containing the promises that are bound to
 those variables in the calling environment.
 }
 \description{
-Fetch an argument from an environment by name.
+Fetch argument from an environment by name, returning a dots list.
 
-\code{arg_dots_} is a normally evaluating version of args.
+\code{args_} is a normally evaluating version of \code{args}.
 }
 \note{
 The tags on the dots object are determined by argument names;

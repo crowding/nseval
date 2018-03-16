@@ -138,14 +138,23 @@ builtins <- as.environment(list(
   `<<-` = function(lval, rval) {
     lval <- arg(lval)
     rval <- arg(rval)
-    munge_assignment(lval, rval,
-                     then = function(lval, rval) {
-                       where <- find(lval, parent.env(env(lval)))
-                       assign(expr(lval), value_(rval), envir = env(lval))
-                       # maybe where[[expr(lval)]] %<-% value_(rval)
-                     })
-  }
-})) # builtins <- as.environment(list()) {
+    munge_assignment(
+      lval,
+      rval,
+      then = function(lval, rval) {
+        where <- locate(lval, parent.env(env(lval)))
+        assign(expr(lval), value_(rval), envir = where)
+        # maybe where[[expr(lval)]] %<-% value_(rval)
+      })
+  },
+
+  `UseMethod` = function(generic, object) {
+    
+  },
+
+  `NextMethod` = function(generic = NULL, object = NULL, ...) {
+    
+  })) # builtins <- as.environment(list( ..., {...} ))
 
 munge_assignment <- function(lval, rval) {
   switch(mode(expr(lval)) {
@@ -163,7 +172,7 @@ Having cleared our throat, now it's time to consider how to tackle 'eval'.
 
 ```
 reval <- function(expr, env) {
-  switch(mode(expr), 
+  switch(mode(expr),
          name = {
            if (where <- find(expr, env)) {
              if (is_promise_(expr, env)) {
@@ -175,7 +184,7 @@ reval <- function(expr, env) {
                get(expr, env, mode=value)
              }
            } else {
-             
+
            }
          },
          call = {

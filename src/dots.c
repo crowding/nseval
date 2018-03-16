@@ -4,6 +4,12 @@
 int _dots_length(SEXP dots);
 SEXP emptypromise();
 
+SEXP _find(SEXP name, SEXP env, SEXP function) {
+  assert_type(name, SYMSXP);
+  assert_type(env, ENVSXP);
+  return findVar(name, env);
+}
+
 /* Allocate blank list of dotsxps and promises */
 SEXP allocate_dots(int length) {
   if (length <= 0) return R_NilValue;
@@ -87,7 +93,7 @@ SEXP _dots_unpack(SEXP dots) {
   SEXP input_names = getAttrib(dots, R_NamesSymbol);
   
   for (int i = 0; i < length; i++) {
-    SEXP item = PROTECT(quotation_to_promsxp(VECTOR_ELT(dots, i)));
+    SEXP item = PROTECT(_quotation_to_promsxp(VECTOR_ELT(dots, i)));
     SEXP tag = (input_names == R_NilValue) ? R_BlankString : STRING_ELT(input_names, i); 
 
     if ((TYPEOF(PRENV(item)) != ENVSXP) && (PRENV(item) != R_NilValue))
@@ -198,39 +204,6 @@ SEXP _dots_envs(SEXP dots) {
   return(envs);
 }
 
-SEXP _as_dots_literal(SEXP list) {
-  assert_type(list, VECSXP);
-  int len = LENGTH(list);
-  SEXP dotlist;
-  
-  if (len == 0) {
-    dotlist = PROTECT(allocVector(VECSXP, 0));
-    setAttrib(dotlist, R_ClassSymbol, ScalarString(mkChar("dots")));
-    UNPROTECT(1);
-    return dotlist;
-  } else {
-    dotlist = PROTECT(allocate_dots(len));
-  }
-  SEXP names = getAttrib(list, R_NamesSymbol);
-  int i;
-  SEXP iter;
-  
-  for (i = 0, iter = dotlist;
-       iter != R_NilValue && i < len;
-       i++, iter = CDR(iter)) {
-    assert_type(CAR(iter), PROMSXP);
-    SET_PRVALUE(CAR(iter), VECTOR_ELT(list, i));
-    SET_PRCODE(CAR(iter), VECTOR_ELT(list, i));
-    SET_PRENV(CAR(iter), R_NilValue);
-    if ((names != R_NilValue) && (STRING_ELT(names, i) != R_BlankString)) {
-      SET_TAG(iter, install(CHAR(STRING_ELT(names, i)) ));
-    }
-  }
-  setAttrib(dotlist, R_ClassSymbol, ScalarString(mkChar("dots")));
-  UNPROTECT(1);
-  return dotlist;
-}
-
 /* Convert a DOTSXP into a list of raw promise objects. */
 SEXP _dotslist_to_list(SEXP x) {
   int i;
@@ -301,7 +274,7 @@ SEXP _flist_to_dotsxp(SEXP flist) {
         SET_TAG(output_iter, R_NilValue);
       }
       SEXP clos = VECTOR_ELT(flist, i);
-      SETCAR(output_iter, quotation_to_promsxp(clos));
+      SETCAR(output_iter, _quotation_to_promsxp(clos));
     }
     UNPROTECT(1);
     return output;
@@ -516,11 +489,3 @@ SEXP _dots_to_env(SEXP dots, SEXP envir, SEXP newdots) {
   }
   return envir;
 }
-
-
-/*
- * Local Variables:
- * eval: (previewing-mode)
- * previewing-build-command: (previewing-run-R-unit-tests)
- * End:
- */

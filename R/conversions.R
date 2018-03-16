@@ -8,15 +8,13 @@
 #'   list items are treated as data values, and create already-forced
 #'   promises. For \code{as.dots.exprs}, values are treated as the
 #'   expressions of new unforced promises.
-#' @seealso dots "%<<%" "%<<<%" "%()%" "[.dots" "[[.dots",
-#'   "names.dots"
 #' @export
 as.dots <- function(x) {
   UseMethod("as.dots")
 }
 
 #' @export
-as.dots.dots <- function(x) x
+as.dots.dots <- identity
 
 #' @export
 as.dots.list <- function(x)
@@ -69,16 +67,17 @@ as.dots.exprs <- function(exprs, env = arg_env(exprs)) {
 }
 
 
-#' \code(as.dots.literal) injects a list of literal values into a dots
+#' \code(as.dots.literal) turns a list of literal values into a dots
 #'   object consisting of forced promises. (A forced promise records a
 #'   value and an expression, but not an environment.)
 #' @param x a list.
 #' @rdname as.dots
 #' @export
-#' @useDynLib nse _dotsxp_to_flist
-#' @useDynLib nse _as_dots_literal
+#' @useDynLib nse _quotation_literal
 as.dots.literal <- function(values) {
-  .Call(`_dotsxp_to_flist`, .Call(`_as_dots_literal`, as.list(values)))
+  structure(lapply(as.list(values),
+                   function(x) .Call(`_quotation_literal`, x)),
+            class="dots")
 }
 
 #' ...
@@ -101,55 +100,63 @@ env2dots <- function(env,
 filter <- function(x, pred) x[pred(x)]
 goodname <- function(x) !(x %in% c(NA_character_, ""))
 
-#' Convert a dots object into promises bound in an envrionment.
+#' Take quotations from a dots object and inject them into an environment.
 #'
 #' All named entries in the dots object will be bound to
 #' variables. Unnamed entries will be appended to any existing value
 #' of `...` in the order in which they appear.
 #'
-#' @param dots The dots object to convert.
-#' @param names Which variables to populate in the
-#'   environment. By default, will use all names present in the dotlist.
-#'   If a name is given that does not appear in the dots object, an error is
-#'   raised.
-#' @param parent If creating a new environment, its parent (see
-#'   \code{\link{new.env}}).
-#' @param envir If not NULL, an environment object to populate and
-#'   return. If NULL, a new environment will be created.
-#' @param with_dots Whether to bind unnamed or unmatched items to
+#' @param d The dots object to use.
+#' @param names Which variables to populate in the environment. By
+#'   default, will use all names present in the dotlist.  If a name is
+#'   given that does not match any names from the dots object, an
+#'   error is raised.
+#' @param env Specify an environment object to populate and
+#'   return. By default a new environment is created.
+#' @param use_dots Whether to bind unnamed or unmatched items to
 #'   \code{...}. If FALSE, these items are discarded. If TRUE, they
-#'   are appended to any existing \code{...} in the environment. If
-#'   arguments have duplicate names, the earlier ones are used and the
-#'   rest placed in "...".
-#' @param hash if \code{envir} is non-NULL; See \code{\link{new.env}}.
-#' @param size if \code{envir} is non-NULL; See \code{\link{new.env}}.
-#' @param parent if \code{envir} is non-NULL; See
+#'   bound to \code{...} in the environment. If items have duplicate
+#'   names, the earlier ones are used and the rest placed in "...".
+#' @param append if `TRUE`, unmatched or unnamed items will be
+#'   appended to any existing value of '...'. If `FALSE`, the existing
+#'   binding of `...` will be cleared. (Neither happens if `use_dots`
+#'   is FALSE.)
+#' @param hash if \code{env} is NULL, this argument is passed to
+#'   \code{\link{new.env}}.
+#' @param size if \code{env} is NULL, this argument is paseed to
+#'   \code{\link{new.env}}.
+#' @param parent if \code{env} is NULL, this argument is paseed to
 #'   \code{\link{new.env}}.
 #' @return An environment object.
 #' @aliases as.environment.dots
 #' @export
 #' @useDynLib nse _flist_to_dotsxp
 #' @useDynLib nse _dots_to_env
-dots2env <- function(dots,
+dots2env <- function(d,
                      env = new.env(hash = hash, parent = parent, size = size),
                      names = NULL,
-                     with_dots = TRUE,
+                     use_dots = TRUE,
+                     append = TRUE,
                      hash = (length(dots) > 100),
                      size = max(29L, length(dots)),
                      parent = emptyenv()) {
   if (is.null(names)) {
-    names <- filter(names(dots) %||% c(), goodname)
+    names <- filter(names(d) %||% c(), goodname)
   }
-  if (with_dots) {
-    m <- match(names, names(dots) %||% c())
+  if (use_dots) {
+    m <- match(names, names(d) %||% c())
     if (any(is.na(m))) {stop("Named variable(s) not present in dotlist.")}
-    dotlist <- .Call(`_flist_to_dotsxp`, dots[m])
-    dots[m] <- NULL
-    extras <- .Call(`_flist_to_dotsxp`, dots)
+    picked <- d[m]
+    dotlist <- .Call(`_flist_to_dotsxp`, picked)
+    d[m] <- NULL
+    if (!append) {
+      set_dots(env, NULL)
+    }
+    extras <- .Call(`_flist_to_dotsxp`, d)
     .Call(`_dots_to_env`, dotlist, env, extras)
   } else {
-    dots <- dots[names]
-    dotlist <- .Call(`_flist_to_dotsxp`, dots)
+    d <- d[names]
+    dotlist <- .Call(`_flist_to_dotsxp`, d)
     .Call(`_dots_to_env`, dotlist, env, NULL)
   }
 }
@@ -185,7 +192,15 @@ as.quo.function <- function(x) {
 }
 
 #' @export
-as.quo.quo <- function(x) x
+as.quo.quotation <- identity
+
+#' @export
+as.quo.dots <- function(x) {
+  if (length(x) == 1)
+    x[[1]]
+  else
+    stop("can't convert nonscalar dots to a quotation")
+}
 
 #' @export
 as.quo.default <- function(x) {
@@ -193,7 +208,6 @@ as.quo.default <- function(x) {
     expr <- x$expr
     env <- x$env
   } else {
-    expr <- x
     stop(paste0("can't convert ", class(x)[1] ," to a quo"))
   }
   quo_(expr, env)

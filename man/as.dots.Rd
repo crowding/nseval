@@ -27,11 +27,7 @@ expressions of new unforced promises.
 Convert a list of expressions into a \code{\dots} object (a list of
 promises.)
 
-\code(as.dots.literal) injects a list of literal values into a dots
+\code(as.dots.literal) turns a list of literal values into a dots
 object consisting of forced promises. (A forced promise records a
 value and an expression, but not an environment.)
-}
-\seealso{
-dots "%<<%" "%<<<%" "%()%" "[.dots" "[[.dots",
-"names.dots"
 }

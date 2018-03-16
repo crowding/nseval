@@ -5,8 +5,6 @@
 SEXP do_ddfindVar(SEXP symbol, SEXP envir) {
   int i;
   SEXP vl;
-
-  vl = findVar(R_DotsSymbol, envir);
   i = DDVAL(symbol);
   if (vl != R_UnboundValue) {
     if (length(vl) >= i) {
@@ -21,7 +19,7 @@ SEXP do_ddfindVar(SEXP symbol, SEXP envir) {
   return R_NilValue;
 }
 
-SEXP do_findBinding(SEXP name, SEXP envir) {
+SEXP x_findVar(SEXP name, SEXP envir) {
   assert_type(name, SYMSXP);
   assert_type(envir, ENVSXP);
   SEXP binding;
@@ -30,12 +28,18 @@ SEXP do_findBinding(SEXP name, SEXP envir) {
   } else {
     binding = Rf_findVar(name, envir);
   }
+  return binding;
+}
+
+SEXP do_findBinding(SEXP name, SEXP envir) {
+  SEXP binding = x_findVar(name, envir);
   if (binding == R_UnboundValue) {
     error("Variable `%s` was not found.",
           CHAR(PRINTNAME(name)));
   }
   return binding;
 }
+
 
 SEXP do_findPromise(SEXP name, SEXP envir) {
   SEXP binding = do_findBinding(name, envir);
@@ -47,6 +51,42 @@ SEXP do_findPromise(SEXP name, SEXP envir) {
           CHAR(PRINTNAME(name)));
   }
   return binding;
+}
+
+int unwrappable(SEXP prom) {
+  return (TYPEOF(PREXPR(prom)) == SYMSXP
+          && PRENV(prom) != R_NilValue
+          && PRENV(prom) != R_EmptyEnv);
+}
+
+SEXP unwrap_promise(SEXP prom) {
+  while(unwrappable(prom)) {
+    while(TYPEOF(PREXPR(prom)) == PROMSXP) {
+      prom = PREXPR(prom);
+    }
+    SEXP name = PREXPR(prom);
+    SEXP envir = PRENV(prom);
+    SEXP binding = x_findVar(PREXPR(prom), PRENV(prom));
+    if (binding == R_MissingArg) {
+      return emptypromise();
+    } else if (binding == R_UnboundValue) {
+      break;
+    } else if (TYPEOF(binding) == PROMSXP) {
+      prom = binding;
+      continue;
+    } else {
+      break;
+    }
+  }
+  return prom;
+}
+
+SEXP _unwrap_quotation(SEXP q) {
+  SEXP pr = PROTECT(_quotation_to_promsxp(q));
+  pr = PROTECT(unwrap_promise(pr));
+  q = promsxp_to_quotation(pr);
+  UNPROTECT(2);
+  return q;
 }
 
 /* selector for things arg_get finds */
@@ -259,7 +299,7 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
 
 SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn) {
   /* Rprintf("Getting %s of binding `%s`\n", get_enum_string(type), CHAR(PRINTNAME(name))); */
-  SEXP binding = do_findBinding(name, envir);
+  SEXP binding = x_findVar(name, envir);
   if (TYPEOF(binding) == PROMSXP) {
     /* Rprintf("Got a promise\n"); */
     while (TYPEOF(PREXPR(binding))  == PROMSXP) {
@@ -318,8 +358,13 @@ SEXP _arg_expr(SEXP envir, SEXP name, SEXP warn) {
 SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
   assert_type(envirs, VECSXP);
   assert_type(names, VECSXP);
-  assert_type(tags, STRSXP);
-  if (LENGTH(envirs) != LENGTH(names) || LENGTH(tags) != LENGTH(names)) {
+  if (tags != R_NilValue) {
+    assert_type(tags, STRSXP);    
+    if (LENGTH(tags) != LENGTH(names)) {
+      error("Inputs to arg_dots have different lengths");
+    }
+  }
+  if (LENGTH(envirs) != LENGTH(names)) {
     error("Inputs to arg_dots have different lengths");
   }
   int warni = asLogical(warn);
@@ -365,9 +410,3 @@ SEXP _is_missing(SEXP envir, SEXP name, SEXP warn) {
   return arg_get(envir, name, IS_MISSING, asLogical(warn));
 }
 
-/*
- * Local Variables:
- * eval: (previewing-mode)
- * previewing-build-command: (previewing-run-R-unit-tests)
- * End:
- */

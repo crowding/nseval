@@ -18,7 +18,7 @@ of a \code{\link{dots}} object.}
 \usage{
 exprs(x)
 
-\method{exprs}{dots}(x)
+\method{exprs}{dots}(d)
 
 dots_exprs(...)
 

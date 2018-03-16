@@ -54,8 +54,8 @@ exprs <- function(x) UseMethod("exprs")
 
 #' @export
 #' @rdname dots
-exprs.dots <- function(x) {
-  lapply(unclass(x), expr)
+exprs.dots <- function(d) {
+  lapply(unclass(d), function(x) .Call("_expr_quotation", x))
 }
 
 #' @export
@@ -323,53 +323,53 @@ missing_value <- function(n) {
 
 #' Set the binding of "..." in an environment.
 #'
-#' If an empty dotlist is given, the "..." binding is set to the
-#' missing value.
+#' If an empty dotlist is given, the "..." binding is cleared.
 #'
 #' @param env The environment to update.
-#' @param dots a \code{\link{dots}} object.
-#' @param append Whether to append to an existing binding for "..." if
-#'   the environment has one.
+#' @param d a \code{\link{dots}} object.
+#' @param append if TRUE, the values should be appended to the
+#'   existing binding. If false, existing binding for "..." will be
+#'   replaced.
 #' @return The updated environment, invisibly.
 #' @useDynLib nse _set_dots
 #' @useDynLib nse _flist_to_dotsxp
 #' @export
-set_dots <- function(env, dots, append=FALSE) {
+set_dots <- function(env, d, append=FALSE) {
   if (append) {
-    dots = c(get_dots(env), dots);
+    d = c(get_dots(env), d);
   }
-  .Call(`_set_dots`, .Call(`_flist_to_dotsxp`, dots), env)
+  .Call(`_set_dots`, .Call(`_flist_to_dotsxp`, d), env)
   invisible(env)
 }
 
-#' Retrieve the bindimg of "..." from a given environment.
+#' Retrieve the binding of "..." from a given environment.
 #'
 #' @param env The environment to look in.
-#' @return the contents of `...` converted to a `dots` object.
+#' @param inherits Whether to look in enclosing environments for a dot.
+#' @return The contents of `...` converted to a `dots` object.
 #' @export
 #' @useDynLib nse _get_dots
 #' @useDynLib nse _dotsxp_to_flist
-get_dots <- function(env = caller(environment())) {
+get_dots <- function(env = caller(environment()), inherits=FALSE) {
   dts <- .Call(`_get_dots`, env)
   .Call(`_dotsxp_to_flist`, dts)
 }
 
 #' @export
 `%()%.default` <- function(f, arglist) {
-  #if (length(arglist) == 0) return(f())
   set_dots(environment(), as.dots.literal(arglist))
   f(...)
 }
 
-#' Check for blank expression.
+#' Check for missing_value()s.
 #'
 #' For [`dots`] and [`quo`] objects, checks whether the expressions are missing
 #' without evaluating.
 #'
-#' For lists, check if they are identical to R's "missing value"
+#' For lists, check if they are identical to R's "missing value."
 #'
 #' @details
-#' Checking for missing elements of `...`, without forcing, can be
+#' Checking for missing arguments of `...`, without forcing, can be
 #' useful if you need to implement array subsetting like \code{`[`},
 #' where a missing argument means to take all indexes on that
 #' dimension.
@@ -381,21 +381,30 @@ get_dots <- function(env = caller(environment())) {
 #' but stripts them of their environments (breaking hygeine).
 #'
 #' Instead, use \code{x <- list_missing(...)}
-#' and \link{is_missing}(x) to detect missing arguments.
+#' and \link{missing_}(x) to detect missing arguments.
 #'
 #' @param x
-#' @return a vector of boolean values
+#' @param unwrap Whether to descend through unevaluated promises
+#'   using [unwrap] before deciding if a promise is missing.
+#' @return a vector of boolean values.
 #' @seealso missing, is_missing
 #' @export
-missing_ <- function(x) if (missing(x)) TRUE else UseMethod("missing_")
+missing_ <- function(x, unwrap=TRUE) {
+  if (missing(x)) TRUE
+  else UseMethod("missing_")
+}
 
 #' @export
-missing_.dots <- function(x) {
+#' param
+missing_.dots <- function(x, unwrap=TRUE) {
+  if (unwrap) {
+    x <- unwrap(x)
+  }
   vapply(exprs(x), identical, FALSE, missing_value())
 }
 
 #' @export
-missing_.default <- function(x) {
+missing_.default <- function(x, unwrap=TRUE) {
   if (identical(x, missing_value()))
     TRUE
   else if (is.list(x))
@@ -405,11 +414,11 @@ missing_.default <- function(x) {
 }
 
 #' @export
-missing_.quotation <- function(x) {
+missing_.quotation <- function(x, unwrap=TRUE) {
+  if (unwrap)
+    x <- unwrap(x)
   identical(expr(x), missing_value())
 }
-
-#FIXME: this should not be called "is"
 
 #' Evaluate promises or dots.
 #'
@@ -426,6 +435,11 @@ value <- function(p) {
   UseMethod("value")
 }
 
+#' @export
+value.dots <- function(d) {
+  list %()% d
+}
+
 values <- function(p) {
   UseMethod("values")
 }
@@ -435,7 +449,15 @@ values.dots <- function(d) {
   list %()% d
 }
 
-
+#' @export
+values.default <- function(d) {
+  list %()% as.dots(d)
+}
 ## Local Variables:
 ## ess-r-package-info: ("nse" . "~/fexpr")
 ## End:
+
+#' @export
+forced.dots <- function(d) {
+  lapply(d, forced)
+}

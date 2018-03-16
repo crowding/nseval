@@ -23,7 +23,7 @@ is_promise(...)
 
 is_promise_(names, envirs)
 
-is_missing_(exprs, envs)
+is_missing_(names, envs)
 
 is_forced(...)
 
@@ -31,7 +31,7 @@ is_forced_(names, envirs)
 
 is_literal(...)
 
-is_literal_(names, envirs, warn = TRUE)
+is_literal_(names, envs, warn = TRUE)
 }
 \arguments{
 \item{name}{A single argument name; not evaluated.}

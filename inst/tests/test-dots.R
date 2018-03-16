@@ -95,31 +95,32 @@ test_that("dots_unpack(...) descends through promise chains if necessary", {
 })
 
 ## these should also be in reference to dots objects
-test_that("dots missingness",
-          {
-            expect_equivalent(logical(0), missing_(dots()))
-          local({
-            with_setup(
-              setup={
-                if (exists("a")) rm(a, inherits=TRUE)
-                unmissing <- 1
-                b <- missing_value()
-              },
-              thunk <- 1,
-              #actual testing in the teardown
-              teardown = {
-                expect_equal(c(FALSE,     FALSE, c=TRUE, FALSE, d=FALSE, TRUE),
-                             missing_(dots(a, unmissing,     c=,     4,   d=x+y,     )) )
-                #
-                #And this check for missingness does not eval
-                expect_equal(c(FALSE, c=TRUE, FALSE),
-                             missing_(dots(stop("no"), c=, stop("no"))))
-                #remove...
-                #browser()
-                rm(unmissing)
-                rm(b)
-              })
-          })})
+test_that("dots missingness", {
+  expect_equivalent(logical(0), missing_(dots()))
+  local({
+    with_setup(
+      setup={
+        if (exists("a")) rm(a, inherits=TRUE)
+        unmissing <- 1
+        b <- missing_value()
+        delayedAssign("e", stop("e"))
+      },
+      thunk <- 1,
+      #actual testing in the teardown
+      teardown = {
+        d <- missing_(dots(   a, unmissing, c=    ,     4, d=x+y  ,     ,     e))
+        expect_equal(d, c(FALSE,     FALSE, c=TRUE, FALSE, d=FALSE, TRUE, FALSE))
+        #
+        #And this check for missingness does not eval
+        d <- dots(stop("no"), c=, stop("no"))
+        expect_equal(missing_(d), c(FALSE, c=TRUE, FALSE))
+        #remove...
+        #browser()
+        #rm(unmissing)
+        #rm(b)
+      })
+  })
+})
 
 test_that("missing on non-dotlists", {
   a <- alist(1, 2, adsf, , b=, )
@@ -372,6 +373,18 @@ test_that("dots() et al with empty inputs", {
   f %()% b %is% 8
 })
 
+test_that("args() makes tags by default.", {})
+
+test_that(
+  "#' Note that you can not get the contents of `...` by writing
+#' `args(...)`, because R unpacks `...` before `args` receives its
+#' arguments.
+#'
+#' However, you can write `args(\"...\")` or args_(\"...\") er even
+#' `get_dots()`. Also, `arg_(\"...\", environment)` will throw an error.
+#'
+", {})
+
 test_that("dots() on empty arguments", {
   x <- dots(, b=z)
   expect_identical(exprs(x), list(missing_value(), b=quote(z)))
@@ -387,7 +400,7 @@ test_that("dots() on empty arguments", {
   m2 <- function(...) missing_(dots(...))
 
   dots_other <- function(x, y, z) {
-     args(x, y, z) #makes promises set to R_MissingValue
+    args(x, y, z) #makes promises set to R_MissingValue
   }
 
   d1 <- dots(x, , z)
@@ -496,7 +509,7 @@ test_that("dots [[<- and $<-", {
         x <- "x"; y <- 3
         d <- dots(a=x, b=y, c=x+y)
       }, {
-        d[[2]] <- quo_(x, environment())
+        d[[2]] <- quo(x)
         x <- 4
         value(d[[2]]) %is% 4
       }, {
@@ -592,8 +605,36 @@ test_that("get_dots returns promise objects", {
 test_that("Can get missingness and forcedness of quo", {
   w <- 1
   x <- missing_value()
-  delayedAssign("y", quote(x))
-  delayedAssign("z", quote(stop("Should not force")))
-  missing_(args(w, x, y, z)) %is% c(FALSE, FALSE, TRUE, TRUE)
-  missing_(args(w, x, y, x)) %is% c(TRUE, TRUE, FALSE, FALSE)
+  delayedAssign("y", x)
+  delayedAssign("z", stop("Should not force"))
+  missing_(args(w, x, y, z)) %is% c(FALSE, TRUE, TRUE, FALSE)
+  missing_(arg(w)) %is% c(FALSE)
+  missing_(arg(x)) %is% c(TRUE)
+  missing_(arg(y)) %is% c(TRUE)
+  missing_(arg(y), unwrap=FALSE) %is% c(FALSE)
+  missing_(arg(z)) %is% c(FALSE)
+  is_missing(w, y, y, z) %is% c(FALSE, TRUE, TRUE, FALSE)
+  missing(w) %is% FALSE
+  missing(x) %is% TRUE
+  missing(y) %is% TRUE
+  missing(z) %is% FALSE
+})
+
+test_that("is_missing and missing_ unwraps", {
+  f <- function(x, q) g(x, q)
+  g <- function(y, q) h(y, q)
+  h <- function(z, q) q(z)
+
+  f(, missing) %is% TRUE
+  f(x, is_missing) %is% TRUE
+  f(, function(x) missing_(arg(x))) %is% TRUE
+
+  #note that undefined != missing
+  f <- function(q) g(asdlkj, q) #g(asdfghjkl, q)
+  g <- function(y, q) h(y, q)
+  h <- function(z, q) q(z)
+
+  f(missing) %is% FALSE
+  f(is_missing) %is% FALSE
+  f(function(x) missing_(arg(x))) %is% FALSE
 })

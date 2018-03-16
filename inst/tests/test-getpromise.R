@@ -22,6 +22,7 @@ test_that("can recover environments of arguments", {
     arg_env(a)$where %is% "f2"
     arg_env(b)$where %is% "f2"
     arg_env(c)$where %is% "f1"
+    arg_env(c)$where %is% "f1"
     envs(dots(...))[[1]]$where %is% "top"
   }
   where <- "top"
@@ -154,15 +155,21 @@ test_that("empty arguments return missing value and empty environment", {
 })
 
 test_that("get dotslists of args direct", {
-  f1 <- function(x, y) arg_dots(x, b=y)
+  f1 <- function(x, y) args(x, b=y)
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
   exprs(d) %is% alist(one.arg, b=two.arg)
   expect_identical(envs(d), list(environment(), b=environment()))
 })
 
+test_that("args mirrors arg names by default", {
+  f1 <- function(x, y) args(x, y)
+  d <- f1(x=one.arg, two.arg)
+  names(d) %is% c("x", "y")
+})
+
 test_that("get dotslist of args by name", {
-  f1 <- function(x, y) arg_dots_(c("x", b="y"), environment())
+  f1 <- function(x, y) args_(c("x", b="y"), environment())
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
   exprs(d) %is% alist(one.arg, b=two.arg)
@@ -170,7 +177,7 @@ test_that("get dotslist of args by name", {
 })
 
 test_that("get dotslists handles missing arguments", {
-  f1 <- function(x, y) arg_dots(x, b=y)
+  f1 <- function(x, y) args(x, b=y)
   d <- f1(, two.arg)
   missing_(exprs(d)) %is% c(TRUE, b=FALSE)
   expect_identical(envs(d), list(emptyenv(), b=environment()))
@@ -181,10 +188,33 @@ test_that("error when symbol is not bound", {
   expect_error(f(), "not")
   f <- function(x) arg_expr(yqwer)
   expect_error(f(), "not")
-  f <- function(x) arg_dots(yafsd)
+  f <- function(x) args(yafsd)
   expect_error(f(), "not")
   f <- function(x) missing_("yyyyy", environment())
   expect_error(f(), "not")
+})
+
+test_that("get args by character", {
+  f <- function(...) {
+    arg("...")
+  }
+  expect_error(f())
+
+  ff <- function(a, b, what) {
+    arg_(what)
+  }
+  expr(ff(foo, bar, "b") %is% quote(bar))
+  expect_error(ff(foo, bar, "..."))
+
+  g <- function(a, b, ...) {
+    args_(c("a", "b", "..."))
+  }
+
+  exprs(g(a=foo, c=baz, q=quux, b=bar)) %is%
+    alist(a=foo, c=baz, q=quuz, b=bar)
+
+  ff <- function(x, y) arg_expr("y")
+  ff(foo, bar) %is% bar
 })
 
 test_that("missing_", {
@@ -204,8 +234,36 @@ test_that("R_MissingValue bound directly", {
   expect_true(is.missing(
     (function(x) arg_expr(x))() ))
   expect_true(is.missing(
-    (function(x) arg_dots(x))() ))
+    (function(x) args(x))() ))
   expect_true(is_literal(x))
+})
+
+test_that("missing_ matches R behavior", {
+  delayedAssign("a", )
+  delayedAssign("b", a)
+  delayedAssign("c", asdlkhj)
+  delayedAssign("d", asdlkjh + alsiduj)
+
+  f <- function(e,f,g,h) {
+    cmp <- c(missing(a), missing(b), missing(c), missing(d),
+      missing(e), missing(f), missing(g), missing(h))
+    is_missing.tst <- is_missing(a, b, c, d, e, f, g, h)
+    missing_dots.tst <- missing_(dots(a, b, c, d, e, f, g, h))
+    missing_args.tst <- missing_(args(a, b, c, d, e, f, g, h))
+    missing_quo.tst <- c(missing_(quo(a)),
+                         missing_(quo(b)),
+                         missing_(quo(c)),
+                         missing_(quo(d)),
+                         missing_(quo(e)),
+                         missing_(quo(f)),
+                         missing_(quo(g)),
+                         missing_(quo(h)))
+    cmp %is% is_missing.tst
+    cmp %is% missing_dots.tst
+    cmp %is% missing_args.tst
+    cmp %is% missing_quo.tst
+  }
+  f(a, b, c, d)
 })
 
 test_that("getting promises handles DDVAL (..1 etc)", {
@@ -265,4 +323,55 @@ test_that("dotlist to environment", {
   e2 <- test(one, two, three, four)
   substitute(list(a, b, c, d), e2) %is% quote(list(one, two, five, six))
   substitute(list(...), e2) %is% quote(list(three, four, seven, eight))
+})
+
+test_that("find var", {
+  x <- function() {
+    x <- 1
+    y <- function() {
+      y <- 1
+      z <- function() {
+        ls(find(x)) %is% c("x", "y")
+        ls(find(y)) %is% c("y", "z")
+        ls(find(y, "function")) %is% c("x", "y")
+        ls(find_(quote(y), find(x))) %is% c("x", "y")
+      }
+      z()
+    }
+    y()
+  }
+  x()
+})
+
+test_that("find with dots", {
+  x <- function(...) {
+    y <- function(x) {
+      f <- find_(quote(...), environment())
+      g <- find_("...", environment())
+      h <- find("...")
+      expect_error(find("...", "function"))
+      f %is% g
+      g %is% h
+      expect_false(identical(f, environment()))
+    }
+    y
+  }
+  x(a, b, c)()
+})
+
+test_that("unwrap quotation", {
+  f <- function(r, q) {
+    g(r, q)
+  }
+  g <- function(y, q) {
+    h(y, q)
+  }
+  h <- function(z, q) {
+    q(z)
+  }
+
+  f(1 + 2, function(x) unwrap(arg(x))) %is% quo(1+2)
+  f(1 + 2, function(x) unwrap(quo(x))) %is% quo(1+2)
+  f((400), function(x) unwrap(quo(x)) %is% quo((400)))
+  f(400, function(x) expr(unwrap(quo(x))) %is% quote(x))
 })

@@ -1,3 +1,8 @@
+
+is.quotation <- function(x) {
+  inherits(x, "quotation")
+}
+
 #' Capture or construct a quotation.
 #'
 #' A quo (or quotation) `q <- quo( <anything> )` is an object with two
@@ -54,6 +59,9 @@ env.quotation <- function(x) {
   environment(x)
 }
 
+#' @export
+env.default <- function(x) environment(x)
+
 #' @rdname quo
 #' @export
 expr <- function(q) UseMethod("expr", q)
@@ -90,10 +98,18 @@ forced <- function(x) UseMethod("forced")
 #' @export
 #' @useDynLib nse _forced_quotation
 forced.quotation <- function(x) {
-  .External(`_forced_quotation`, x)
+  .Call(`_forced_quotation`, x)
 }
 
+#' @export
 forced.default <- function(x) forced(as.quo(x))
+
+#' @export
+#' @return `as.quotation.literal(x)` creates a forced promise, containing `x`
+#'    in both the expression and data slots.
+as.quotation.literal <- function(x) {
+  .Call(`_quotation_literal`, x)
+}
 
 ## Local Variables:
 ## ess-r-package-info: ("nse" . "~/fexpr")

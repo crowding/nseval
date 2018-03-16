@@ -1,0 +1,39 @@
+---
+title: How to Save Function Arguments, Generate Plot Labels, and Transparently Wrap Functions
+---
+
+These are the most common (and least problematic) scenarios for where
+the R user normally encounters or needs metaprogramming:
+
+* Present to the user the same expressions that appear in the R code.
+  For example, automatically generating plot labels.
+
+* Saving information about how a function was called, so as to re-call
+  it later. For example, model objects that allow derived models and
+  application of different data.
+
+* Forwarding your "raw" arguments to another function, which itself
+  uses metaprogramming.
+  * For example, if you want to write a wrapper function around plot().
+
+```{R}
+line.plot <- function(x, y, ...) {
+  plot(x, y, ...)
+}
+```
+
+```{R}
+line.plot <- function(x, y, ...) {
+  args <- get_call()
+  
+  args <- dotc(args(x=x, y=y), dots(...))
+  
+  plot %()% args
+}
+```
+
+```{R}
+line.plot <- function(x, y, ...) {
+  
+}
+```

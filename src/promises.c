@@ -49,7 +49,7 @@ SEXP _forced_quotation(SEXP clos) {
 
 SEXP _expr_quotation(SEXP q) {
   if (forced_quotation(q)) {
-    return PREXPR(CLOENV(q));
+    return PREXPR(BODY(q));
   } else {
     return BODY(q);
   }
@@ -89,7 +89,7 @@ SEXP empty_closure() {
   return out;
 }
 
-SEXP quotation_to_promsxp(SEXP clos) {
+SEXP _quotation_to_promsxp(SEXP clos) {
   assert_type(clos, CLOSXP);
   SEXP out;
   if (forced_quotation(clos)) {
@@ -104,7 +104,6 @@ SEXP quotation_to_promsxp(SEXP clos) {
   UNPROTECT(1);
   return out;
 }
-
 
 /* If not a promise, wrap in a promise. */
 SEXP make_into_promsxp(SEXP in) {
@@ -122,4 +121,23 @@ SEXP make_into_promsxp(SEXP in) {
     UNPROTECT(1);
     return out;
   }
+}
+
+SEXP _quotation_literal(SEXP in) {
+  SEXP pr = PROTECT(allocSExp(PROMSXP));
+  SEXP fn = PROTECT(allocSExp(CLOSXP));
+  
+  /* wrap in a forced promise */
+  SET_PRENV(pr, R_EmptyEnv);
+  SET_PRVALUE(pr, in);
+  SET_PRCODE(pr, in);
+
+  SET_CLOENV(fn, R_EmptyEnv);
+  SET_BODY(fn, pr);
+  SET_FORMALS(fn, R_NilValue);
+
+  setAttrib(fn, R_ClassSymbol, mkString("quotation"));
+  UNPROTECT(2);
+
+  return fn;
 }

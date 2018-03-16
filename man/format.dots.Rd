@@ -13,15 +13,16 @@
 \item{compact}{Implies \code{show.environments=FALSE} and
 \code{show.expressions=FALSE}.}
 
-\item{show.environments}{Whether to show environments for unevaluated
-promises.}
+\item{show.environments}{Whether to show environments for forced
+quotations.}
 
-\item{show.expressions}{Whether to show expressions for evaluated promises.}
+\item{show.expressions}{Whether to show expressions for unforced
+quotations.}
 
 \item{...}{Further arguments passed to \link{format} methods.}
 }
 \description{
 Constructs a string representation of a dots object. In this representation
-an unevaluated promise is printed as "\code{envir ? expr}" and an evaluated
-promise is shown as "\code{expr := value}".
+an unevaluated promise is printed as \code{envir ? expr} and an evaluated
+promise is shown as \code{expr := value}.
 }

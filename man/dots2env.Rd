@@ -3,37 +3,40 @@
 \name{dots2env}
 \alias{dots2env}
 \alias{as.environment.dots}
-\title{Convert a dots object into promises bound in an envrionment.}
+\title{Take quotations from a dots object and inject them into an environment.}
 \usage{
-dots2env(dots, env = new.env(hash = hash, parent = parent, size = size),
-  names = NULL, with_dots = TRUE, hash = (length(dots) > 100),
-  size = max(29L, length(dots)), parent = emptyenv())
+dots2env(d, env = new.env(hash = hash, parent = parent, size = size),
+  names = NULL, use_dots = TRUE, append = TRUE, hash = (length(dots) >
+  100), size = max(29L, length(dots)), parent = emptyenv())
 }
 \arguments{
-\item{dots}{The dots object to convert.}
+\item{d}{The dots object to use.}
 
-\item{names}{Which variables to populate in the
-environment. By default, will use all names present in the dotlist.
-If a name is given that does not appear in the dots object, an error is
-raised.}
+\item{env}{Specify an environment object to populate and
+return. By default a new environment is created.}
 
-\item{with_dots}{Whether to bind unnamed or unmatched items to
+\item{names}{Which variables to populate in the environment. By
+default, will use all names present in the dotlist.  If a name is
+given that does not match any names from the dots object, an
+error is raised.}
+
+\item{use_dots}{Whether to bind unnamed or unmatched items to
 \code{...}. If FALSE, these items are discarded. If TRUE, they
-are appended to any existing \code{...} in the environment. If
-arguments have duplicate names, the earlier ones are used and the
-rest placed in "...".}
+bound to \code{...} in the environment. If items have duplicate
+names, the earlier ones are used and the rest placed in "...".}
 
-\item{hash}{if \code{envir} is non-NULL; See \code{\link{new.env}}.}
+\item{append}{if \code{TRUE}, unmatched or unnamed items will be
+appended to any existing value of '...'. If \code{FALSE}, the existing
+binding of \code{...} will be cleared. (Neither happens if \code{use_dots}
+is FALSE.)}
 
-\item{size}{if \code{envir} is non-NULL; See \code{\link{new.env}}.}
+\item{hash}{if \code{env} is NULL, this argument is passed to
+\code{\link{new.env}}.}
 
-\item{parent}{If creating a new environment, its parent (see
-\code{\link{new.env}}).}
+\item{size}{if \code{env} is NULL, this argument is paseed to
+\code{\link{new.env}}.}
 
-\item{envir}{If not NULL, an environment object to populate and
-return. If NULL, a new environment will be created.}
-
-\item{parent}{if \code{envir} is non-NULL; See
+\item{parent}{if \code{env} is NULL, this argument is paseed to
 \code{\link{new.env}}.}
 }
 \value{

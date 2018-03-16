@@ -186,6 +186,7 @@ test_that("convert dots to environment", {
   d <- aa(b, dots, q = arbitraryArgument, someArgument(a))
 
   e <- as.environment(d)
+
   names(d) %is% c("q", "", "a", "b")
   sort(names(e)) %is% c("...", "a", "b", "q")
   sort(ls(envir = envs(d)$a, all.names=TRUE)) %is% c("...", "f")
@@ -213,14 +214,15 @@ test_that("convert dots to environment", {
   ab_env <- function(a, b, ...) environment()
   e <- ab_env(a=a, b=b, c=c, d=d, e=e)
   d <- dots(c=33, e=34, b=35)
-  e <- dots2env(d, names=c("c"), env=e, with_dots = FALSE)
+  e <- dots2env(d, names="c", env=e, use_dots = TRUE, append = TRUE)
 
   names(get_dots(e)) %is% c("c", "d", "e", "e", "b")
 
-  #or if use_dots is false, extra args aren'
+  #or if use_dots is false, extra args are thrown away.
   e <- ab_env(a=a, b=b, c=c, d=d, e=e)
   d <- dots(c=33, e=34, b=35)
-  e <- dots2env(d, env=e, names=c("c"), with_dots = FALSE)
+  e <- dots2env(d, env=e, names=c("c"), use_dots = FALSE)
+  names(get_dots(e)) %is% c("c", "d", "e")
 })
 
 test_that("convert formulas to dots", {
@@ -255,4 +257,39 @@ test_that("convert dots to lazy_dots", {
   xx <- lazy_dots(a+b)
   l <- as.lazy_dots(x)
   l %is% xx
+})
+
+test_that("convert singleton dots to quotation", {
+  expect_error(as.quo(dots()))
+  expect_equal(as.quo(dots(a+b)), quo(a+b))
+  expect_error(as.quo(dots(a+b, c+d)))
+})
+
+test_that("quotation to binding", {
+  x <- quo(a+b)
+  e <- new.env()
+
+  expect_error(4.0 %<-% x, "double")
+  expect_error(e["x"] %<-% x, "implemented")
+  expect_error(e$y %<-% x, "implemented")
+
+  z %<-% x
+  arg_expr(z) %is% quote(a+b)
+
+  quo2env(x, environment(), "y")
+  arg_expr(y) %is% quote(a+b)
+  quo2env(x, environment(), quote(zz))
+  arg_expr(zz) %is% quote(a+b)
+
+  expect_error(quo2env(x, environment(), "..."), "\\.\\.\\.")
+
+  f <- function(...) {
+    quo2env(x, environment(), "")
+    environment()
+  }
+  e <- f()
+  exprs(get_dots(e)) %is% alist(a+b)
+
+  quo2env(x, environment(), NULL)
+  expect_error()
 })

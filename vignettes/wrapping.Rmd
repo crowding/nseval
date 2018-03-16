@@ -1,8 +1,7 @@
 Wrapping Nonstandard-evaluating functions
 =====
 
-##### Or, how to use Metaprogramming to work around other people's
-code that used Metaprogramming
+##### Or, how to use Metaprogramming to work around other people's code that used Metaprogramming
 
 ## Automating graph labels.
 
@@ -68,4 +67,15 @@ Here are various ways base R provides of writing `lineplot` that all don't quite
 Counterargument:
 do(plot(x=x, y=y)
 
-### The `nse` package makes it possible to wrap 
+### How to wrap "plot"
+
+### How to wrap an NSE function in a higher order function
+
+### match.call vs. default arguments
+
+### match.call vs. ...
+
+### parent.frame() vs. default arguments.
+
+### pass data to an indirect function, without blowing up the stacktrace
+
