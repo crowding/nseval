@@ -9,7 +9,7 @@ get_dots(env = caller(environment()), inherits = FALSE)
 \arguments{
 \item{env}{The environment to look in.}
 
-\item{inherits}{Whether to look in enclosing environments for a dot.}
+\item{inherits}{Whether to look in enclosing environments for a dotsxp.}
 }
 \value{
 The contents of \code{...} converted to a \code{dots} object.

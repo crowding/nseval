@@ -80,14 +80,15 @@ as.dots.literal <- function(values) {
             class="dots")
 }
 
-#' ...
-#' @export
+#' Copy bindings from an environment into a dots object.
+#'
 #' @param env An environment.
 #' @param names Which names to extract from the environment. By
-#'   default extracts all bindings.
-#' @param include_missing Whether to include "missing" bindings.
-#' @param expand_dots Whether to unpack the contents of `...`.
+#'   default extracts the bindings present at root level.
+#' @param include_missing Whether to include missing bindings.
+#' @param use_dots Whether to unpack the contents of `...`.
 #' @return A \link{dots} object.
+#' @export
 #' @useDynLib nse _env_to_dots
 env2dots <- function(env,
                      names = ls(envir = env, all.names = TRUE),
@@ -147,24 +148,25 @@ dots2env <- function(d,
     m <- match(names, names(d) %||% c())
     if (any(is.na(m))) {stop("Named variable(s) not present in dotlist.")}
     picked <- d[m]
-    dotlist <- .Call(`_flist_to_dotsxp`, picked)
     d[m] <- NULL
-    if (!append) {
-      set_dots(env, NULL)
+    if (append) {
+      d <- c(get_dots(env), d)
     }
+    picked <- .Call(`_flist_to_dotsxp`, picked)
     extras <- .Call(`_flist_to_dotsxp`, d)
-    .Call(`_dots_to_env`, dotlist, env, extras)
+    .Call(`_dots_to_env`, picked, env, extras)
   } else {
-    d <- d[names]
-    dotlist <- .Call(`_flist_to_dotsxp`, d)
-    .Call(`_dots_to_env`, dotlist, env, NULL)
+    picked <- d[names]
+    picked <- .Call(`_flist_to_dotsxp`, d)
+    .Call(`_dots_to_env`, picked, env, NULL)
   }
 }
 
 #' Explicitly create closure objects.
 #' @export
-#' @param args Either NULL, or a named list of default value expressions
-#'   (which may be missing_value() to indicate no default).
+#' @param args Either NULL, or a named list of default value
+#'   expressions (which may be missing_value() to indicate no
+#'   default). [alist] is useful for this.
 #' @param body An expression for the body of the function.
 #' @param env The environment to create a function from.
 function_ <- function(args, body, env = caller(environment())) {

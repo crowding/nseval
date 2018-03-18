@@ -26,6 +26,16 @@ test_that("get_dots", {
   #get_dots when no dots binding should return empty dotlist
   f <- function(x) environment();
   length(get_dots(f())) %is% 0
+
+  #by default we do not inherit
+  f <- function(..., inherit=FALSE) {
+    g <- function(inherit) {
+      get_dots(environment(), inherit=inherit)
+    }
+    g(inherit)
+  }
+  length(f("nope")) %is% 0
+  length(f(and = "yep", inherit=TRUE)) %is% 1
 })
 
 test_that("set_dots", {
@@ -185,10 +195,10 @@ test_that("convert dots to environment", {
 
   d <- aa(b, dots, q = arbitraryArgument, someArgument(a))
 
-  e <- as.environment(d)
-
   names(d) %is% c("q", "", "a", "b")
+  e <- as.environment(d)
   sort(names(e)) %is% c("...", "a", "b", "q")
+
   sort(ls(envir = envs(d)$a, all.names=TRUE)) %is% c("...", "f")
 
   substitute(list(...), e) %is% quote(list(someArgument(a)))
@@ -269,9 +279,9 @@ test_that("quotation to binding", {
   x <- quo(a+b)
   e <- new.env()
 
-  expect_error(4.0 %<-% x, "double")
-  expect_error(e["x"] %<-% x, "implemented")
-  expect_error(e$y %<-% x, "implemented")
+  (4.0 %<-% x) %throws% "double"
+  (e["x"] %<-% x) %throws% "implemented"
+  (e$y %<-% x) %throws% "implemented"
 
   z %<-% x
   arg_expr(z) %is% quote(a+b)
@@ -283,13 +293,17 @@ test_that("quotation to binding", {
 
   expect_error(quo2env(x, environment(), "..."), "\\.\\.\\.")
 
-  f <- function(...) {
+  # blank name appends to "..."
+  f <- function(x) {
+    x <- as.dots(arg(x))
     quo2env(x, environment(), "")
     environment()
   }
   e <- f()
+  exprs(get_dots(e)) %is% list(missing_value())
+  e <- f(a+b)
   exprs(get_dots(e)) %is% alist(a+b)
 
+  # NULL appends to dots
   quo2env(x, environment(), NULL)
-  expect_error()
 })

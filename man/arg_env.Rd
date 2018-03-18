@@ -41,6 +41,13 @@ is_literal_(names, envs, warn = TRUE)
 \item{...}{Any number of variable names; not evaluated.}
 
 \item{names}{names of arguments to look up.}
+
+\item{envs}{A character vector}
+
+\item{names}{A character vector or list of symbols.}
+
+\item{recursive}{Whether to recursively descend through unforced
+promises. TRUE mimics the behavior of \link{missing}}
 }
 \description{
 \code{arg_env} determines the lexical scope of an argument bound in
@@ -57,8 +64,8 @@ given. An error is raised if a binding does not exist.
 
 \code{is_promise_} is a normally evaluating version of \code{is_promise}.
 
-\code{is_missing(...)} is similar to "missing" but returns a named
-logical vector.
+\code{is_missing(...)} is similar to \link{missing} but can take multiple
+arguments.
 
 \code{is_forced} returns FALSE if an argument is bound to a promise that
 has not yet been forced, TRUE otherwise. An error is raised if a binding

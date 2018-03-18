@@ -72,7 +72,7 @@ facilities on!
 
 `nse` doesn't introduce new syntax -- the only nonstandard evaluation
 in its own interface is name lookup and quoting, and
-standard-evaluating equivalents are always there.
+standard-evaluating equivalents are always also present
 
 # EXAMPLE
 
@@ -163,7 +163,8 @@ f()
 
 Some other packages have been written along similar lines:
 
-* rlang
-* lazyeval
-* pryr
-* vadr, which this package is a rewrite from.
+* [rlang](https://github.com/r-lib/rlang)
+* [lazyeval](https://github.com/hadley/lazyeval)
+* [pryr](https://github.com/hadley/pryr)
+* [vadr](https://github.com/hadley/vadr), of which this package is
+  extracted and rewritten from.

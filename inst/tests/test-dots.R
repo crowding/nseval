@@ -626,7 +626,7 @@ test_that("is_missing and missing_ unwraps", {
   h <- function(z, q) q(z)
 
   f(, missing) %is% TRUE
-  f(x, is_missing) %is% TRUE
+  f(, is_missing) %is% TRUE
   f(, function(x) missing_(arg(x))) %is% TRUE
 
   #note that undefined != missing

@@ -11,7 +11,7 @@ missing_(x, unwrap = TRUE)
 }
 \arguments{
 \item{unwrap}{Whether to descend through unevaluated promises
-using \link{unwrap} before deciding if a promise is missing.}
+using \link{unwrap(x, TRUE)} before deciding if a promise is missing.}
 }
 \value{
 \code{list_missing} A list containing the values of all arguments, including

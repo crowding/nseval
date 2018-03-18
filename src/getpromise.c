@@ -59,31 +59,33 @@ int unwrappable(SEXP prom) {
           && PRENV(prom) != R_EmptyEnv);
 }
 
-SEXP unwrap_promise(SEXP prom) {
-  while(unwrappable(prom)) {
-    while(TYPEOF(PREXPR(prom)) == PROMSXP) {
-      prom = PREXPR(prom);
-    }
-    SEXP name = PREXPR(prom);
-    SEXP envir = PRENV(prom);
-    SEXP binding = x_findVar(PREXPR(prom), PRENV(prom));
-    if (binding == R_MissingArg) {
-      return emptypromise();
-    } else if (binding == R_UnboundValue) {
-      break;
-    } else if (TYPEOF(binding) == PROMSXP) {
-      prom = binding;
-      continue;
-    } else {
-      break;
+SEXP unwrap_promise(SEXP prom, int recursive) {
+  while(TYPEOF(PREXPR(prom)) == PROMSXP) {
+    prom = PREXPR(prom);
+  }
+  if (recursive) {
+    while(unwrappable(prom)) {
+      SEXP name = PREXPR(prom);
+      SEXP envir = PRENV(prom);
+      SEXP binding = x_findVar(PREXPR(prom), PRENV(prom));
+      if (binding == R_MissingArg) {
+        return emptypromise();
+      } else if (binding == R_UnboundValue) {
+        break;
+      } else if (TYPEOF(binding) == PROMSXP) {
+        prom = binding;
+        continue;
+      } else {
+        break;
+      }
     }
   }
   return prom;
 }
 
-SEXP _unwrap_quotation(SEXP q) {
+SEXP _unwrap_quotation(SEXP q, SEXP recursive) {
   SEXP pr = PROTECT(_quotation_to_promsxp(q));
-  pr = PROTECT(unwrap_promise(pr));
+  pr = PROTECT(unwrap_promise(pr, asLogical(recursive)));
   q = promsxp_to_quotation(pr);
   UNPROTECT(2);
   return q;
@@ -121,22 +123,22 @@ const char* test_enum_string(TEST_ENUM type) {
   }
 }
 
-SEXP arg_get(SEXP, SEXP, GET_ENUM, int);
+SEXP arg_get(SEXP, SEXP, GET_ENUM, int, int);
 
-SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn) {
+SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn, int recursive) {
+  if (recursive) {
+    if (isSymbol(PREXPR(prom)) && PREXPR(prom) != R_MissingArg) {
+      return arg_get(PRENV(prom), PREXPR(prom), request, warn, recursive);
+    }
+  }
   switch(request) {
   case EXPR: return PREXPR(prom);
   case ENV: return PRENV(prom);
   case PROMISE: return prom;
   case IS_LITERAL: return ScalarLogical(TRUE);
   case IS_MISSING:
-    if (isSymbol(PREXPR(prom))) {
-      if (PREXPR(prom) == R_MissingArg) {
-        return ScalarLogical(TRUE);
-      } else {
-        /* as R's missing() does, recurse and chase missingness up... */
-        return arg_get(PRENV(prom), PREXPR(prom), request, warn);
-      }
+    if (PREXPR(prom) == R_MissingArg) {
+      return ScalarLogical(TRUE);
     } else {
       return ScalarLogical(FALSE);
     }
@@ -223,7 +225,8 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
                 CHAR(PRINTNAME(sym)),
                 type2char(TYPEOF(value)));
       case IS_LITERAL:
-      case IS_MISSING: break;
+      case IS_MISSING:
+        return ScalarLogical(FALSE);
       }
     }
     switch(request) {              /* we have a numeric */
@@ -263,7 +266,7 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
       case IS_LITERAL:
         return ScalarLogical(FALSE);
       case IS_MISSING:
-        return ScalarLogical(FALSE);
+        return ScalarLogical(FALSE);        
       }
     }
   case LANGSXP:
@@ -297,7 +300,7 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
   }
 }
 
-SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn) {
+SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn, int recursive) {
   /* Rprintf("Getting %s of binding `%s`\n", get_enum_string(type), CHAR(PRINTNAME(name))); */
   SEXP binding = x_findVar(name, envir);
   if (TYPEOF(binding) == PROMSXP) {
@@ -311,7 +314,7 @@ SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn) {
       return arg_get_from_forced_promise(name, binding, type, warn);
     } else {
       /* Rprintf("It's unforced\n"); */
-      return arg_get_from_unforced_promise(binding, type, warn);
+      return arg_get_from_unforced_promise(binding, type, warn, recursive);
     }
   } else {
     /* Rprintf("It's not a promise\n"); */
@@ -348,11 +351,11 @@ SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM type, int warn) {
 }
 
 SEXP _arg_env(SEXP envir, SEXP name, SEXP warn) {
-  return arg_get(envir, name, ENV, asLogical(warn));
+  return arg_get(envir, name, ENV, asLogical(warn), FALSE);
 }
 
 SEXP _arg_expr(SEXP envir, SEXP name, SEXP warn) {
-  return arg_get(envir, name, EXPR, asLogical(warn));
+  return arg_get(envir, name, EXPR, asLogical(warn), TRUE);
 }
 
 SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
@@ -379,7 +382,7 @@ SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
       SET_TAG(output_iter, install(CHAR(STRING_ELT(tags, i))));
     }
     SEXP promise =
-      arg_get(VECTOR_ELT(envirs, i), VECTOR_ELT(names, i), PROMISE, asLogical(warn));
+      arg_get(VECTOR_ELT(envirs, i), VECTOR_ELT(names, i), PROMISE, asLogical(warn), FALSE);
     SETCAR(output_iter, promise);
   }
   setAttrib(output, R_ClassSymbol, ScalarString(mkChar("dots")));
@@ -388,7 +391,7 @@ SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
 }
 
 SEXP _arg(SEXP envir, SEXP name, SEXP warn) {
-  SEXP prom = PROTECT(arg_get(envir, name, PROMISE, asLogical(warn)));
+  SEXP prom = PROTECT(arg_get(envir, name, PROMISE, asLogical(warn), FALSE));
   SEXP retval = promsxp_to_quotation(prom);
   UNPROTECT(1);
   return retval;
@@ -403,10 +406,10 @@ SEXP _is_forced(SEXP envir, SEXP name, SEXP warn) {
 }
 
 SEXP _is_literal(SEXP envir, SEXP name, SEXP warn) {
-  return arg_get(envir, name, IS_LITERAL, asLogical(warn));
+  return arg_get(envir, name, IS_LITERAL, asLogical(warn), FALSE);
 }
 
-SEXP _is_missing(SEXP envir, SEXP name, SEXP warn) {
-  return arg_get(envir, name, IS_MISSING, asLogical(warn));
+SEXP _is_missing(SEXP envir, SEXP name, SEXP warn, SEXP recursive) {
+  return arg_get(envir, name, IS_MISSING, asLogical(warn), asLogical(recursive));
 }
 

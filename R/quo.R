@@ -110,7 +110,3 @@ forced.default <- function(x) forced(as.quo(x))
 as.quotation.literal <- function(x) {
   .Call(`_quotation_literal`, x)
 }
-
-## Local Variables:
-## ess-r-package-info: ("nse" . "~/fexpr")
-## End:

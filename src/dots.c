@@ -7,7 +7,11 @@ SEXP emptypromise();
 SEXP _find(SEXP name, SEXP env, SEXP function) {
   assert_type(name, SYMSXP);
   assert_type(env, ENVSXP);
-  return findVar(name, env);
+  if (function) {
+    return findVar(name, env);
+  } else {
+    return findFun(name, env);
+  }
 }
 
 /* Allocate blank list of dotsxps and promises */
@@ -31,9 +35,14 @@ SEXP allocate_dots(int length) {
   return dots;
 }
 
-SEXP _get_dots(SEXP env) {
+SEXP _get_dots(SEXP env, SEXP inherit) {
   assert_type(env, ENVSXP);
-  SEXP vl = findVar(R_DotsSymbol, env);
+  SEXP vl;
+  if (asLogical(inherit)) {
+    vl = findVar(R_DotsSymbol, env);
+  } else {
+    vl = findVarInFrame3(env, R_DotsSymbol, TRUE);
+  }
   if (vl == R_UnboundValue || vl == R_MissingArg) {
     return R_NilValue;
   } else {
@@ -468,23 +477,18 @@ SEXP _env_to_dots(SEXP envir, SEXP names, SEXP missing, SEXP expand) {
 /* Add the entries in a dotsxp to the given environment;
  * if untagged, append to ... */
 SEXP _dots_to_env(SEXP dots, SEXP envir, SEXP newdots) {
-  if (dots == R_NilValue || dots == R_MissingArg) {
-    return envir;
-  }
-  assert_type(dots, DOTSXP);
-  assert_type(envir, ENVSXP);
-  for(SEXP iter = dots; iter != R_NilValue; iter = CDR(iter)) {
-    if (TAG(iter) == R_NilValue) error("Attempt to assign variable with no name");
-    if (TAG(iter) == R_MissingArg) error("Illegal variable name ``");
-    if (TAG(iter) == R_DotsSymbol) error("Illegal variable name `...`");
-    defineVar(TAG(iter), CAR(iter), envir);
+  if (dots != R_NilValue && dots != R_MissingArg) {
+    assert_type(dots, DOTSXP);
+    assert_type(envir, ENVSXP);
+    for(SEXP iter = dots; iter != R_NilValue; iter = CDR(iter)) {
+      if (TAG(iter) == R_NilValue) error("Attempt to assign variable with no name");
+      if (TAG(iter) == R_MissingArg) error("Illegal variable name ``");
+      if (TAG(iter) == R_DotsSymbol) error("Illegal variable name `...`");
+      defineVar(TAG(iter), CAR(iter), envir);
+    }
   }
   if (newdots != R_NilValue) {
     assert_type(newdots, DOTSXP);
-    SEXP olddots = findVar(R_DotsSymbol, envir);
-    if (olddots != R_MissingArg && olddots != R_UnboundValue) {
-      newdots = concat(olddots, newdots);
-    }
     defineVar(R_DotsSymbol, newdots, envir);
   }
   return envir;

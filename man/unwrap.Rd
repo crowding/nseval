@@ -2,18 +2,29 @@
 % Please edit documentation in R/getpromise.R
 \name{unwrap}
 \alias{unwrap}
-\title{If a quotation is an unevaluated symbol, find the promise through
-its source envronments, potentially iterating through several
-unforced promises without forcing any. If at any point we come to a
-promise with a more-complicated expression, we use that.}
+\title{If an unforced quotation's expression is a variable name, retrieve the
+binding that is referenced.}
 \usage{
-unwrap(x)
+unwrap(x, recursive = FALSE)
+}
+\arguments{
+\item{recursive}{If \code{FALSE}, the default, unwrap exactly once and throw
+an error If \code{TRUE}, and the referred variable is If the binding
+is another unforced variable name, recursively unwrap}
 }
 \description{
-If something in the promise chain refers to a nonexistent variable,
-return an empty promise (i.e. \code{quo()}, which can be tested for using \code{missing_}).
+In general, \code{nse} direct accessors like \code{arg_expr(x)} can be
+translated to \code{expr(unwrap(quo(x)))}.
 }
 \details{
-This process is used by the builtin \link{missing}, so this algorithm,
-is used by \code{missing_}. It can also be useful to derive axis labels.
+There are two good use cases for unwrap(x, recursive=TRUE). One is
+to derive axis labels (a.k.a the most inoccuous use of
+metaprogramming). Another is to check for missingness (this is what
+R's \link{missing} does as well).
+
+Using unwrap(x, recursive=TRUE) in other situations can get you
+into confusing situations -- effectively you are changing the
+behavior of a parent function that may be several levels up the
+stack, possibly turning a standard-evaluating function into
+a nonstandard-evaluating function. Tread lightly.
 }

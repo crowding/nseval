@@ -41,7 +41,6 @@ SEXP _make_call(SEXP f, SEXP envir, SEXP dots) {
   
   // for the called code to see its caller, we wrap the call in
   // a promsxp that we make the call "from"
-  // TODO: verify that this is really necessary
   SEXP from = PROTECT(allocSExp(PROMSXP));
   SET_PRENV(from, envir);
   SET_PRCODE(from, call);

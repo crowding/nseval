@@ -2,7 +2,7 @@
 % Please edit documentation in R/conversions.R
 \name{env2dots}
 \alias{env2dots}
-\title{...}
+\title{Copy bindings from an environment into a dots object.}
 \usage{
 env2dots(env, names = ls(envir = env, all.names = TRUE),
   include_missing = TRUE, expand_dots = TRUE)
@@ -11,15 +11,15 @@ env2dots(env, names = ls(envir = env, all.names = TRUE),
 \item{env}{An environment.}
 
 \item{names}{Which names to extract from the environment. By
-default extracts all bindings.}
+default extracts the bindings present at root level.}
 
-\item{include_missing}{Whether to include "missing" bindings.}
+\item{include_missing}{Whether to include missing bindings.}
 
-\item{expand_dots}{Whether to unpack the contents of \code{...}.}
+\item{use_dots}{Whether to unpack the contents of \code{...}.}
 }
 \value{
 A \link{dots} object.
 }
 \description{
-...
+Copy bindings from an environment into a dots object.
 }

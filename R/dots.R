@@ -64,7 +64,7 @@ exprs.dots <- function(d) {
 #' @useDynLib nse _dots_exprs
 #' @useDynLib nse _get_dots
 dots_exprs <- function(...) {
-  .Call("_dots_exprs", .Call("_get_dots", environment()))
+  .Call("_dots_exprs", .Call("_get_dots", environment(), FALSE))
 }
 
 #' @export
@@ -112,7 +112,7 @@ envs.dots <- function(x) {
 #' @useDynLib nse _dots_envs
 #' @useDynLib nse _get_dots
 dots_envs <- function(...) {
-  .Call("_dots_envs", .Call("_get_dots", environment()))
+  .Call("_dots_envs", .Call("_get_dots", environment(), FALSE))
 }
 
 #' @export
@@ -121,7 +121,7 @@ dots_envs <- function(...) {
 #' @useDynLib nse _dots_names
 #' @useDynLib nse _get_dots
 dots_names <- function(...) {
-  .Call("_dots_names", .Call("_get_dots", environment()))
+  .Call("_dots_names", .Call("_get_dots", environment(), FALSE))
 }
 
 
@@ -345,13 +345,13 @@ set_dots <- function(env, d, append=FALSE) {
 #' Retrieve the binding of "..." from a given environment.
 #'
 #' @param env The environment to look in.
-#' @param inherits Whether to look in enclosing environments for a dot.
+#' @param inherits Whether to look in enclosing environments for a dotsxp.
 #' @return The contents of `...` converted to a `dots` object.
 #' @export
 #' @useDynLib nse _get_dots
 #' @useDynLib nse _dotsxp_to_flist
 get_dots <- function(env = caller(environment()), inherits=FALSE) {
-  dts <- .Call(`_get_dots`, env)
+  dts <- .Call(`_get_dots`, env, inherits)
   .Call(`_dotsxp_to_flist`, dts)
 }
 
@@ -385,7 +385,7 @@ get_dots <- function(env = caller(environment()), inherits=FALSE) {
 #'
 #' @param x
 #' @param unwrap Whether to descend through unevaluated promises
-#'   using [unwrap] before deciding if a promise is missing.
+#'   using [unwrap(x, TRUE)] before deciding if a promise is missing.
 #' @return a vector of boolean values.
 #' @seealso missing, is_missing
 #' @export
@@ -395,10 +395,9 @@ missing_ <- function(x, unwrap=TRUE) {
 }
 
 #' @export
-#' param
 missing_.dots <- function(x, unwrap=TRUE) {
   if (unwrap) {
-    x <- unwrap(x)
+    x <- unwrap(x, TRUE)
   }
   vapply(exprs(x), identical, FALSE, missing_value())
 }
@@ -416,7 +415,7 @@ missing_.default <- function(x, unwrap=TRUE) {
 #' @export
 missing_.quotation <- function(x, unwrap=TRUE) {
   if (unwrap)
-    x <- unwrap(x)
+    x <- unwrap(x, TRUE)
   identical(expr(x), missing_value())
 }
 
@@ -453,11 +452,15 @@ values.dots <- function(d) {
 values.default <- function(d) {
   list %()% as.dots(d)
 }
-## Local Variables:
-## ess-r-package-info: ("nse" . "~/fexpr")
-## End:
 
 #' @export
 forced.dots <- function(d) {
   lapply(d, forced)
 }
+
+#' @export
+c.dots <- function(...) {
+  x <- lapply(list(...), function(x) unclass(as.dots(x)))
+  structure(c %()% x, class="dots")
+}
+
