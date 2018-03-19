@@ -1,7 +1,5 @@
 #dots formatting
 
-
-
 #' @export
 format.deparse <- function(x, ...) {
   format(vapply(x, deparse, "", nlines=1, width.cutoff=100), ... )
@@ -173,7 +171,7 @@ format.quotation.inner <- function(x,
     }
   }
   dodeparse <- function(x) {
-    if (is.language(x)) {
+    if (is.language(x) || is.character(x)) {
       deparse(x, width.cutoff=width, nlines = 1)
     } else {
       doformat(x)
@@ -182,8 +180,11 @@ format.quotation.inner <- function(x,
   contents <- paste0(c(
     if(forced(x)) {
       if (is.language(expr(x))) {
-        if (show.expressions && !missing_(x))
-          c(dodeparse(expr(x)), " := ", doformat(value))
+        if (show.expressions) {
+          c(dodeparse(expr(x)), " := ", doformat(value(x)))
+        } else {
+          doformat(value(x))
+        }
       } else {
         doformat(value(x))
       }
