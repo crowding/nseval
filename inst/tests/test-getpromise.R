@@ -3,7 +3,6 @@ context("Promise extraction")
 `%is%` <- expect_equal
 
 test_that("can recover environments of arguments", {
-
   f1 <- function(a, ...) { #a=one@top, two@top
     b <- 1
     where = "f1"
@@ -370,8 +369,10 @@ test_that("unwrap quotation", {
     q(z)
   }
 
-  f(1 + 2, function(x) unwrap(arg(x))) %is% quo(1+2)
-  f(1 + 2, function(x) unwrap(quo(x))) %is% quo(1+2)
-  f((400), function(x) unwrap(quo(x)) %is% quo((400)))
-  f(400, function(x) expr(unwrap(quo(x))) %is% quote(x))
+  f(1 + 2, function(x) unwrap(arg(x), TRUE)) %is% quo(1+2)
+  expr(f(1 + 2, function(x) unwrap(arg(x), FALSE))) %is% quote(y)
+  expr(f(1 + 2, function(x) unwrap(quo(x), FALSE))) %is% quote(z)
+  expr(f(1 + 2, function(x) unwrap(quo(x), TRUE))) %is% quote(1+2)
+  f((400), function(x) unwrap(quo(x), TRUE)) %is% quo((400))
+  f(400, function(x) expr(unwrap(quo(x, TRUE))) %is% as.quo.literal(400))
 })

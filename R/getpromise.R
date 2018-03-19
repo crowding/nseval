@@ -283,7 +283,7 @@ find_ <- function(x, env, mode="any",
 #'   an error If `TRUE`, and the referred variable is If the binding
 #'   is another unforced variable name, recursively unwrap
 unwrap <- function(x, recursive=FALSE) {
-  UseMethod("unwrap", x)
+  UseMethod("unwrap")
 }
 
 #' @export

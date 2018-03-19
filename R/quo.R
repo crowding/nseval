@@ -107,6 +107,6 @@ forced.default <- function(x) forced(as.quo(x))
 #' @export
 #' @return `as.quotation.literal(x)` creates a forced promise, containing `x`
 #'    in both the expression and data slots.
-as.quotation.literal <- function(x) {
+as.quo.literal <- function(x) {
   .Call(`_quotation_literal`, x)
 }

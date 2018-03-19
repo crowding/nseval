@@ -63,22 +63,22 @@ SEXP unwrap_promise(SEXP prom, int recursive) {
   while(TYPEOF(PREXPR(prom)) == PROMSXP) {
     prom = PREXPR(prom);
   }
-  if (recursive) {
-    while(unwrappable(prom)) {
-      SEXP name = PREXPR(prom);
-      SEXP envir = PRENV(prom);
-      SEXP binding = x_findVar(PREXPR(prom), PRENV(prom));
-      if (binding == R_MissingArg) {
-        return emptypromise();
-      } else if (binding == R_UnboundValue) {
-        break;
-      } else if (TYPEOF(binding) == PROMSXP) {
-        prom = binding;
-        continue;
-      } else {
-        break;
-      }
+  while(unwrappable(prom)) {
+    SEXP name = PREXPR(prom);
+    SEXP envir = PRENV(prom);
+    SEXP binding = x_findVar(PREXPR(prom), PRENV(prom));
+    if (binding == R_MissingArg) {
+      return emptypromise();
+    } else if (binding == R_UnboundValue) {
+      break;
+    } else if (TYPEOF(binding) == PROMSXP) {
+      prom = binding;
+    } else {
+      break;
     }
+    if (!recursive) {
+      break;
+    };
   }
   return prom;
 }
