@@ -19,7 +19,7 @@ SEXP _quotation(SEXP envir, SEXP expr, SEXP value) {
     SET_PRCODE(prom, expr);
     SET_PRVALUE(prom, value);
     SET_CLOENV(out, R_EmptyEnv);
-    SET_BODY(out, expr);
+    SET_BODY(out, prom);
     UNPROTECT(1);
   } else {
     assert_type(envir, ENVSXP);

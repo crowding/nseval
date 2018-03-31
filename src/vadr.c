@@ -45,7 +45,7 @@ SEXP new_promise(SEXP expr, SEXP env) {
 SEXP new_forced_promise(SEXP expr, SEXP value) {
   SEXP out = PROTECT(allocSExp(PROMSXP));
   SET_PRCODE(out, expr);
-  SET_PRENV(out, R_EmptyEnv);
+  SET_PRENV(out, R_NilValue);
   SET_PRVALUE(out, value);
   UNPROTECT(1);
   return out;

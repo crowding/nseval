@@ -43,7 +43,7 @@ quo <- function(x, env = arg_env_(quote(x), environment()), force = FALSE) {
 #' @useDynLib nse _quotation
 quo_ <- function(expr, env, force=FALSE) {
   if(force) {
-    .Call(`_quotation`, emptyenv(), expr, eval(expr, env));
+    .Call(`_quotation`, NULL, expr, eval(expr, env));
   } else {
     .Call(`_quotation`, env, expr, NULL);
   }
@@ -71,6 +71,15 @@ expr <- function(q) UseMethod("expr", q)
 #' @param q A quotation object.
 expr.quotation <- function(q) {
   .Call("_expr_quotation", q)
+}
+
+#' @export
+force_ <- quotation <- function(q, eval=base::eval) {
+  if (forced(q)) {
+    q
+  } else {
+    .Call('_quotation', NULL, expr(q), eval(expr(q), env(q)))
+  }
 }
 
 #' @rdname quo
