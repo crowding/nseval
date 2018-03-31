@@ -5,6 +5,14 @@ nse
 metaprogramming in R. `nse` is intended to reflect R the way R
 actually works.
 
+## Installation
+
+```
+install.packages("devtools")
+library(devtools)
+install_github("crowding/nse")
+```
+
 ### Why `nse` is needed
 
 In the beginning, there was S, and S had metaprogramming built in,
@@ -14,22 +22,22 @@ But S did not have lexical scoping or the notion of an environment,
 whereas R does. It turns out the S interface is not sufficient to
 capture R behavior, with consequences such as:
 
-  * `match.call()` loses information about argument scopes so normally
+  * `match.call()` loses information about argument scopes, so normally
     occurring function calls often can't be captured in a reproducible
     form;
   * `do.call` can't reproduce many situations that occur in normal
     evaluation in R;
   * `parent.frame()` tells you something almost but not entirely
     unlike what you actually need to know in most situations;
-  * it's difficult to wrap around nonstandard-evaluating functions;
+  * it's difficult to wrap or extend nonstandard-evaluating functions;
   * it's difficult to use a nonstandard-evaluating function as an
     argument to a higher order function;
   * any mixture of metaprogramming and `...` rapidly turns painful;
 
 and so on. As a result, R functions that use the S metaprogramming API
 often end up with unintended behaviors that don't "fit" R: they lose
-track of variable scope, suffer name collisions, can't be easily
-wrapped, and so on.
+track of variable scope, suffer name collisions, are difficult to
+compose, etc.
 
 The good news is that you can simply replace most uses of
 `match.call`, `parent.frame`, `do.call` and such with their
@@ -66,13 +74,13 @@ capturing, constructing, and manipulating these objects.
 ### What `nse` doesn't do
 
 `nse` does not implement quasiquotation or hygeinic macros or DSLs or
-pattern matching or static analysis or automated code refactoring, but
+pattern matching or static analysis or automated code refactoring. But
 it is intended to be a solid foundation to build those kinds of
 facilities on!
 
 `nse` doesn't introduce new syntax -- the only nonstandard evaluation
 in its own interface is name lookup and quoting, and
-standard-evaluating equivalents are always also present
+standard-evaluating equivalents are always also present.
 
 # EXAMPLE
 
@@ -166,5 +174,5 @@ Some other packages have been written along similar lines:
 * [rlang](https://github.com/r-lib/rlang)
 * [lazyeval](https://github.com/hadley/lazyeval)
 * [pryr](https://github.com/hadley/pryr)
-* [vadr](https://github.com/hadley/vadr), of which this package is
+* [vadr](https://github.com/crowding/vadr), which this package is
   extracted and rewritten from.

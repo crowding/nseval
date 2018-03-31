@@ -2,6 +2,32 @@ context("with_caller")
 
 `%is%` <- expect_equal
 
+test_that("do_", {
+  # let's make an "update" operator, like `<<-` except it starts search in
+  # the present environment (i.e. like Javascript "=")
+  `:=` <- function(lval, rval) {
+    lval_ <- arg(lval)
+    rval_ <- arg(rval)
+    target.env <- locate_(lval_)
+    if (target.env == emptyenv())
+      target.env <- globalenv()
+    env(lval_) <- target.env
+    do_(quo(`<-`, target.env), lval_, rval_)
+  }
+
+  x <- 5
+  y <- 10
+  local({
+    x <- 13
+    x := x + 1
+    y := y + 1
+    z := x + y
+  })
+  x %is% 5
+  y %is% 11
+  z %is% 25
+})
+
 test_that("with_caller passes along args", {
   f <- function(...) {
     here <- "f"

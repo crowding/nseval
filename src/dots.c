@@ -4,16 +4,6 @@
 int _dots_length(SEXP dots);
 SEXP emptypromise();
 
-SEXP _find(SEXP name, SEXP env, SEXP function) {
-  assert_type(name, SYMSXP);
-  assert_type(env, ENVSXP);
-  if (function) {
-    return findVar(name, env);
-  } else {
-    return findFun(name, env);
-  }
-}
-
 /* Allocate blank list of dotsxps and promises */
 SEXP allocate_dots(int length) {
   if (length <= 0) return R_NilValue;
@@ -292,11 +282,10 @@ SEXP _flist_to_dotsxp(SEXP flist) {
 
 SEXP map_pairlist_to_list(SEXP in, SEXP (*f)(SEXP)) {
   int i;
-  SEXP output, names;
+  SEXP output;
   int len = length(in);
   int protections = 0;
-
-  names = R_NilValue;
+  SEXP names = R_NilValue;
 
   if (in == R_NilValue) {
     PROTECT(output = allocVector(VECSXP, 0)); protections++;
@@ -317,8 +306,11 @@ SEXP map_pairlist_to_list(SEXP in, SEXP (*f)(SEXP)) {
         if (names == R_NilValue) {
           PROTECT(names = allocVector(STRSXP, len)); protections++;
         }
-        SEXP tag = PRINTNAME(TAG(in));
-        SET_STRING_ELT(names, i, tag);
+        SET_STRING_ELT(names, i, PRINTNAME(TAG(in)));    
+      } else {
+        if (names != R_NilValue) {
+          SET_STRING_ELT(names, i, R_BlankString);
+        }
       }
     }
 

@@ -3,14 +3,14 @@
 \name{arg}
 \alias{arg}
 \alias{arg_}
-\title{Fetch an argument by name from the present environment.}
+\title{Capture an argument by name from the present environment.}
 \usage{
-arg(name)
+arg(sym, env = arg_env_(quote(sym), environment()))
 
-arg_(name, env)
+arg_(name, env = arg_env(name, environment()))
 }
 \arguments{
-\item{name}{the name to look up. For \code{arg} this is a symbol
+\item{sym}{the name to look up. For \code{arg} this is a symbol
 and not evaluated; for \code{arg_} this is a symbol or
 character.}
 
@@ -20,5 +20,5 @@ character.}
 A \link{quo} object.
 }
 \description{
-Fetch an argument by name from the present environment.
+Capture an argument by name from the present environment.
 }

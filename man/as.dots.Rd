@@ -27,7 +27,7 @@ expressions of new unforced promises.
 Convert a list of expressions into a \code{\dots} object (a list of
 promises.)
 
-\code(as.dots.literal) turns a list of literal values into a dots
-object consisting of forced promises. (A forced promise records a
-value and an expression, but not an environment.)
+\code{as.dots.literal} turns a list of data values into a dots object
+consisting of forced promises. (A forced promise records a value
+and an expression, but not an environment.)
 }

@@ -31,9 +31,8 @@ is.quotation <- function(x) {
 #' @param force Create a "forced" quotation; this is one that stores
 #'   an expression and value but no environment.
 #' @rdname quo
-quo <- function(x, force=FALSE) {
-  if (force) force(x)
-  arg(x)
+quo <- function(x, env = arg_env_(quote(x), environment()), force = FALSE) {
+  quo_(arg_expr_(quote(x), environment()), env = env, force = force)
 }
 
 #' quo_ is a normally evaluating, explicit constructor for quotations.

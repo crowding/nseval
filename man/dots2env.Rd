@@ -10,15 +10,15 @@ dots2env(d, env = new.env(hash = hash, parent = parent, size = size),
   100), size = max(29L, length(dots)), parent = emptyenv())
 }
 \arguments{
-\item{d}{The dots object to use.}
+\item{d}{A named dots object to use.}
 
-\item{env}{Specify an environment object to populate and
-return. By default a new environment is created.}
+\item{env}{Specify an environment object to populate and return. By
+default a new environment is created.}
 
-\item{names}{Which variables to populate in the environment. By
-default, will use all names present in the dotlist.  If a name is
-given that does not match any names from the dots object, an
-error is raised.}
+\item{names}{Which variables to populate in the environment. If
+NULL is given,  will use all names present in the dotlist.  If a
+name is given that does not match any names from the dots object,
+an error is raised.}
 
 \item{use_dots}{Whether to bind unnamed or unmatched items to
 \code{...}. If FALSE, these items are discarded. If TRUE, they

@@ -9,7 +9,7 @@
 \alias{value.quotation}
 \title{Capture or construct a quotation.}
 \usage{
-quo(x, force = FALSE)
+quo(x, env = arg_env_(quote(x), environment()), force = FALSE)
 
 quo_(expr, env, force = FALSE)
 
@@ -24,12 +24,12 @@ expr(q)
 \arguments{
 \item{x}{an argument, left unevaluated.}
 
+\item{env}{An environment.}
+
 \item{force}{Create a "forced" quotation; this is one that stores
 an expression and value but no environment.}
 
 \item{expr}{An expression.}
-
-\item{env}{An environment.}
 
 \item{q}{A quotation object.}
 }

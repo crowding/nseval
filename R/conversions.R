@@ -67,9 +67,9 @@ as.dots.exprs <- function(exprs, env = arg_env(exprs)) {
 }
 
 
-#' \code(as.dots.literal) turns a list of literal values into a dots
-#'   object consisting of forced promises. (A forced promise records a
-#'   value and an expression, but not an environment.)
+#' `as.dots.literal` turns a list of data values into a dots object
+#'   consisting of forced promises. (A forced promise records a value
+#'   and an expression, but not an environment.)
 #' @param x a list.
 #' @rdname as.dots
 #' @export
@@ -99,7 +99,7 @@ env2dots <- function(env,
 }
 
 filter <- function(x, pred) x[pred(x)]
-goodname <- function(x) !(x %in% c(NA_character_, ""))
+goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 
 #' Take quotations from a dots object and inject them into an environment.
 #'
@@ -107,13 +107,13 @@ goodname <- function(x) !(x %in% c(NA_character_, ""))
 #' variables. Unnamed entries will be appended to any existing value
 #' of `...` in the order in which they appear.
 #'
-#' @param d The dots object to use.
-#' @param names Which variables to populate in the environment. By
-#'   default, will use all names present in the dotlist.  If a name is
-#'   given that does not match any names from the dots object, an
-#'   error is raised.
-#' @param env Specify an environment object to populate and
-#'   return. By default a new environment is created.
+#' @param d A named dots object to use.
+#' @param names Which variables to populate in the environment. If
+#'   NULL is given,  will use all names present in the dotlist.  If a
+#'   name is given that does not match any names from the dots object,
+#'   an error is raised.
+#' @param env Specify an environment object to populate and return. By
+#'   default a new environment is created.
 #' @param use_dots Whether to bind unnamed or unmatched items to
 #'   \code{...}. If FALSE, these items are discarded. If TRUE, they
 #'   bound to \code{...} in the environment. If items have duplicate
@@ -146,7 +146,7 @@ dots2env <- function(d,
   }
   if (use_dots) {
     m <- match(names, names(d) %||% c())
-    if (any(is.na(m))) {stop("Named variable(s) not present in dotlist.")}
+    if (any(is.na(m))) {stop("Named variable(s) requested but not present in dotlist.")}
     picked <- d[m]
     d[m] <- NULL
     if (append) {
@@ -160,6 +160,19 @@ dots2env <- function(d,
     picked <- .Call(`_flist_to_dotsxp`, d)
     .Call(`_dots_to_env`, picked, env, NULL)
   }
+}
+
+#' Bind a name in an environment to a promise.
+#' @param q a quotation.
+#' @param env The environment to store in.
+#' @param name The name to use. If "" or NULL, will append to "...".
+quo2env <- function(q, env, name) {
+  q <- as.quo(q)
+  d <- as.dots(q)
+  if (!is.null(name)) {
+    names(d) <- as.character(name)
+  }
+  dots2env(d, env)
 }
 
 #' Explicitly create closure objects.

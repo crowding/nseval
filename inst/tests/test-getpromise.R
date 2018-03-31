@@ -34,17 +34,19 @@ test_that("arg_env error on forced promise", {
     list(...)
     f1(...)
   }
-  expect_error(f2(12+12), "forced")
+  expect_warning(f2(12+12), "forced")
   expect_equal(f2(124), emptyenv())
 })
 
 test_that("arg_expr should not force promise", {
   e <- environment()
+  # Ugh, when testthat fails here it runs an as.list.environment on
+  # the environment...
   f <- function(x) {
     expect_equal(arg_expr(x), quote(y+z))
-    expect_equal(arg_env(x), e)
+    expect_identical(arg_env(x), e)
     expect_equal(arg_expr(x), quote(y+z))
-    expect_equal(arg_env(x), e)
+    expect_identical(arg_env(x), e)
   }
   f(y+z)
 })
@@ -59,11 +61,12 @@ test_that("arg_expr and arg_env fudge when could have been literal.", {
   normal <- function(x) {
     list(arg_expr(x), arg_env(x))
   }
-  normal(2000+3000) %is% list(quote(2000+3000), environment())
-  # for extra credit explain why optimization happens here
-  (function() normal(5000))() %is% list(5000, emptyenv())
-  # but not always here
-  # normal(5000) %is% list(5000, emptyenv())
+  expect_identical(normal(2000+3000), list(quote(2000+3000), environment()))
+
+  # force optimization of literals
+  f <- (function() normal(5000))
+  f <- cmpfun(f)
+  expect_identical(f(), list(5000, emptyenv()))
 })
 
 test_that("arg_expr and arg_env when expression is already forced.", {
@@ -77,13 +80,13 @@ test_that("arg_expr and arg_env when expression is already forced.", {
     arg_env(x)
   }
   force_then_expr(2000+3000) %is% quote(2000+3000)
-  expect_error(force_then_env(2000+3000))
+  expect_warning(force_then_env(2000+3000) %is% emptyenv(), "forced")
   force_then_expr(5000) %is% 5000 # not a promise
   force_then_env(5000) %is% emptyenv() #not a promise
   force_then_expr(5000L) %is% 5000L #not a promise
   force_then_env(5000L) %is% emptyenv() #not a promise
   force_then_expr(quote(x)) %is% quote(quote(x)) #language object
-  expect_error(force_then_env(quote(x)))
+  expect_warning(force_then_env(quote(x)), "forced")
 })
 
 test_that("arg_expr and arg_env when expression is not a promise", {
@@ -99,57 +102,69 @@ test_that("arg_expr and arg_env when expression is not a promise", {
      nonpromise_expr(2000+3000) %is% 5000
      nonpromise_env("hello") %is% emptyenv()
      expect_warning(nonpromise_expr(c(1000, 2000)) %is% c(1000, 2000))
-     expect_warning(nonpromise_env(c(1000, 2000)) %is% emptyenv())
-     expect_error(nonpromise_expr(quote(hello)))
-     expect_error(nonpromise_env(quote(2+2)))
+     nonpromise_env(c(1000, 2000)) %is% emptyenv()
+     expect_warning(nonpromise_expr(quote(hello)) %is% quote(quote(hello)))
+     expect_warning(nonpromise_env(quote(2+2)) %is% emptyenv())
 })
 
 test_that("is_promise and is_forced and is_literal and is_missing", {
-  test <- function(f, f_, a, b, c, d, cmp, e) {
-    e <- (c)
-    f(a, b, c, d, e) %is% cmp
-    f_(c("a", "b", "c", "d", "e"), environment()) %is% cmp
-  }
 
-  dbg <- function(f, f_, a, b, c, d, cmp, e) {
+  # a is source literal (when running from testthat/compiled function)
+  # b is lazy unforced
+  # c is lazy forced (as well as not function-mode)
+  # d (not an argument) is not lazy (so forced) or could be literal
+  # e is missing
+  dbg <- function(f, f_,
+                  a, b, c, e) {
     d <- (c)
     list(f(a, b, c, d, e),
+         f("a", "b", "c", "d", "e"),
          f_(c("a", "b", "c", "d", "e"), environment()),
-         cmp)
+         f_(alist(a, b, c, d, e), environment()))
   }
-  # a is source literal (when running from testthat)
-  # b is lazy unforced
-  # c is lazy forced
-  # d is not lazy (so forced) or could be literal
-  {
-    function() (test(is_promise, is_promise_,
-                     1000, 10+10, 10+10, ,
-                     c(FALSE, TRUE, TRUE, FALSE)))
-  }()
 
-  {
-    function() test(is_forced, is_forced_,
-                    1000, 10+10, 10+10, ,
-                   c(TRUE, FALSE, TRUE, TRUE))
-  }()
+  both <- function(data, cmp) {
+    ccll <- match.call()
+    withCallingHandlers({
+      expect_equal(data[[1]], cmp)
+      expect_equal(data[[2]], cmp)
+      expect_equal(data[[3]], cmp)
+      expect_equal(data[[4]], cmp)
+    }, error=function(e) {
+      message(deparse(ccll))
+      message(deparse(data[[1]]))
+      message(deparse(data[[2]]))
+      message(deparse(data[[3]]))
+      message(deparse(data[[4]]))
+      message(deparse(cmp))
+      e
+    })
+  }
 
-  {
-    function() test(is_literal, is_literal_,
-                    1000, 10+10, 10+10, ,
-                    c(TRUE, FALSE, FALSE, TRUE))
-  }()
+  x <- function() {
+    both(dbg(is_missing, is_missing_, 1000, 10+10, 10+10, ),
+         c(a=FALSE, b=FALSE, c=FALSE, d=FALSE, e=TRUE))
 
-  {
-    function() test(is_missing, is_missing_,
-                    1000, 10+10, 10+10, ,
-                    c(FALSE, FALSE, FALSE, TRUE))
-  }()
+    both(dbg(is_promise, is_promise_, 1000, 10+10, 10+10, ),
+         # the first FALSE is TRUE when not compiled
+         c(a=FALSE, b=TRUE, c=TRUE, d=FALSE, e=FALSE))
+
+    both(dbg(is_forced, is_forced_, 1000, 10+10, 10+10, ),
+         c(a=TRUE, b=FALSE, c=TRUE, d=TRUE, e=FALSE))
+
+    both(dbg(is_literal, is_literal_, 1000, 10+10, 10+10, ),
+         c(a=TRUE, b=FALSE, c=FALSE, d=TRUE, e=TRUE))
+  }
+
+  #force inlining literals
+  x <- cmpfun(x)
+  x()
 })
 
 test_that("empty arguments return missing value and empty environment", {
   f1 <- function(x) arg_env(x)
   f2 <- function(x) arg_expr(x)
-  expect_warning(expect_identical(f1(), emptyenv()), "missing");
+  expect_identical(f1(), emptyenv())
   expect_identical(f2(), missing_value())
 })
 
@@ -189,8 +204,21 @@ test_that("error when symbol is not bound", {
   expect_error(f(), "not")
   f <- function(x) args(yafsd)
   expect_error(f(), "not")
-  f <- function(x) missing_("yyyyy", environment())
+  f <- function(x) is_missing_("yyyyy", environment())
   expect_error(f(), "not")
+})
+
+test_that("empty dots accessors return empty lists", {
+  length(dots()) %is% 0
+  length(dots_exprs()) %is% 0
+  length(dots_envs()) %is% 0
+  length(dots_names()) %is% 0
+  length(is_forced()) %is% 0
+  length(is_missing()) %is% 0
+  length(is_literal()) %is% 0
+  length(is_promise()) %is% 0
+  length(forced(args())) %is% 0
+  length(missing_(args())) %is% 0
 })
 
 test_that("get args by character", {
@@ -202,67 +230,66 @@ test_that("get args by character", {
   ff <- function(a, b, what) {
     arg_(what)
   }
-  expr(ff(foo, bar, "b") %is% quote(bar))
+  expr(ff(foo, bar, "b")) %is% quote(bar)
   expect_error(ff(foo, bar, "..."))
 
   g <- function(a, b, ...) {
-    args_(c("a", "b", "..."))
+    args_(c("a", "b", "..."), environment())
   }
 
   exprs(g(a=foo, c=baz, q=quux, b=bar)) %is%
-    alist(a=foo, c=baz, q=quuz, b=bar)
+    alist(a=foo, b = bar, c=baz, q=quux)
 
   ff <- function(x, y) arg_expr("y")
-  ff(foo, bar) %is% bar
+  ff(foo, bar) %is% quote(bar)
 })
 
-test_that("missing_", {
-  f <- function(a, b, c, d, e) missing_(c("a", "b", "c", "d", "e"), environment())
+
+test_that("missing_ unwraps", {
+  f <- function(a, b, c, d, e) {
+    is_missing_(c("a", "b", "c", "d", "e"), environment())
+  }
   g <- function(a, b, c, d, e) f(a, b, c, d, e)
   x <- 10
   y <- missing_value()
-  f( , 10, x, y, (y)) %is% c(TRUE, FALSE, FALSE, TRUE, FALSE);
-  g( , 10, x, y, (y)) %is% c(TRUE, FALSE, FALSE, TRUE, FALSE);
+  f( , 10, x, y, (y)) %is% c(a=TRUE, b=FALSE, c=FALSE, d=TRUE, e=FALSE);
+  g( , 10, x, y, (y)) %is% c(a=TRUE, b=FALSE, c=FALSE, d=TRUE, e=FALSE);
 })
 
 test_that("R_MissingValue bound directly", {
   x <- missing_value()
-  expect_warning(
-   (function(x) arg_env(x))() %is% emptyenv(),
-   "missing")
-  expect_true(is.missing(
-    (function(x) arg_expr(x))() ))
-  expect_true(is.missing(
-    (function(x) args(x))() ))
+  (function(x) arg_env(x))() %is% emptyenv()
+  expect_true(missing_( (function(x) arg_expr(x))() ))
+  expect_true(missing_( (function(x) args(x))() ))
   expect_true(is_literal(x))
 })
 
-test_that("missing_ matches R behavior", {
-  delayedAssign("a", )
-  delayedAssign("b", a)
-  delayedAssign("c", asdlkhj)
-  delayedAssign("d", asdlkjh + alsiduj)
+test_that("missing_ matches R behavior with unwrapping", {
+  delayedAssign("aa", )
+  delayedAssign("bb", aa)
+  delayedAssign("cc", asdlkhj)
+  delayedAssign("dd", asdlkjh + alsiduj)
 
   f <- function(e,f,g,h) {
-    cmp <- c(missing(a), missing(b), missing(c), missing(d),
-      missing(e), missing(f), missing(g), missing(h))
-    is_missing.tst <- is_missing(a, b, c, d, e, f, g, h)
-    missing_dots.tst <- missing_(dots(a, b, c, d, e, f, g, h))
-    missing_args.tst <- missing_(args(a, b, c, d, e, f, g, h))
-    missing_quo.tst <- c(missing_(quo(a)),
-                         missing_(quo(b)),
-                         missing_(quo(c)),
-                         missing_(quo(d)),
-                         missing_(quo(e)),
-                         missing_(quo(f)),
-                         missing_(quo(g)),
-                         missing_(quo(h)))
+    cmp <- base::c(aa = TRUE, bb = TRUE, cc = FALSE, dd = FALSE,
+                   e = missing(e), f = missing(f), g = missing(g), h = missing(h))
+    is_missing.tst <- is_missing(aa, bb, cc, dd, e, f, g, h)
+    missing_dots.tst <- missing_(dots(aa=aa, bb=bb, cc=cc, dd=dd, e=e, f=f, g=g, h=h))
+    missing_args.tst <- missing_(args(aa, bb, cc, dd, e, f, g, h))
+    missing_quo.tst <- c(aa = missing_(quo(aa)),
+                         bb = missing_(quo(bb)),
+                         cc = missing_(quo(cc)),
+                         dd = missing_(quo(dd)),
+                         e = missing_(quo(e)),
+                         f = missing_(quo(f)),
+                         g = missing_(quo(g)),
+                         h = missing_(quo(h)))
     cmp %is% is_missing.tst
     cmp %is% missing_dots.tst
     cmp %is% missing_args.tst
     cmp %is% missing_quo.tst
   }
-  f(a, b, c, d)
+  f(aa, bb, cc, dd)
 })
 
 test_that("getting promises handles DDVAL (..1 etc)", {
@@ -275,6 +302,11 @@ test_that("getting promises handles DDVAL (..1 etc)", {
   x <- 1
   y <- quote(x+3)
   brace(x, y) %is% 4
+})
+
+test_that("ddvals", {
+  x <- {function(...) args(..1, ..2)}(a, b, c)
+  exprs(x) %is% alist("..1" = a, "..2" = b)
 })
 
 all.identical <- function(list) {
@@ -324,16 +356,36 @@ test_that("dotlist to environment", {
   substitute(list(...), e2) %is% quote(list(three, four, seven, eight))
 })
 
-test_that("find var", {
+test_that("arg_expr doesn't lookup literals as if they were variables", {
+  ## > (function(x) arg_expr(x))(1)
+  ## Error in arg_expr_(arg_expr_(quote(name), environment()), env) (from getpromise.R#104) : 
+  ##   Variable `1` was not found.
+  (function(x) arg_expr(x))(1) %is% 1
+})
+
+test_that("arg_expr doesn't over-unwrap...", {
+  f <- function(x) arg_expr(x)
+  g <- function(x) f(x)
+  h <- function(x) g(x)
+  f(3) %is% quote(3)
+  g(3) %is% quote(x)
+  h(3) %is% quote(x)
+})
+
+test_that("locate var", {
   x <- function() {
     x <- 1
     y <- function() {
       y <- 1
       z <- function() {
-        ls(find(x)) %is% c("x", "y")
-        ls(find(y)) %is% c("y", "z")
-        ls(find(y, "function")) %is% c("x", "y")
-        ls(find_(quote(y), find(x))) %is% c("x", "y")
+        nx <- sort(names(locate(x)))
+        ny <- sort(names(locate(y)))
+        nyf <- sort(names(locate(y, mode = "function")))
+        ny_x <- sort(names(locate(y, env = locate(x))))
+        nx %is% c("x", "y")
+        ny %is% c("y", "z")
+        nyf %is% c("x", "y")
+        ny_x %is% c("x", "y")
       }
       z()
     }
@@ -342,20 +394,33 @@ test_that("find var", {
   x()
 })
 
-test_that("find with dots", {
+test_that("locate dots", {
   x <- function(...) {
     y <- function(x) {
-      f <- find_(quote(...), environment())
-      g <- find_("...", environment())
-      h <- find("...")
-      expect_error(find("...", "function"))
-      f %is% g
-      g %is% h
-      expect_false(identical(f, environment()))
+      i <- locate_(quote(...), environment())
+      k <- locate_("...", environment())
+      j <- locate("...")
+      expect_error(locate("...", mode = "function"))
+      expect_identical(i, k)
+      expect_identical(j, k)
+      expect_false(identical(i, environment()))
     }
     y
   }
   x(a, b, c)()
+})
+
+test_that("locate function, forcing in process", {
+  x <- function(...) {
+    y <- function(x) {
+      expect_false(is_forced(x))
+      locate(x, mode="function")$x %is% xx
+      expect_true(is_forced(x))
+    }
+    y(2+2)
+  }
+  xx <- x
+  x()
 })
 
 test_that("unwrap quotation", {
@@ -374,5 +439,10 @@ test_that("unwrap quotation", {
   expr(f(1 + 2, function(x) unwrap(quo(x), FALSE))) %is% quote(z)
   expr(f(1 + 2, function(x) unwrap(quo(x), TRUE))) %is% quote(1+2)
   f((400), function(x) unwrap(quo(x), TRUE)) %is% quo((400))
-  f(400, function(x) expr(unwrap(quo(x, TRUE))) %is% as.quo.literal(400))
+
+  ff <- function() {
+    f(400, function(x) unwrap(quo(x), TRUE))
+  }
+  ff <- cmpfun(ff)
+  ff() %is% as.quo.literal(400)
 })

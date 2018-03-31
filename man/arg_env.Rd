@@ -13,48 +13,47 @@
 \alias{is_literal_}
 \title{Get environment or expression from a named argument.}
 \usage{
-arg_env(name, env = arg_env(name, environment()))
+arg_env(name, env = arg_env_(quote(name), environment()))
 
-arg_expr(name, envir = arg_env(name, environment()))
+arg_expr(name, env = arg_env_(quote(name), environment()))
 
-arg_expr_(name, envir = arg_env(name, environment()))
+arg_expr_(name, env = arg_env_(quote(name), environment()))
 
 is_promise(...)
 
-is_promise_(names, envirs)
+is_promise_(syms, envs)
 
-is_missing_(names, envs)
+is_missing_(syms, envs)
 
 is_forced(...)
 
-is_forced_(names, envirs)
+is_forced_(syms, envs)
 
 is_literal(...)
 
-is_literal_(names, envs, warn = TRUE)
+is_literal_(syms, envs, warn = TRUE)
 }
 \arguments{
 \item{name}{A single argument name; not evaluated.}
 
-\item{env}{The environment to look for the argument name in.}
+\item{env}{The environment to look in.}
 
 \item{...}{Any number of variable names; not evaluated.}
 
-\item{names}{names of arguments to look up.}
+\item{syms}{A character vector or list of symbols.}
 
-\item{envs}{A character vector}
-
-\item{names}{A character vector or list of symbols.}
+\item{envs}{A list of environment objects.}
 
 \item{recursive}{Whether to recursively descend through unforced
-promises. TRUE mimics the behavior of \link{missing}}
+promises. \code{TRUE} mimics the behavior of \link{missing}.}
 }
 \description{
-\code{arg_env} determines the lexical scope of an argument bound in
+\code{arg_env} finds the origin of an expression of an argument
+bound in the present environment. It is equivalent to \code{env(arg(x))}
+is further equivalent to \code{env(unwrap(quo(x)))}.
 
-\code{arg_expr(x)} is a shorthand for expr(arg(x)). It fetches the
-expression attached to a promise in some environment.
-environment. The effect is similar to \code{substitute(name)}.
+\code{arg_expr(x)} is a shortcut for \code{expr(arg(x))}. It fetches the
+expression attached to a promise in the present environment.
 
 \code{arg_expr_} is the normally evaluating version of arg_expr.
 
@@ -82,6 +81,5 @@ bother constructing promises to wrap a literal.)
 }
 \details{
 \code{is_missing_} is a normally evaluating equivalent of
-\code{\link{is_missing}}. It takes a number of names and environments,
-and checks whether the names are bound to missing arguments.
+\code{is_missing}
 }

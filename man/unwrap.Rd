@@ -8,9 +8,9 @@ binding that is referenced.}
 unwrap(x, recursive = FALSE)
 }
 \arguments{
-\item{recursive}{If \code{FALSE}, the default, unwrap exactly once and throw
-an error If \code{TRUE}, and the referred variable is If the binding
-is another unforced variable name, recursively unwrap}
+\item{recursive}{If \code{FALSE}, the default, unwrap exactly once and
+throw an error If \code{TRUE}, and the referred variable is If the
+binding is another unforced variable name, recursively unwrap}
 }
 \description{
 In general, \code{nse} direct accessors like \code{arg_expr(x)} can be
@@ -26,5 +26,5 @@ Using unwrap(x, recursive=TRUE) in other situations can get you
 into confusing situations -- effectively you are changing the
 behavior of a parent function that may be several levels up the
 stack, possibly turning a standard-evaluating function into
-a nonstandard-evaluating function. Tread lightly.
+nonstandard-evaluating function.
 }

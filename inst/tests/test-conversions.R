@@ -291,7 +291,8 @@ test_that("quotation to binding", {
   quo2env(x, environment(), quote(zz))
   arg_expr(zz) %is% quote(a+b)
 
-  expect_error(quo2env(x, environment(), "..."), "\\.\\.\\.")
+  quo2env(x, e <- new.env(), "...")
+  get_dots(e)[[1]] %is% x
 
   # blank name appends to "..."
   f <- function(x) {
@@ -304,6 +305,7 @@ test_that("quotation to binding", {
   e <- f(a+b)
   exprs(get_dots(e)) %is% alist(a+b)
 
-  # NULL appends to dots
-  quo2env(x, environment(), NULL)
+  # NULL appends to dots also.
+  quo2env(quo(a+b), e <- new.env(), NULL)
+  exprs(get_dots(e)) %is% alist(a+b)
 })

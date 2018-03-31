@@ -10,17 +10,14 @@ unwind_protect <- function(body, unwind) {
 }
 
 with_setup <- function(setup=NULL, ..., teardown=NULL) {
-  setup_e <- arg_env(setup)
-  setup_x <- arg_expr(setup)
-  teardown_e <- arg_env(teardown)
-  teardown_x <- arg_expr(teardown)
+  setup <- arg(setup)
+  teardown <- arg(teardown)
+  tests <- dots(...)
 
-  doSetup <- function() eval(setup_x, setup_e)
-  doTeardown <- function() eval(teardown_x, teardown_e)
-  tests <- as.list(substitute(...()))
   for (i in 1:length(tests)) {
-    doSetup()
-    unwind_protect(eval(tests[[i]], setup_e), doTeardown())
+    value(setup)
+    unwind_protect(value(tests[[i]]),
+                   value(teardown))
   }
 }
 
@@ -100,7 +97,7 @@ test_that("dots missingness", {
   local({
     with_setup(
       setup={
-        if (exists("a")) rm(a, inherits=TRUE)
+        if (exists("a")) stop("Please 'rm(a)' and rerun test")
         unmissing <- 1
         b <- missing_value()
         delayedAssign("e", stop("e"))
@@ -122,6 +119,9 @@ test_that("dots missingness", {
   })
 })
 
+unmissing <- 1
+missing_(quo(unmissing))
+
 test_that("missing on non-dotlists", {
   a <- alist(1, 2, adsf, , b=, )
   missing_(a) %is% c(FALSE, FALSE, FALSE, TRUE, b=TRUE, TRUE)
@@ -130,7 +130,7 @@ test_that("missing on non-dotlists", {
   missing_() %is% TRUE
   missing_(function(x) y) %is% FALSE
   missing_(missing_value()) %is% TRUE
-  missing_(quo())
+  missing_(quo()) %is% TRUE
 })
 
 test_that("dots elements are promises", {
@@ -400,7 +400,8 @@ test_that("dots() on empty arguments", {
   m2 <- function(...) missing_(dots(...))
 
   dots_other <- function(x, y, z) {
-    args(x, y, z) #makes promises set to R_MissingValue
+    unwrap(dots(x, y, z))
+#    args(x, y, z) #makes promises set to R_MissingValue
   }
 
   d1 <- dots(x, , z)
@@ -607,13 +608,14 @@ test_that("Can get missingness and forcedness of quo", {
   x <- missing_value()
   delayedAssign("y", x)
   delayedAssign("z", stop("Should not force"))
-  missing_(args(w, x, y, z)) %is% c(FALSE, TRUE, TRUE, FALSE)
+  missing_(args(w, x, y, z)) %is% c(w=FALSE, x=TRUE, y=TRUE, z=FALSE)
+  missing_(args(a=w, x)) %is% c(a=FALSE, TRUE)
   missing_(arg(w)) %is% c(FALSE)
   missing_(arg(x)) %is% c(TRUE)
   missing_(arg(y)) %is% c(TRUE)
   missing_(arg(y), unwrap=FALSE) %is% c(FALSE)
   missing_(arg(z)) %is% c(FALSE)
-  is_missing(w, y, y, z) %is% c(FALSE, TRUE, TRUE, FALSE)
+  is_missing(w, x, y, z) %is% c(w=FALSE, x=TRUE, y=TRUE, z=FALSE)
   missing(w) %is% FALSE
   missing(x) %is% TRUE
   missing(y) %is% TRUE
@@ -626,7 +628,7 @@ test_that("is_missing and missing_ unwraps", {
   h <- function(z, q) q(z)
 
   f(, missing) %is% TRUE
-  f(, is_missing) %is% TRUE
+  f(, is_missing) %is% c(z=TRUE)
   f(, function(x) missing_(arg(x))) %is% TRUE
 
   #note that undefined != missing
@@ -635,6 +637,6 @@ test_that("is_missing and missing_ unwraps", {
   h <- function(z, q) q(z)
 
   f(missing) %is% FALSE
-  f(is_missing) %is% FALSE
-  f(function(x) missing_(arg(x))) %is% FALSE
+  f(is_missing) %is% c(z=FALSE)
+  f(function(x) missing_(arg(x))) %is% c(FALSE)
 })

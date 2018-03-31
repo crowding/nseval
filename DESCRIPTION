@@ -8,6 +8,8 @@ Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: Allows R code to de- and reconstruct calls, lazy arguments
              (promises) and '...' lists, with safer defaults.
 License: MIT + file LICENSE
+Depends:
+    compiler (>= 3.4)
 Suggests:
     testthat (>= 0.2),
     roxygen2 (>= 2.2.2),
