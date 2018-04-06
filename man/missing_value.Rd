@@ -11,10 +11,10 @@ missing_value(n)
 missing values with this many elements.}
 }
 \value{
-A symbol with empty name, or a list of such.
+The symbol with empty name, or a list of such.
 }
 \description{
-The missing constant (\code{R_MissingArg} at C level) has two related
+The missing sigil (\code{R_MissingArg} at C level) has two related
 uses. One is "at parse time" when it is used to represent empty
 arguments. The other is "at run time" when it is bound to function
 arguments that were not given any value.
@@ -22,13 +22,13 @@ arguments that were not given any value.
 \details{
 Manipulating expressions ("computing on the language") means we
 have to deal with the first use case, because we have to be able to
-make expressions that have empty arguments, like the first index in
+make calls that have empty arguments, like the first index in
 \code{arr[,c]}.
 
 The second use of the missing sigil makes this tricky. Generally it
 is a bad idea to assign a bare \code{missing_value} to a variable or use
 one as the argument to a function, because this makes R think that
-the variable \b{is} missing rather than that it \b{contains a}
+the variable \emph{is} missing rather than that it \emph{contains a}
 missing. For instance, you can say
 
 x <- list(missing_value(), 2, 3)
@@ -39,8 +39,8 @@ a <- missing_value(); b <- 2; c <- 3
 x <- list(a, b, c)
 
 fails with an error about the missing variable "a". When dealing
-with missing values, then, best to keep them wrapped up in lists ,
-quotations
+with missing values, then, best to keep them wrapped up in lists,
+\link{quotations} or others
 }
 \examples{
 # These expressions are equivalent:

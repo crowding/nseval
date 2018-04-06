@@ -4,9 +4,15 @@
 \alias{quo}
 \alias{quo_}
 \alias{env}
+\alias{env.quotation}
+\alias{env<-}
+\alias{env<-.quotation}
 \alias{expr}
 \alias{expr.quotation}
+\alias{expr<-}
+\alias{expr<-.quotation}
 \alias{value.quotation}
+\alias{is.quotation}
 \title{Capture or construct a quotation.}
 \usage{
 quo(x, env = arg_env_(quote(x), environment()), force = FALSE)
@@ -15,16 +21,28 @@ quo_(expr, env, force = FALSE)
 
 env(x)
 
+\method{env}{quotation}(x)
+
+env(x) <- value
+
+\method{env}{quotation}(x) <- value
+
 expr(q)
 
 \method{expr}{quotation}(q)
 
-\method{value}{quotation}(q)
+expr(x) <- value
+
+\method{expr}{quotation}(x) <- value
+
+\method{value}{quotation}(q, mode = "any")
+
+is.quotation(x)
 }
 \arguments{
 \item{x}{an argument, left unevaluated.}
 
-\item{env}{An environment.}
+\item{env}{An environment.g}
 
 \item{force}{Create a "forced" quotation; this is one that stores
 an expression and value but no environment.}

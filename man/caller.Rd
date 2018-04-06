@@ -7,35 +7,38 @@
 caller(envir = caller(environment()))
 }
 \arguments{
-\item{envir}{The environment to inspect. By default, the environment from
-which \code{caller} was called.}
+\item{env}{The environment to inspect. By default, the
+environment from which \code{caller} itself was called. (That is,
+\code{caller()} should always return the same value as
+\code{caller(environment())}.)}
 }
 \value{
-The environment in which the function call that created \code{envir}
-was called. If that environment cannot be reliably determined, an error is
+The environment in which the function call that created
+\code{env} was executed. If that environment cannot be reliably
+determined, an error is raised.
 
-\code{X <- environment()
+For example, in the code:\preformatted{  X <- environment()
   F <- function() {
     Y <- environment()
     caller(Y)
   }
-  F()}
+  F()
+}
 
-the environment bound to "Y" was created by calling F(), and that
-call occurs in the environment bound to "X". We say that X is the
-calling environment of Y.
+the environment called "Y" was created by calling F(), and that
+call occurs in the environment called "X". In this case X is the
+calling environment of Y, so \code{F()} returns the same environment
+as \code{X()}.
 
-Note that the "caller" is in general different from the "enclosing
-environment" which is returned by \code{\link{parent.env}}. It can also be
-different from the environment in the previous frame of the execution
-stack as returned by "parent.frame." In the case of lazy evaluation,
-an environment may be reactivated to compute a lazy argument; the code
-in the lazy argument should have the same 'caller' as other code in its
-lexical environment, though it has a different activation path.
+\code{caller} is intended as a replacement for \link{parent.frame}, which
+returns the next environment up the calling stack -- which is
+sometimes the same value, but differs in some cases (e.g. when
+lazy evaluation re-activates an environment.) So \code{parent.frame()}
+can return different things depending on the order in which
+arguments are evaluated.
 
-\code{caller()} with no arguments should always give the same
-results as \code{caller(environment())}, but the former amounts
-to calling \code{caller} twice, so the latter will be faster.
+In addition, \code{caller} tries to do the right thing when the
+environment was created by \code{do.call}, \link{eval} or \link{do}.
 }
 \description{
 Get the calling environment of a given environment.

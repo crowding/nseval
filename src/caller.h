@@ -56,3 +56,4 @@ enum {
   CTXT_RESTART  = 32,
   CTXT_BUILTIN  = 64  /* used in profiling */
 };
+

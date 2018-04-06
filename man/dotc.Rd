@@ -3,7 +3,7 @@
 \name{dotc}
 \alias{dotc}
 \title{dotc casts each of its arguments to a dotlist, and concatenates
-the lot, returning a dotlist}
+the lot, returning a dotlist.}
 \usage{
 dotc(...)
 }
@@ -12,7 +12,7 @@ dotc(...)
 }
 \description{
 dotc casts each of its arguments to a dotlist, and concatenates
-the lot, returning a dotlist
+the lot, returning a dotlist.
 }
 \seealso{
 quo

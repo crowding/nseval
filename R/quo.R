@@ -1,8 +1,4 @@
 
-is.quotation <- function(x) {
-  inherits(x, "quotation")
-}
-
 #' Capture or construct a quotation.
 #'
 #' A quo (or quotation) `q <- quo( <anything> )` is an object with two
@@ -38,7 +34,7 @@ quo <- function(x, env = arg_env_(quote(x), environment()), force = FALSE) {
 #' quo_ is a normally evaluating, explicit constructor for quotations.
 #' @rdname quo
 #' @param expr An expression.
-#' @param env An environment.
+#' @param env An environment.g
 #' @export
 #' @useDynLib nse _quotation
 quo_ <- function(expr, env, force=FALSE) {
@@ -51,19 +47,29 @@ quo_ <- function(expr, env, force=FALSE) {
 
 #' @rdname quo
 #' @export
-env <- function(x) UseMethod("env", x)
+env <- function(x) UseMethod("env")
 
+#' @rdname quo
 #' @export
 env.quotation <- function(x) {
   environment(x)
 }
 
+#' @rdname quo
 #' @export
-env.default <- function(x) environment(x)
+`env<-` <- function(x, value) {
+  UseMethod("env<-")
+}
 
 #' @rdname quo
 #' @export
-expr <- function(q) UseMethod("expr", q)
+`env<-.quotation` <- function(x, value) {
+  quo_(expr(x), value);
+}
+
+#' @rdname quo
+#' @export
+expr <- function(q) UseMethod("expr")
 
 #' @rdname quo
 #' @export
@@ -73,8 +79,25 @@ expr.quotation <- function(q) {
   .Call("_expr_quotation", q)
 }
 
+#' @rdname quo
 #' @export
-force_ <- quotation <- function(q, eval=base::eval) {
+`expr<-` <- function(x, value) {
+  UseMethod("expr<-")
+}
+
+#' @rdname quo
+#' @export
+`expr<-.quotation` <- function(x, value) {
+  quo_(value, env(x))
+}
+
+#' @export
+force_ <- function(q, ...) {
+  UseMethod("force_")
+}
+
+#' @export
+force_.quotation <- function(q, eval=base::eval) {
   if (forced(q)) {
     q
   } else {
@@ -89,16 +112,20 @@ force_ <- quotation <- function(q, eval=base::eval) {
 #'   quotation to forced; repeated calls to `value` will have repeated
 #'   effects.
 #' @export
-value.quotation <- function(q) {
+value.quotation <- function(q, mode="any") {
   if (forced(q)) {
     q()
   } else {
-    eval(body(q), environment(q))
+    switch(mode,
+           "any" = eval(body(q), environment(q)),
+           "function" = stop("Not implemented"),
+           stop("Invalid mode")
+           )
   }
 }
 
-#' @export
-value.default <- function(f) value(as.quo(f))
+##' @export
+#value.default <- function(f) value(as.quo(f))
 
 #' @export
 forced <- function(x) UseMethod("forced")
@@ -109,12 +136,18 @@ forced.quotation <- function(x) {
   .Call(`_forced_quotation`, x)
 }
 
-#' @export
-forced.default <- function(x) forced(as.quo(x))
+##' @export
+#forced.default <- function(x) forced(as.quo(x))
 
 #' @export
 #' @return `as.quotation.literal(x)` creates a forced promise, containing `x`
 #'    in both the expression and data slots.
 as.quo.literal <- function(x) {
   .Call(`_quotation_literal`, x)
+}
+
+#' @rdname quo
+#' @export
+is.quotation <- function(x) {
+  inherits(x, "quotation")
 }

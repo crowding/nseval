@@ -373,17 +373,51 @@ test_that("dots() et al with empty inputs", {
   f %()% b %is% 8
 })
 
-test_that("args() makes tags by default.", {})
+test_that("args() makes tags by default.", {
+  f <- function(a, b) {
+    x <- args(a, b)
+    y <- args(f=a, b)
+    z <- args(aa=a, bb=b)
 
-test_that(
-  "#' Note that you can not get the contents of `...` by writing
-#' `args(...)`, because R unpacks `...` before `args` receives its
-#' arguments.
-#'
-#' However, you can write `args(\"...\")` or args_(\"...\") er even
-#' `get_dots()`. Also, `arg_(\"...\", environment)` will throw an error.
-#'
-", {})
+    exprs(x) %is% alist(a=foo, b=bar)
+    exprs(x) %is% alist(a=foo, b=bar)
+  }
+  f(foo, bar)
+})
+
+test_that("args getting `...`",
+{
+  f <- function(a, b, ...) {
+    args(a, b, "...")
+  }
+
+  x <- f(foo, bar)
+  y <- dots(a=foo, b=bar)
+
+  f(foo, bar) %is% dots(a=foo, b=bar)
+  f(foo, bar, baz) %is% dots(a=foo, b=bar, baz)
+  f(foo, bar, baz, qux) %is% dots(a=foo, b=bar, baz, quux)
+  f(foo, bar, baz, g=qux) %is% dots(a=foo, b=bar, baz, g=qux)
+
+  f <- function(a, b, ...) {
+    args_(list(quote(a),
+               quote(b),
+               quote(...)),
+          environment())
+  }
+
+  f(foo, bar) %is% dots(a=foo, b=bar)
+  f(foo, bar, baz) %is% dots(a=foo, b=bar, baz)
+  f(foo, bar, baz, qux) %is% dots(a=foo, b=bar, baz, quux)
+  f(foo, bar, baz, g=qux) %is% dots(a=foo, b=bar, baz, g=qux)
+
+  g <- function(sym, a, b, ...) {
+    arg_(sym)
+  }
+
+  g("a", foo) %is% quo(foo)
+  expect_error(g("...", foo, bar, baz), "\\.\\.\\.")
+})
 
 test_that("dots() on empty arguments", {
   x <- dots(, b=z)

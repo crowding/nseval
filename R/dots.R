@@ -47,7 +47,7 @@ unpack.dots <- function  (x) {
 #'
 #' @param x A dots object (see \code{\link{dots}}).
 #' @return A named list of expressions. The mutator \code{exprs<-}
-#'   constructs a new dots object with the new expressions.
+#'   returns a new dots object with the new expressions.
 #' @rdname dots
 #' @export
 exprs <- function(x) UseMethod("exprs")
@@ -152,15 +152,14 @@ list_missing <- function(...) {
   })
 }
 
-
-
 #' Capture a list of arguments as an object.
 #'
 #' A dots object represents a named list of quotations. It mirrors R's
-#' special variable `...`. Unlike `...`, a `dots` is an immutable
-#' (evaluating does not change it), first-class (you can store it in
-#' any variable, not just `...`) data object (The R interpreter passes
-#' it along like data rather than triggering argument splicing).
+#' special variable `...`. Unlike `...`, a `dots` is:
+#' * immutable (evaluating does not change it),
+#' * first-class (you can store it in any variable, not just `...`),
+#' * data (The R interpreter treates it as literal data rather than
+#'   triggering argument splicing).
 #'
 #' \code{d <- dots(...)} captures the contents of ... without
 #' triggering evaluation, and returns a list of class "dots", each
@@ -209,7 +208,7 @@ as.dots.quotation <- function(x) {
 
 
 #' dotc casts each of its arguments to a dotlist, and concatenates
-#' the lot, returning a dotlist
+#' the lot, returning a dotlist.
 #'
 #' @param ... Things that can be converted to args or dots.
 #' @seealso quo
@@ -239,20 +238,20 @@ dots_ <- function(exprs, envs) {
 
 #' R's missing value.
 #'
-#' The missing constant (`R_MissingArg` at C level) has two related
+#' The missing sigil (`R_MissingArg` at C level) has two related
 #' uses. One is "at parse time" when it is used to represent empty
 #' arguments. The other is "at run time" when it is bound to function
 #' arguments that were not given any value.
 #'
 #' Manipulating expressions ("computing on the language") means we
 #' have to deal with the first use case, because we have to be able to
-#' make expressions that have empty arguments, like the first index in
-#' \code{arr[,c]}.
+#' make calls that have empty arguments, like the first index in
+#' `arr[,c]`.
 #'
 #' The second use of the missing sigil makes this tricky. Generally it
 #' is a bad idea to assign a bare `missing_value` to a variable or use
 #' one as the argument to a function, because this makes R think that
-#' the variable \b{is} missing rather than that it \b{contains a}
+#' the variable *is* missing rather than that it *contains a*
 #' missing. For instance, you can say
 #'
 #'     x <- list(missing_value(), 2, 3)
@@ -263,12 +262,12 @@ dots_ <- function(exprs, envs) {
 #'     x <- list(a, b, c)
 #'
 #' fails with an error about the missing variable "a". When dealing
-#' with missing values, then, best to keep them wrapped up in lists ,
-#' quotations
+#' with missing values, then, best to keep them wrapped up in lists,
+#' [quotations] or others
 #'
 #' @param n Optional; a number. If provided, will return a list of
 #' missing values with this many elements.
-#' @return A symbol with empty name, or a list of such.
+#' @return The symbol with empty name, or a list of such.
 #' @seealso list_missing
 #' @examples
 #' # These expressions are equivalent:
@@ -460,7 +459,7 @@ forced.dots <- function(d) {
 
 #' @export
 c.dots <- function(...) {
-  x <- lapply(list(...), function(x) unclass(as.dots(x)))
-  structure(c %()% x, class="dots")
+  l <- list(...)
+  subdots <- lapply(l, function(x) unclass(as.dots(x)))
+  structure(unlist(subdots, recursive=FALSE), class="dots")
 }
-

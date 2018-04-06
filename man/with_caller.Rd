@@ -4,10 +4,10 @@
 \alias{with_caller}
 \title{Wrap a function so that it will see a particular caller or parent.frame.}
 \usage{
-with_caller(f, envir = arg_env(f))
+with_caller(f, env = arg_env(f))
 }
 \arguments{
-\item{f}{The function to call. A symbol may be given, which must be
+\item{f}{The function to call. A symbol or expression may be given, which must be
 a symbol visible from \code{e}.}
 
 \item{envir}{The environment to issue the call from. If
@@ -32,6 +32,7 @@ environment.
 To reproduce the effects of
 \code{do.call(f, alist(foo, bar), envir=e)}, you could write
 \code{with_caller(f, e) \%()\% dots(alist(foo, bar), e)}.
+
 Note that there is independent control of the caller of the function and
 the context of the arguments.
 }

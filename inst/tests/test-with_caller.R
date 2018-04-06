@@ -3,29 +3,126 @@ context("with_caller")
 `%is%` <- expect_equal
 
 test_that("do_", {
-  # let's make an "update" operator, like `<<-` except it starts search in
-  # the present environment (i.e. like Javascript "=")
+  expect_identical(do(emptyenv), emptyenv())
+  do_(dots(`-`, 1)) %is% -1
+  f <- function(y) {
+    delayedAssign("x", foo+bar)
+    substitute(thing(x, y))
+  }
+  do_(quo(f), quo(x+y)) %is% quote(thing(foo+bar, x+y))
+  do(f, quo(x+y)) %is% quote(thing(foo+bar, x+y))
+})
+
+test_that("do_ with primitives", {
+  #case study of using `do` with `<-`
+  # One would of course rather use 'assign' in real life
+  x <- 2
+  do(`<-`, dots(x, x+1))
+  x %is% 3
+
+  # `<-` fails, because calling env doesn't match left-hand-side env
+  e <- new.env()
+  x <- 1
+  e$x <- 10
+  expect_error(do(`<-`, quo(x, e), quo(x+2)), "left-hand")
+
+  # but the RHS can be in another env
+  e <- new.env()
+  x <- 1
+  e$x <- 10
+  do(`<-`, quo(x), quo(x+2, e))
+  x %is% 12
+  e$x %is% 10
+
+  # and we can do the assign in another env
+  e <- new.env()
+  x <- 1
+  e$x <- 10
+  do_(quo(`<-`, e), quo(x, e), quo(x+2))
+  e$x %is% 3
+  x %is% 1
+
+  # and we can assign in detached env, trickily. Note that the primitive itself
+  # is going into the call, not the name `<-`
+  e <- new.env(parent=emptyenv())
+  x <- 10
+  expect_error( do_(quo(`<-`, e), quo(x, e), quo(x+1)), "could not find" )
+  do_(quo_(`<-`, e), quo(x, e), quo(x+1))
+  x %is% 10
+  e$x %is% 11
+
+  # however `+` is copacetic with promises and being called from emptyenv
+  x <- 3
+  do_(as.quo.literal(`+`), dots(x+1, x+2)) %is% 9
+  do_(quo(`+`, force=TRUE), dots(x+1, x+2)) %is% 9
+})
+
+
+test_that("do_", {
+  # having extablished how to invoke `<-`,
+  # let's make an "update" operator, like `<<-` except it starts
+  # search in the present environment, but still defaulting to global
+  # (that is, like Javascript "=")
   `:=` <- function(lval, rval) {
     lval_ <- arg(lval)
     rval_ <- arg(rval)
-    target.env <- locate_(lval_)
-    if (target.env == emptyenv())
+    target.env <- locate_(lval_, ifnotfound = globalenv())
+    if (identical(target.env, emptyenv()))
       target.env <- globalenv()
     env(lval_) <- target.env
-    do_(quo(`<-`, target.env), lval_, rval_)
+    do_(quo_(`<-`, target.env), lval_, rval_)
   }
+
+  local({x <- 13; x := x + 1}) %is% 14
 
   x <- 5
   y <- 10
+
   local({
     x <- 13
     x := x + 1
     y := y + 1
     z := x + y
+    x %is% 14
   })
   x %is% 5
   y %is% 11
   z %is% 25
+})
+
+test_that("`do` allows different args to come from different environments, just like ...", {
+  f <- function(...) {
+    here <- "f"
+    g(here, ...)
+  }
+  g <- function(...) {
+    here <- "g"
+    h(here, ...)
+  }
+  here <- "top"
+
+  h <- c
+  f(here) %is% c("g", "f", "top")
+
+  h <- function(...) {
+    match.call() %is% quote(h(here, ..1, ..2)) #huh?
+    c(...)
+  }
+  f(here) %is% c("g", "f", "top")
+
+  # and our "do" can cope with different arguments having different
+  # arguments.
+  h <- function(...) {
+    do(c, dots(...))
+  }
+  f(here) %is% c("g", "f", "top")
+
+  # even doing the call from a fourth env
+  e <- list2env(list(here="no"))
+  h <- function(...) {
+    do_(quo(c, e), dots(...))
+  }
+  f(here) %is% c("g", "f", "top")
 })
 
 test_that("with_caller passes along args", {
@@ -37,9 +134,9 @@ test_that("with_caller passes along args", {
     here <- "g"
     h(here, ...)
   }
+  here <- "top"
   e <- list2env(list(here="no"))
   h <- with_caller(c, e)
-  here <- "top"
   f(here) %is% c("g", "f", "top")
 })
 
@@ -88,14 +185,14 @@ test_that("with_caller by name finds in target env", {
   }
   h <- function(x) {
     get <- "nope"
-    with_caller(quote(get), fenv)() %is% "x" 
-    with_caller(quote(get), genv)() %is% "b" 
+    with_caller(quote(get), fenv)() %is% "x"
+    with_caller(quote(get), genv)() %is% "b"
   }
   f()
 })
 
 test_that("what is function called?", {
-  fenv <- NULL 
+  fenv <- NULL
   f <- function(f) {
     fenv <<- environment()
     g()

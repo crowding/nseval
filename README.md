@@ -55,32 +55,36 @@ equivalents from `nse`, and may have fewer of these kinds of problems.
 
 ### What `nse` does
 
-`nse` introduces three S3 classes: `quotation`, `dots`, and `call`,
-which mirror R's promises, `...`, and function invocations,
-respectively. Unlike their counterparts, these are ordinary data
-objects, and can be manipulated as such.
+`nse` introduces two S3 classes: `quotation`, and `dots`, which mirror
+R's promises and `...`, respectively. Unlike their counterparts, these
+are ordinary data objects, and can be manipulated as such.
 
 * A `quotation` combines an R expression with an environment.  There
   are also `forced` quotations, which pair an expression with a value.
-
 * A `dots` is a named list of quotations.
-
-* A `call` is a quotation (the head of the call) combined with a dots
-  (the arguments).
 
 There is a set of consistently-named accessors and constructors for
 capturing, constructing, and manipulating these objects.
 
+`nse` also as a function `do` which is an enhanced `do.call`, and 
+`get_call` which is an improved match.call()
+
 ### What `nse` doesn't do
 
-`nse` does not implement quasiquotation or hygeinic macros or DSLs or
+`nse` doesn't implement quasiquotation or hygeinic macros or DSLs or
 pattern matching or static analysis or automated code refactoring. But
 it is intended to be a solid foundation to build those kinds of
 facilities on!
 
-`nse` doesn't introduce new syntax -- the only nonstandard evaluation
-in its own interface is name lookup and quoting, and
+`nse` doesn't introduce any fancy syntax -- the only nonstandard
+evaluation in its own interface is name lookup and quoting, and
 standard-evaluating equivalents are always also present.
+
+`nse` doesn't try and remake all of R's base library, just the parts
+about arguments and evaluation.
+
+`nse` doesn't have any external dependencies and should play well
+with base R or any other 'verse.
 
 # EXAMPLE
 
@@ -167,7 +171,7 @@ f <- function(x) missing(x)
 f(1)
 f()
 
-## Similar paackages
+## Similar packages
 
 Some other packages have been written along similar lines:
 

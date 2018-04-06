@@ -53,7 +53,7 @@ dotlist(...)
 }
 \value{
 A named list of expressions. The mutator \code{exprs<-}
-constructs a new dots object with the new expressions.
+returns a new dots object with the new expressions.
 
 \code{dots_exprs(...)} is a shorthand for exprs(dots(...))
 
@@ -80,10 +80,13 @@ A list with class 'dots', each element of which is a \link{quotation}.
 of a \code{\link{dots}} object.
 
 A dots object represents a named list of quotations. It mirrors R's
-special variable \code{...}. Unlike \code{...}, a \code{dots} is an immutable
-(evaluating does not change it), first-class (you can store it in
-any variable, not just \code{...}) data object (The R interpreter passes
-it along like data rather than triggering argument splicing).
+special variable \code{...}. Unlike \code{...}, a \code{dots} is:
+\itemize{
+\item immutable (evaluating does not change it),
+\item first-class (you can store it in any variable, not just \code{...}),
+\item data (The R interpreter treates it as literal data rather than
+triggering argument splicing).
+}
 }
 \details{
 \code{d <- dots(...)} captures the contents of ... without

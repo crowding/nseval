@@ -196,6 +196,3 @@ test_that("caller from eval and do.call in closed environments", {
   h()
 })
 
-## Local Variables:
-## ess-r-package-info: ("fexpr" . "~/fexpr/")
-## End:
