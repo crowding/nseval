@@ -50,7 +50,6 @@ arg_ <- function(name, env = arg_env(name, environment())) {
 #' @useDynLib nse _arg_dots
 #' @useDynLib nse _dotsxp_to_flist
 args_ <- function(syms, envs) {
-  syms <- lapply(syms, as.symbol)
   if (!is.list(envs)) (envs = rep(list(envs), length(syms)))
   dts <- .Call(`_arg_dots`, envs, syms, names(syms), TRUE)
   .Call(`_dotsxp_to_flist`, dts)

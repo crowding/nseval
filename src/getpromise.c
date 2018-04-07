@@ -472,7 +472,7 @@ SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn, int recursive) {
   assert_type(envir, ENVSXP);
   assert_type(name, SYMSXP);
   if (name == R_DotsSymbol) {
-    error("Inappropriate use of ... in arg_*");    
+    error("Unsupported use of ... in arg_* (use `args( (...) )`)");    
   }
   /* Rprintf("Getting %s of binding `%s` in env `%p`\n", */
   /*         get_enum_string(type), CHAR(PRINTNAME(name)), envir); */
@@ -557,64 +557,75 @@ SEXP _arg_expr(SEXP envir, SEXP name, SEXP warn) {
   return arg_get(envir, name, EXPR, asLogical(warn), FALSE);
 }
 
-SEXP _arg_dots(SEXP envirs, SEXP names, SEXP tags, SEXP warn) {
+SEXP _arg_dots(SEXP envirs, SEXP syms, SEXP tags, SEXP warn) {
   assert_type(envirs, VECSXP);
-  assert_type(names, VECSXP);
+  assert(TYPEOF(syms) == VECSXP || TYPEOF(syms) == STRSXP);
   if (tags != R_NilValue) {
     assert_type(tags, STRSXP);
-    if (LENGTH(tags) != LENGTH(names)) {
+    if (LENGTH(tags) != LENGTH(syms)) {
       error("Inputs to arg_dots have different lengths");
     }
   }
-  if (LENGTH(envirs) != LENGTH(names)) {
+  if (LENGTH(envirs) != LENGTH(syms)) {
     error("Inputs to arg_dots have different lengths");
   }
   int warni = asLogical(warn);
 
-  int len = LENGTH(names);
+  int len = LENGTH(syms);
   if (len == 0) {
     return R_NilValue;
   }
+
   /* so at least one item */
   SEXP head = R_NilValue;
   SEXP tail = head;
+
+# define APPEND(item, tag) {                    \
+    if(head == R_NilValue) {                    \
+      head = PROTECT(allocSExp(DOTSXP));        \
+      tail = head;                              \
+    } else {                                    \
+      SETCDR(tail, allocSExp(DOTSXP));          \
+      tail = CDR(tail);                         \
+    }                                           \
+    SETCAR(tail, item);                         \
+    SET_TAG(tail, tag);                         \
+  }
+
   for (int i = 0; i < len; i++) {
-    if (VECTOR_ELT(names, i) == R_DotsSymbol) {
-      SEXP dots = _get_dots(VECTOR_ELT(envirs, i), ScalarLogical(TRUE));
+    SEXP sym;
+    SEXP env = VECTOR_ELT(envirs, i);
+    if (TYPEOF(syms) == STRSXP) {
+      sym = installChar(STRING_ELT(syms, i));
+    } else {
+      sym = VECTOR_ELT(syms, i);
+    }
+    /* support args(a, b, (...)) as a way to get `...` along with your args */
+    if (TYPEOF(sym) == LANGSXP) {
+      assert2(length(sym) == 2, "Expected variable name");
+      sym = CAR(CDR(sym));
+    }
+    assert_type(sym, SYMSXP);
+    if (sym == R_DotsSymbol) {
+      SEXP dots = _get_dots(env, ScalarLogical(TRUE));
       for (SEXP j = dots; j != R_NilValue; j = CDR(j)) {
-        if (head == R_NilValue) {
-          head = PROTECT(allocSExp(DOTSXP)); /* we do this exactly once */
-          tail = head;
-        } else {
-          SETCDR(tail, allocSExp(DOTSXP));
-          tail = CDR(tail);
-        }
-        SETCAR(tail, CAR(j));
-        SET_TAG(tail, TAG(j));
+        APPEND(CAR(j), TAG(j));
       }
     } else {
-      if (head == R_NilValue) {
-        head = PROTECT(allocSExp(DOTSXP)); /* we do this exactly once */
-        tail = head;
-      } else {
-        SETCDR(tail, allocSExp(DOTSXP));
-        tail = CDR(tail);
-      }
-      SEXP promise = 
-        arg_get(VECTOR_ELT(envirs, i), VECTOR_ELT(names, i), 
-                PROMISE, asLogical(warn), FALSE);
-      SETCAR(tail, promise);
+      LOG("Getting %s from env %p", CHAR(PRINTNAME(sym)), env);
+      SEXP promise =
+        arg_get(env, sym, PROMISE, asLogical(warn), FALSE);
+      LOG("got a %s", type2char(TYPEOF(promise)));
+
       if (tags == R_NilValue) {
-        SEXP name = VECTOR_ELT(names, i);
-        assert_type(name, SYMSXP); 
-        SET_TAG(tail, name);
+        assert_type(sym, SYMSXP);
+        APPEND(promise, sym);
       } else {
-        SEXP name = STRING_ELT(tags, i);
-        if (name != R_BlankString) {
-          name = installChar(name);
-          SET_TAG(tail, name);
+        SEXP ch = STRING_ELT(tags, i);
+        if (ch != R_BlankString) {
+          APPEND(promise, installChar(ch));
         } else {
-          SET_TAG(tail, R_NilValue);
+          APPEND(promise, R_NilValue);
         }
       }
     }

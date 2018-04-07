@@ -28,12 +28,14 @@ SEXP allocate_dots(int length) {
 SEXP _get_dots(SEXP env, SEXP inherit) {
   assert_type(env, ENVSXP);
   SEXP vl;
+  LOG("Getting dots from env %p", env);
   if (asLogical(inherit)) {
     vl = findVar(R_DotsSymbol, env);
   } else {
     vl = findVarInFrame3(env, R_DotsSymbol, TRUE);
   }
   if (vl == R_UnboundValue || vl == R_MissingArg) {
+    LOG("... not found in env %p", env);
     return R_NilValue;
   } else {
     return vl;
@@ -325,13 +327,34 @@ SEXP map_pairlist_to_list(SEXP in, SEXP (*f)(SEXP)) {
 
 SEXP promisish_to_closxp(SEXP x) {
   SEXP out;
-  if (x == R_MissingArg) {
-    out = PROTECT(empty_closure());
-  } else {
+  int protections = 0;
+  if (TYPEOF(x) == PROMSXP) {
     out = PROTECT(promsxp_to_quotation(x));
+    protections++;
+  } else if (x == R_MissingArg) {
+    out = PROTECT(empty_closure());
+    protections++;
+  } else {
+    LOG("converting nonpromise (a %s, %p) to quotation",
+        type2char(TYPEOF(x)), x);
+    if (isLanguage(x)) {
+      SEXP quote = PROTECT(Rf_lang2(install("quote"), x));
+      protections++;
+      /* we are now making up `quote(x)` as a plausible way of
+         having got the symbol `x`. However since we also return
+         EmptyEnv this will produce an error if the user attempts
+         to re-call. */
+      x = PROTECT(new_forced_promise(quote, x));
+      protections++;
+    } else {
+      x = PROTECT(new_forced_promise(x, x));
+      protections++;
+    }
+    out = PROTECT(promsxp_to_quotation(x));
+    protections++;
   }
   setAttrib(out, R_ClassSymbol, mkString("quotation"));
-  UNPROTECT(1);
+  UNPROTECT(protections);
   return out;
 }
 

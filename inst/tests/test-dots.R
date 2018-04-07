@@ -385,18 +385,17 @@ test_that("args() makes tags by default.", {
   f(foo, bar)
 })
 
-test_that("args getting `...`",
+test_that("args gets (...)",
 {
   f <- function(a, b, ...) {
-    args(a, b, "...")
+    args(a, b, (...))
   }
 
-  x <- f(foo, bar)
-  y <- dots(a=foo, b=bar)
+  f <- cmpfun(f)
 
   f(foo, bar) %is% dots(a=foo, b=bar)
   f(foo, bar, baz) %is% dots(a=foo, b=bar, baz)
-  f(foo, bar, baz, qux) %is% dots(a=foo, b=bar, baz, quux)
+  f(foo, bar, baz, qux) %is% dots(a=foo, b=bar, baz, qux)
   f(foo, bar, baz, g=qux) %is% dots(a=foo, b=bar, baz, g=qux)
 
   f <- function(a, b, ...) {
@@ -408,13 +407,12 @@ test_that("args getting `...`",
 
   f(foo, bar) %is% dots(a=foo, b=bar)
   f(foo, bar, baz) %is% dots(a=foo, b=bar, baz)
-  f(foo, bar, baz, qux) %is% dots(a=foo, b=bar, baz, quux)
+  f(foo, bar, baz, qux) %is% dots(a=foo, b=bar, baz, qux)
   f(foo, bar, baz, g=qux) %is% dots(a=foo, b=bar, baz, g=qux)
 
   g <- function(sym, a, b, ...) {
     arg_(sym)
   }
-
   g("a", foo) %is% quo(foo)
   expect_error(g("...", foo, bar, baz), "\\.\\.\\.")
 })

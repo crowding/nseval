@@ -4,6 +4,8 @@
 #include <R.h>
 #include <Rinternals.h>
 
+#undef DEBUG 
+
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 #define MIN3(x, y, z) (MIN(x,(MIN(y,z))))
@@ -13,11 +15,32 @@
     if (TYPEOF(X) != T)                                                 \
       error("%s: expected %s, got %s, at@%s:%d",                        \
             __func__,                                                   \
-            type2char(TYPEOF(X)),                                       \
             type2char(T),                                               \
+            type2char(TYPEOF(X)),                                       \
             __FILE__,                                                   \
             __LINE__);                                                  \
   }
+
+#define assert(COND) {                            \
+    assert2(COND, "Assertion failed: " #COND);    \
+  }
+
+#define assert2(COND, FMT, ...) {                                \
+    if (!(COND)) {                                               \
+      Rprintf("%s: " FMT " @%s:%d\n",                            \
+              __func__, ##__VA_ARGS__, __FILE__, __LINE__);      \
+    }                                                            \
+  }
+
+
+
+#ifdef DEBUG
+#define LOG(FMT, ...) Rprintf("%s: "  FMT " @%s:%d\n",                  \
+                              __func__, ##__VA_ARGS__, __FILE__, __LINE__)
+#else
+#define LOG(...) NULL
+#endif
+
 
 /* void assert_type(SEXP, SEXPTYPE); */
 void assert_type3(SEXP, SEXPTYPE, const char *);
