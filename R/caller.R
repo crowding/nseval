@@ -39,10 +39,13 @@
 #' # For further examples please see the test cases
 #' # located under inst/tests/test-caller.R
 caller <- function(envir=caller(environment())) {
-  # assign("trace",
-  #        list(trace=stacktrace(), frames=sys.frames(),
-  #             parents = sys.parents(), calls = sys.calls(), envir = envir),
-  #       envir = globalenv())
+  ## cat("getting caller of ", format(envir), "\n")
+
+  ## print(stacktrace(), max.width=80);
+  ## print(df(frames = oneline(as.list(sys.frames())),
+  ##          parents = sys.parents(),
+  ##          calls = oneline(as.list(sys.calls()))),
+  ##       max.width=80)
 
   frames <- sys.frames()
   where <- which(vapply(frames, identical, FALSE, envir))
@@ -50,7 +53,6 @@ caller <- function(envir=caller(environment())) {
   if (length(where) == 0) {
     stop("caller: environment not found on stack")
   }
-
   if (is.primitive(sys.function(where[1]))) {
     stop("caller: calling function is a primitive, which has no environment")
   }
@@ -59,14 +61,22 @@ caller <- function(envir=caller(environment())) {
   whichparent <- parents[where[1]]
 
   if (whichparent == where[1]) {
-    stop("caller: caller is no longer on stack")
+    #The env we are querying appears to be on the stack, but its
+    # caller is gone.  This tends to happen in closed-over
+    # environments.
+    #
+    # The answer I need is in sysparent, but I have no extension-level
+    # way to access to sysparent, so maybe we can hail mary to parent.frame?
+    result <- do.call(parent.frame, list(), envir=envir)
+    # stop("caller: caller is no longer on stack")
+  } else if(whichparent == 0) {
+    result <- globalenv()
+  } else {
+    result <- frames[[whichparent]]
   }
 
-  if(whichparent == 0) {
-    globalenv()
-  } else {
-    frames[[whichparent]]
-  }
+#  cat("Result: ", format(result), "\n")
+  result
 }
 
 
@@ -102,7 +112,13 @@ caller <- function(envir=caller(environment())) {
 #' @export
 #' @useDynLib nse _make_call
 with_caller <- function(f, env=arg_env(f)) {
-  head <- quo_(f, envir)
+  with_caller_(arg_expr(f), env)
+}
+
+#' @rdname with_caller
+#' @export
+with_caller_ <- function(f, env) {
+  head <- quo_(f, env)
   function(...) {
     do_(head, dots(...))
   }
@@ -166,13 +182,35 @@ do__ <- function(d) {
 
 #' Obtain the call and arguments associated with an environment.
 #'
-#' The output of [get_call()] can be passed to [do] in order to
-#' replicate a call;
+#' The output of [get_call()] can be passed to [do(x)] in order to
+#' replicate a call.
 #'
 #' `get_call` is meant to replace `[match.call()]` and `[sys.call()]`
 #'
-#' @return a dots object; the first element of which represents the call
-#' @seealso do dots
-get_call <- function(env = caller()) {
-  stop("unimplemented")
+#' @return a dots object; the first element of which represents the call.
+#' @seealso do dots caller
+#' @export
+get_call <- function(env = caller(environment())) {
+  frames <- sys.frames()
+  where <- which(vapply(frames, identical, FALSE, env))
+  if (length(where) == 0) {
+    stop("caller: environment not found on stack")
+  }
+  rho <- caller(env)
+  call <- sys.call(where)
+  head <- call[[1]]
+  fn <- sys.function(where[1])
+  argnames <- names(formals(fn))
+  c.dots(quo_(head, rho),
+         env2dots(env, argnames))
+}
+
+#' @export
+get_function <- function(env = caller(environment())) {
+  frames <- sys.frames()
+  where <- which(vapply(frames, identical, FALSE, env))
+  if (length(where) == 0) {
+    stop("caller: environment not found on stack")
+  }
+  sys.function(where[1])
 }

@@ -11,7 +11,7 @@ args_(syms, envs)
 }
 \arguments{
 \item{...}{Variable names (unevaluated). Arguments may be named; these names
-determine the names on the dots list (and not the variable names).}
+determine the names on the output list.}
 
 \item{envs}{An environment, or list of environments, to look for
 the bindings in.}
@@ -21,14 +21,16 @@ the bindings in.}
 \value{
 a \code{\link{dots}} object containing the promises that are bound to
 those variables in the calling environment.
+
+Note that \code{args(a, b, ...)} probably doesn't do what you want. This
+is because R unwraps \code{...} before invoking \code{args}, so this ends up
+double-unwrapping \code{...}. You can avoid this using the syntax
+\code{args(x, y, (...))} (which is equivalent to \code{c(args(x, y), dots(...))})
 }
 \description{
 Capture named arguments from the present environment, returning a dots list.
 
 \code{args_} is a normally evaluating version of \code{args}.
-}
-\note{
-If no argument names are given, none are used.
 }
 \seealso{
 dots get_dots

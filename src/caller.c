@@ -137,12 +137,19 @@ SEXP do_(SEXP dots) {
     }
   }
 
+  // for the called code to see its caller, we wrap the call in
+  // a promsxp that we make the call "from"
+  SEXP from = PROTECT(allocSExp(PROMSXP));
+  SET_PRENV(from, callenv);
+  SET_PRCODE(from, call);
+  SET_PRVALUE(from, R_UnboundValue);
+
   // now eval, in the given environment.
   LOG("Evaluating %s %p in %s %p\n",
       type2char(TYPEOF(call)), call,
       type2char(TYPEOF(callenv)), callenv);
-  SEXP result = PROTECT(eval(call, callenv));
+  SEXP result = PROTECT(eval(from, callenv));
   LOG("got a %s\n", type2char(TYPEOF(result)));
-  UNPROTECT(2);
+  UNPROTECT(3);
   return result;
 }

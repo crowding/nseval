@@ -3,10 +3,14 @@
 #' Capture named arguments from the present environment, returning a dots list.
 #'
 #' @param ... Variable names (unevaluated). Arguments may be named; these names
-#' determine the names on the dots list (and not the variable names).
+#' determine the names on the output list.
 #' @return a \code{\link{dots}} object containing the promises that are bound to
 #' those variables in the calling environment.
-#' @note If no argument names are given, none are used.
+#'
+#' Note that `args(a, b, ...)` probably doesn't do what you want. This
+#' is because R unwraps `...` before invoking `args`, so this ends up
+#' double-unwrapping `...`. You can avoid this using the syntax
+#' `args(x, y, (...))` (which is equivalent to `c(args(x, y), dots(...))`)
 #' @seealso dots get_dots
 #' @rdname arg_list
 #' @export

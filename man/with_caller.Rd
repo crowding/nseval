@@ -2,9 +2,12 @@
 % Please edit documentation in R/caller.R
 \name{with_caller}
 \alias{with_caller}
+\alias{with_caller_}
 \title{Wrap a function so that it will see a particular caller or parent.frame.}
 \usage{
 with_caller(f, env = arg_env(f))
+
+with_caller_(f, env)
 }
 \arguments{
 \item{f}{The function to call. A symbol or expression may be given, which must be

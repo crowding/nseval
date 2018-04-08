@@ -1,8 +1,8 @@
 Package: nse
 Type: Package
 Title: The Missing API For Non-Standard Evaluation in R.
-Version: 0.2
-Date: 2018-03-04
+Version: 0.3
+Date: 2018-04-07
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: Allows R code to de- and reconstruct calls, lazy arguments

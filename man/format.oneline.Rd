@@ -4,7 +4,7 @@
 \alias{format.oneline}
 \title{Format a sequence of objects to show one line each.}
 \usage{
-\method{format}{oneline}(x, width = 30, ...)
+\method{format}{oneline}(x, max.width = 50, width = max.width, ...)
 }
 \arguments{
 \item{x}{An object}

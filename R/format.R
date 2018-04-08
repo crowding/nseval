@@ -62,7 +62,7 @@ make_names <- function (x, prefix = "X"){
   nm
 }
 
-one_line <- function(x, f, width, ...) {
+one_line <- function(x, f, max.width=50, width=max.width, ...) {
   if (!(is.numeric(x) || is.character(x) || is.list(x))) {
     x <- list(x)
   }
@@ -75,7 +75,8 @@ one_line <- function(x, f, width, ...) {
         x
       else "?NULL?"
     },
-    width=width), ""
+    width=width),
+    ""
   )
 }
 
@@ -92,12 +93,14 @@ format_robust <- function(x, ...) {
 #' @param ... parameters passed to "format"
 #'
 #' @export
-format.oneline <- function(x, width=30, ...) {
-  if ("one_line" %in% class(x)) {
+format.oneline <- function(x, max.width=50, width=max.width, ...) {
+  if ("oneline" %in% class(x)) {
     class(x) <- setdiff(class(x), "oneline")
   }
-  one_line(x, format_robust, width=width, ...)
+  one_line(x, format_robust, width=width, max.width=max.width, ...)
 }
+
+oneline <- function(x) structure(x, class=union("oneline", class(x)))
 
 #' Format a dots object for printing.
 #'

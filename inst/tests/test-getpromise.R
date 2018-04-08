@@ -396,7 +396,7 @@ test_that("locate var", {
 
 test_that("locate dots", {
   x <- function(...) {
-    y <- function(x) {
+    y <- function() {
       i <- locate_(quote(...), environment())
       k <- locate_("...", environment())
       j <- locate("...")
@@ -407,7 +407,8 @@ test_that("locate dots", {
     }
     y
   }
-  x(a, b, c)()
+  f <- x(a, b, c)
+  f()
 })
 
 test_that("locate function, forcing in process", {

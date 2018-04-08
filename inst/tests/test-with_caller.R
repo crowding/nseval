@@ -185,8 +185,8 @@ test_that("with_caller by name finds in target env", {
   }
   h <- function(x) {
     get <- "nope"
-    with_caller(quote(get), fenv)() %is% "x"
-    with_caller(quote(get), genv)() %is% "b"
+    with_caller_(quote(get), fenv)() %is% "x"
+    with_caller_(quote(get), genv)() %is% "b"
   }
   f()
 })
@@ -199,8 +199,8 @@ test_that("what is function called?", {
   }
   g <- function() {
     foo <- get
-    expect_true(is.function(with_caller(foo, fenv)()))
-    expect_equal(with_caller(quote(get), fenv)(), quote(get))
+    expect_error(is.function(with_caller(foo, fenv)()))
+    expect_equal(with_caller_(quote(get), fenv)(), quote(get))
   }
   get <- function() {
     match.call()[[1]]
@@ -213,6 +213,7 @@ test_that("with_caller down the stack in closed env", {
   f <- function() {
     where <- "f"
     henv <- g()
+    do(quo(get, henv))            # This did nothing???
     with_caller(get, henv)()
   }
   g <- function() {
@@ -251,7 +252,7 @@ test_that("arg_envs propagate through with_caller()", {
   e <- function() {
     where <- "e"
     eenv <<- environment()
-    f()
+    f(where)
   }
   f <- function(...) {
     where <- "f"
@@ -262,12 +263,14 @@ test_that("arg_envs propagate through with_caller()", {
     h(where, ...)
   }
   h <- function(...) {
-    with_caller(get, eenv)(...)
+    x <- do_(quo(get, eenv), dots(...))
+    y <- with_caller(get, eenv)(...)
   }
   get <- function(x, y, z) {
-    caller()$where %is% "e" 
-    arg_env(x)$where %is% "f"
-    arg_env(y)$where %is% "g"
-    arg_env(z)$where %is% "h"
+    caller()$where %is% "e"
+    arg_env(x)$where %is% "g"
+    arg_env(y)$where %is% "f"
+    arg_env(z)$where %is% "e"
   }
+  e()
 })

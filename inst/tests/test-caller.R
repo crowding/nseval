@@ -196,3 +196,33 @@ test_that("caller from eval and do.call in closed environments", {
   h()
 })
 
+test_that("get_call and get_function", {
+  where <- "0"
+  eenv <- NULL
+  fenv <- NULL
+  genv <- NULL
+  henv <- NULL
+  e <- function() {
+    where <- "e"
+    eenv <<- environment()
+    f(where)
+  }
+  f <- function(...) {
+    where <- "f"
+    fenv <<- environment()
+    g(where, ...)
+  }
+  g <- function(...) {
+    where <- "g"
+    genv <<- environment()
+    r <- h
+    (r)(where, ...)
+  }
+  h <- function(x, y, z, ...) {
+    list(get_call(), get_function())
+  }
+  c <- e()
+  c %is% list(dots_(alist( (r), x=where, y=where, z=where),
+                    list(  genv, genv, fenv, eenv)),
+              h)
+})
