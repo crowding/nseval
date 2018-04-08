@@ -3,24 +3,83 @@
 \name{arg_env}
 \alias{arg_env}
 \alias{arg_expr}
+\alias{arg_expr_}
+\alias{is_promise}
+\alias{is_promise_}
+\alias{is_missing_}
+\alias{is_forced}
+\alias{is_forced_}
+\alias{is_literal}
+\alias{is_literal_}
 \title{Get environment or expression from a named argument.}
 \usage{
-arg_env(name, envir = arg_env(name, environment()))
+arg_env(name, env = arg_env_(quote(name), environment()))
 
-arg_expr(name, envir = arg_env(name, environment()))
+arg_expr(name, env = arg_env_(quote(name), environment()))
+
+arg_expr_(name, env = arg_env_(quote(name), environment()))
+
+is_promise(...)
+
+is_promise_(syms, envs)
+
+is_missing_(syms, envs)
+
+is_forced(...)
+
+is_forced_(syms, envs)
+
+is_literal(...)
+
+is_literal_(syms, envs, warn = TRUE)
 }
 \arguments{
 \item{name}{A single argument name; not evaluated.}
 
-\item{envir}{The environment to look for the argument name in. By default
-looks in the lexical environment of the \code{name} argument.}
+\item{env}{The environment to look in.}
+
+\item{...}{Any number of variable names; not evaluated.}
+
+\item{syms}{A character vector or list of symbols.}
+
+\item{envs}{A list of environment objects.}
+
+\item{recursive}{Whether to recursively descend through unforced
+promises. \code{TRUE} mimics the behavior of \link{missing}.}
 }
 \description{
-\code{arg_env} determines the lexical scope of an argument (which must be an
-un-evaluated promise).
+\code{arg_env} finds the origin of an expression of an argument
+bound in the present environment. It is equivalent to \code{env(arg(x))}
+is further equivalent to \code{env(unwrap(quo(x)))}.
 
-\code{arg_expr} fetches the expression attached to an argument in the given
-environment. The effect is similar to \code{substitute(name)} but more
-specific.
+\code{arg_expr(x)} is a shortcut for \code{expr(arg(x))}. It fetches the
+expression attached to a promise in the present environment.
+
+\code{arg_expr_} is the normally evaluating version of arg_expr.
+
+\code{is_promise} returns TRUE if a named variable is bound to a
+promise. It returns a boolean vector with one entry for each name
+given. An error is raised if a binding does not exist.
+
+\code{is_promise_} is a normally evaluating version of \code{is_promise}.
+
+\code{is_missing(...)} is similar to \link{missing} but can take multiple
+arguments.
+
+\code{is_forced} returns FALSE if an argument is bound to a promise that
+has not yet been forced, TRUE otherwise. An error is raised if a binding
+does not exist.
+
+\code{is_forced_} is a normally evaluating version of \code{is_forced}.
+
+\code{is_literal} returns TRUE if a binding is (or could be) a
+source literal. This includes singleton vectors and missing
+values. (Depending on optimization settings, R will often not
+bother constructing promises to wrap a literal.)
+
+\code{is_literal_} is a normally evaluating version of \code{is_literal}.
 }
-
+\details{
+\code{is_missing_} is a normally evaluating equivalent of
+\code{is_missing}
+}

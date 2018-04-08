@@ -1,136 +1,106 @@
-fexpr
+nse
 ======
 
-The `fexpr` package provides an interface to R's promise objects and
-dot (...) argument lists.
+`nse` is the missing API for non-standard evaluation and
+metaprogramming in R. `nse` is intended to reflect R the way R
+actually works.
 
-A "[fexpr](wiki)" is a type of nonstandard-evaluating function present in
-certain languages of the Lisp family. Fexprs [can be used][shutt] to
-to implement syntactic abstractions such as new types of control flow,
-or domain-specific languages. R's implementation of lazy evaluation in
-terms of promises essentially means that ordinary R functions are
-fexprs.
+## Installation
 
-[shutt]: http://www.wpi.edu/Pubs/ETD/Available/etd-090110-124904/
-[wiki]: https://en.wikipedia.org/wiki/Fexpr
-
-R's traditional tools for doing nonstandard evaluation (`substitute`,
-`parent.frame`, `match.call`) are non-orthogonal and tend to exhibit
-some scope problems in use. Using `fexpr` interface, nonstandard
-evaluating functions can be constructed using a more orthogonal,
-explicit style.
-
-## Access to promises
-
-R functions evaluate their arguments lazily. When R invokes a
-function, the function arguments are lazily bound to _promises_.  Each
-promise is a triple of three values: the environment in which the
-argument appeared, the expression that
-
-The `fexpr` package allow inspection of each part of a promise.
-
-
-
-### Why to use `arg_env`, not `parent.frame`
-
-Here's a problem that happens with traditional R metaprogramming....
-
-## Argument lists and `...`
-
-Promises can be put into a special type of list.
-
-Variadic arguments (`...`) and missing values are two of the trickiest
-spots of R's semantics, and there are very few tools to work with them
--- besides `missing` there's `substitute` and `do.call`, both of which
-are hairy and mostly serve other purposes. Mostly people treat `...`
-as an opaque block to pass along to another function. This package
-contains a number of functions that let you work explicitly with `...`
-lists, concatenating and subsetting them, while still allowing R's
-lazy-evaluation semantics to do the right thing. So a function using
-`dots` can decide whether and when to evaluate each of its unnamed
-arguments:
-
-```r
-inSomeOrder <- function(...) invisible(list %()% sample(dots(...)))
-inSomeOrder(print("Boing!"), print("Boom"), print("Tschack!"), print("Ping"),
-            print("Zong"), print("Pssh"))
-# [1] "Boing!"
-# [1] "Zong"
-# [1] "Ping"
-# [1] "Boom"
-# [1] "Pssh"
-# [1] "Tschack!"
+```
+install.packages("devtools")
+library(devtools)
+install_github("crowding/nse")
 ```
 
-For a more pointed example, consider `switch`. Switch takes its first
-argument and uses it to decide which if its subsequent arguments to
-evaluate.
+### Why `nse` is needed
 
-Consider trying to implement an R function that has the behavior of
-`switch` properly (not as a C function, and not inspecting the stack
-using `match.call()` or `parent.frame()` which are evil.) This is
-doable in pure R but wacky and slow -- the only way I can see to
-selectively evaluate one named argument is to build a function that
-takes that argument:
+Before R, there was S, and S had metaprogramming built in, using
+functions like `substitute`, `match.call`, `do.call`, `quote`,
+`alist`, `eval`, and so on. R was made to emulate those facilities.
+But S did not have lexical scoping or the notion of an environment,
+whereas R does. So R has been coping with a metaprogramming API that
+was not designed with R's rules in mind. It turns out the S interface
+is not sufficient to capture R behavior, with consequences such as:
 
-```r
-switch2 <- function(expr, ...) {
-  n <- names(substitute(list(...)))[-1]
-  if (!is.null(n))
-      arglist <- as.pairlist(structure(
-          rep(list(quote(expr=)), length(n)),
-          names=n))
-  else
-      (arglist <- as.pairlist(alist(...=)))
+  * `match.call()` loses information about argument scopes, so normally
+    occurring function calls often can't be captured in a reproducible
+    form;
+  * `do.call` can't reproduce many situations that occur in normal
+    evaluation in R;
+  * `parent.frame()` tells you something almost but not entirely
+    unlike what you actually need to know in most situations;
+  * it's difficult to wrap or extend nonstandard-evaluating functions;
+  * it's difficult to use a nonstandard-evaluating function as an
+    argument to a higher order function;
+  * any mixture of metaprogramming and `...` rapidly turns painful;
 
-  if (is.numeric(expr))
-      body <- as.name(paste0("..", expr))
-  else
-      body <- as.name(expr)
-  f <- eval(substitute(`function`(arglist, body),
-                         list(arglist=arglist, body=body)))
-  f(...)
-}
-```
+and so on. As a result, R functions that use the S metaprogramming API
+often end up with unintended behaviors that don't "fit" R: they lose
+track of variable scope, suffer name collisions, are difficult to
+compose, etc.
 
-But with a direct interface to manipulate dotlists, `switch` is easy:
+The good news is that you can simply replace most uses of
+`match.call`, `parent.frame`, `do.call` and such with their
+equivalents from `nse`, and may have fewer of these kinds of problems.
 
-```r
-switch3 <- function(expr, ...) {
-  dots(...)[[expr]]
-}
-```
+## Transitioning from base R to NSE
 
-You may also use `dots_unpack()` to inspect the contents of
-as-yet-unevaluated dots objects, exposing R's promise mechanism:
+* Instead of `quote`, use `quo`.
+* Instead of `match.call` or `sys.call`, use `get_call`, or `args(x, y, (...) )`
+* Instead of `substitute(x)`, use `arg(x)` (or `arg_expr(x)`)
+* Instead of `substitute(list(...))[[2]]`, use `dots(...)`
+* Instead of `do.call`, use `do`.
+* Instead of `parent.frame`, use `arg_env` or `caller`.
 
-```r
-x <- 1
-y <- 2
-d <- dots(a=x, b=y, c=x+y)
-unpack(d)
-#   name         envir  expr value
-# a    a <environment>     x  NULL
-# b    b <environment>     y  NULL
-# c    c <environment> x + y  NULL
-# > y <- 3
-(function(b, ...) b) %()% d #force the "b" slot to evaluate
-# [1] 3
-unpack(d)
-#   name         envir  expr value
-# a    a <environment>     x  NULL
-# b    b          NULL     y     3
-# c    c <environment> x + y  NULL
-c %()% d
-# a b c
-# 1 3 4
-> unpack(d)
-#   name envir  expr value
-# a    a  NULL     x     1
-# b    b  NULL     y     3
-# c    c  NULL x + y     4
-```
+### Who NSE is for
 
-## Missing arguments.
+`nse` might be for you if:
 
-In R, function arguments may be "missing." When this happens...
+* You've been befuddled by trying to use the above functions;
+* You're been befuddled by other people's code that uses the above
+  functions and need to work around it;
+* You want to understand better what "goes on" "under the hood" when R
+  is running.
+
+### What `nse` does
+
+`nse` introduces two S3 classes: `quotation`, and `dots`, which mirror
+R's promises and `...`, respectively. Unlike their counterparts, these
+are ordinary data objects, and can be manipulated as such.
+
+* A `quotation` combines an R expression with an environment.  There
+  are also `forced` quotations, which pair an expression with a value.
+* A `dots` is a named list of quotations.
+
+There is a set of consistently-named accessors and constructors for
+capturing, constructing, and manipulating these objects.
+
+`nse` also has a function `do` which is an enhanced `do.call`, and
+`get_call` which is an improved `match.call`.
+
+### What `nse` doesn't do
+
+`nse` doesn't implement quasiquotation or hygeinic macros or DSLs or
+interactive debugging. But it is intended to be a solid foundation to
+build those kinds of facilities on!
+
+`nse` doesn't introduce any fancy syntax -- the only nonstandard
+evaluation in its own interface is name lookup and quoting, and
+standard-evaluating equivalents are always also present.
+
+`nse` doesn't try and remake all of R's base library, just the parts
+about calls and lazy evaluation.
+
+`nse` has few external dependencies and should play well
+with base R or any other 'verse.
+
+## Similar packages
+
+Some other packages have been written with similar capabilities:
+
+* [rlang](https://github.com/r-lib/rlang)
+* [lazyeval](https://github.com/hadley/lazyeval)
+* [pryr](https://github.com/hadley/pryr)
+* [vadr](https://github.com/crowding/vadr), which this package is
+  extracted and rewritten from.

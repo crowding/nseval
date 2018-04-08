@@ -1,0 +1,27 @@
+One small thing `nse` can't do.
+
+Because `nse` returns to the user not the raw PROMSXP or DOTSXP, but a
+representations thereof, by using NSE one ends up copying promise
+objects, rather than transferring them. This means that one side
+effect of R's lazy evaluation can't be easily replicated.
+
+
+```{R}
+f <- function(...) {
+  g(...)
+  list(g(...), ...)
+}
+```
+
+```{R}
+f <- function(...) {
+  g(...)
+}
+```
+
+If we try to replicate the recursive call using `nse` constructors, we
+find that this effect is not duplicated.
+
+```{R}
+
+```

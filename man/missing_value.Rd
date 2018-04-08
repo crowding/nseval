@@ -2,7 +2,7 @@
 % Please edit documentation in R/dots.R
 \name{missing_value}
 \alias{missing_value}
-\title{Return an empty symbol.}
+\title{R's missing value.}
 \usage{
 missing_value(n)
 }
@@ -11,33 +11,46 @@ missing_value(n)
 missing values with this many elements.}
 }
 \value{
-A symbol with empty name, or a list of such.
+The symbol with empty name, or a list of such.
 }
 \description{
-The empty symbol (that is, the symbol whose string representation is
-\code{""} is used to represent missing values in the R
-language; for instance in the value of formal function arguments
-when there is no default; in the expression slot of a promise when
-a missing argument is given; and bound to the value of a variable
-when it is called with a missing value. When computing on the
-language, then, you may need to explicitly invoke the "missing"
-value.
+The missing sigil (\code{R_MissingArg} at C level) has two related
+uses. One is "at parse time" when it is used to represent empty
+arguments. The other is "at run time" when it is bound to function
+arguments that were not given any value.
+}
+\details{
+Manipulating expressions ("computing on the language") means we
+have to deal with the first use case, because we have to be able to
+make calls that have empty arguments, like the first index in
+\code{arr[,c]}.
+
+The second use of the missing sigil makes this tricky. Generally it
+is a bad idea to assign a bare \code{missing_value} to a variable or use
+one as the argument to a function, because this makes R think that
+the variable \emph{is} missing rather than that it \emph{contains a}
+missing. For instance, you can say
+
+x <- list(missing_value(), 2, 3)
+
+and get a valid list, but this:
+
+a <- missing_value(); b <- 2; c <- 3
+x <- list(a, b, c)
+
+fails with an error about the missing variable "a". When dealing
+with missing values, then, best to keep them wrapped up in lists,
+\link{quotations} or others
 }
 \examples{
-# These statements are equivalent:
+# These expressions are equivalent:
 quote(function(x, y=1) x+y)
-call("function", pairlist(x=missing_value(), y=1), quote(x+y))
+call("function", pairlist(x=missing_value(), y=1), call("+", as.name("x"), as.name("y"))
 
-# These statements are also equivalent:
+# These expressions are also equivalent:
 quote(df[,1])
 substitute(df[row,col], list(row = missing_value(), col = 1))
-
-# These statements are also equivalent:
-quote(function(a, b, c) print("hello"))
-call("function", pairlist(a=missing_value, b=missing_value, c=missing_value)),
-                 quote(print("hello")))
 }
 \seealso{
-list_missing dots_missing
+list_missing
 }
-

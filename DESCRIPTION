@@ -1,22 +1,29 @@
-Package: fexpr
+Package: nse
 Type: Package
-Title: Tools to manupulate lazy arguments, evaluation, promises, and ... objects.
-Version: 0.2
-Date: 2016-01-18
+Title: The Missing API For Non-Standard Evaluation in R.
+Version: 0.3
+Date: 2018-04-07
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: Provides an interface to R's builtin promise objects
-    and dots(...) argument lists.
+Description: Allows R code to de- and reconstruct calls, lazy arguments
+             (promises) and '...' lists, with safer defaults.
 License: MIT + file LICENSE
+Depends:
+    compiler (>= 3.4)
 Suggests:
     testthat (>= 0.2),
     roxygen2 (>= 2.2.2),
     knitr (>= 1.2),
     plyr (>= 1.8.1),
-    ggplot2(>= 1.0.1)
+    ggplot2(>= 1.0.1),
+    lazyeval(>= 0.2.0)
 Collate:
+    'caller.R'
+    'quo.R'
     'dots.R'
     'getpromise.R'
+    'conversions.R'
     'format.R'
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
+Roxygen: list(markdown=TRUE)

@@ -2,20 +2,17 @@
 % Please edit documentation in R/format.R
 \name{format.oneline}
 \alias{format.oneline}
-\title{Formats a sequence of objects to show one line each.
-Somewhat similar to format.AsIs but tries harder with language objects.}
+\title{Format a sequence of objects to show one line each.}
 \usage{
-\method{format}{oneline}(x, width = 30, ...)
+\method{format}{oneline}(x, max.width = 50, width = max.width, ...)
 }
 \arguments{
 \item{x}{An object}
 
-\item{width}{}
+\item{width}{the width of line to produce.}
 
 \item{...}{parameters passed to "format"}
 }
 \description{
-Formats a sequence of objects to show one line each.
 Somewhat similar to format.AsIs but tries harder with language objects.
 }
-

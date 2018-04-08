@@ -1,4 +1,4 @@
 library(testthat)
-library(fexpr)
+library(promises)
 
-test_package("fexpr")
+test_package("promises")

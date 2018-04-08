@@ -60,7 +60,8 @@ function(x, y, ...) {
 }
 ```
 
-Note that `...` is not bound to any value when it is empty. The R interpreter checks this condition and 
+Note that `...` is not bound to any value when it is empty. The R
+interpreter checks this condition and
 
 Because `...` is a reserved word, just writing `...` in code will not
 show you the value of that variable. but you can (in current R) access
@@ -101,4 +102,4 @@ patterns see the vignette `XXX`.
 
 ### How arguments get put into `...`
 
-M-/
+M-

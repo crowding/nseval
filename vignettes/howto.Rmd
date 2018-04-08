@@ -1,0 +1,134 @@
+---
+title: How To Do Things With Non-Standard Evaluation
+---
+
+"Non-standard evaluation" is the name the R community gives to
+techniques that subvert the normal order of evaluation in the R
+language.
+
+Things that are standard evaluation:
+    * Calling functions
+    * Returing a value from a function
+
+Things that are non-standard evaluation:
+
+The most common case of non-standard evaluation occurs e.g. in
+plotting functions, where. If this is your use case, just use arg_expr.
+
+# What is Standard Evaluation?
+
+Consider the following R code
+
+```{R}
+
+plot_with_mean <- function(x, ...) {
+
+}
+
+recenter_median <- function(x, ...) {
+  tmp <- mean(x)
+}
+
+recenter_mode <- function(x, ...) {
+  tmp <- mode(x)
+  x=x, ...
+}
+
+list <- function(x, ...) {
+  
+}
+```
+
+# What
+
+## Trivial non-standard evaluation
+
+```{R}
+
+```
+
+# Information about the present call
+
+## Information about the arguments to the call
+
+### How was the argument written?
+
+```
+
+```
+### What environment did the argument come from?
+
+```
+
+```
+
+### What are all the arguments to the function?
+
+```
+as.args(environment())
+```
+
+## Information about the call itself
+
+### What is the function being evaluated
+
+### What was this function called, in the caller?
+
+Note that functions do not have a "name" in R as such. Functions may
+be bound to a name in a particular environment, and they
+
+### How was this call written, in the caller's code?
+
+```{R}
+call_expr(capture_call())
+```
+
+This is OK for generating plot labels and debugging labels, but if you are
+implementing NSE you should almost certainly use [capture_call] instead.
+
+### What environment was the present function called from?
+
+Note: this is NOT necessarily the same as what environments the
+arguments are from. If your function has an argument, 9 times out of
+ten it's [the environment of the arg] that you want to know.
+
+```
+caller()
+call_env(capture_call())
+env(capture_call()[[1]])
+```
+
+### Capture a version of this call and all its arguments, unevaluated
+
+```
+capture_call()
+```
+
+## Information about other calls
+
+Recall that every time a function is called, an R environment object is created.
+
+# Construct, modify or invoke arguments.
+
+# Bind a lazy value
+
+```
+x %<-% promise(x+1)
+x %<-% promise_(quote(x+1), environment())
+```
+
+# Bind a lazy value in another environment
+
+# Make a lazy variable from some expression
+
+# Assign a lazy variable to some name
+
+# Create an argument list from expression objects
+
+# Create an argument list from promises
+
+# Create a list of arguments
+
+## Create a call from a function and arguments
+
+call(function, as.args(x+1))
