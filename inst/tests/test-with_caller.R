@@ -14,7 +14,7 @@ test_that("do_", {
 })
 
 test_that("do_ with primitives", {
-  #case study of using `do` with `<-`
+  # case study of using `do` with `<-`
   # One would of course rather use 'assign' in real life
   x <- 2
   do(`<-`, dots(x, x+1))
@@ -46,7 +46,7 @@ test_that("do_ with primitives", {
   # is going into the call, not the name `<-`
   e <- new.env(parent=emptyenv())
   x <- 10
-  expect_error( do_(quo(`<-`, e), quo(x, e), quo(x+1)), "could not find" )
+  expect_error( do_(quo(`<-`, e), quo(x, e), quo(x+1)), "could not find")
   do_(quo_(`<-`, e), quo(x, e), quo(x+1))
   x %is% 10
   e$x %is% 11
@@ -55,6 +55,16 @@ test_that("do_ with primitives", {
   x <- 3
   do_(as.quo.literal(`+`), dots(x+1, x+2)) %is% 9
   do_(quo(`+`, force=TRUE), dots(x+1, x+2)) %is% 9
+
+  mode(do(alist, as.quo.literal(as.name("x")))[[1]]) %is% "promise" #???
+  #FIXME. This may point to an incompatibility with how we do do()
+  #versus sys.call(), which makes sys.call() leak promsxps to
+  #user. However, this package's position is that sys.call() is
+  #broken, so the question is if we should care about sys.call()
+  #leaking promises. An alternative might be to involve "...", and
+  #implement do() in such a way that sys.call() always gets you
+  #f(...).
+
 })
 
 
@@ -125,7 +135,7 @@ test_that("`do` allows different args to come from different environments, just 
   f(here) %is% c("g", "f", "top")
 })
 
-test_that("with_caller passes along args", {
+test_that("Do passes along args", {
   f <- function(...) {
     here <- "f"
     g(here, ...)
@@ -136,7 +146,8 @@ test_that("with_caller passes along args", {
   }
   here <- "top"
   e <- list2env(list(here="no"))
-  h <- with_caller(c, e)
+  h <- function(...) do_(quo(c, e), dots(...))
+
   f(here) %is% c("g", "f", "top")
 })
 
@@ -160,13 +171,13 @@ test_that("calling from somewhere up the stack", {
     h()
   }
   h <- function() {
-    with_caller(get, fenv)("f")
-    with_caller(get, genv)("g")
+    do_(quo(get, fenv), quo("f"))
+    do_(quo(get, genv), quo("g"))
   }
   f()
 })
 
-test_that("with_caller by name finds in target env", {
+test_that("do by name finds in target env", {
   fenv <- NULL
   genv <- NULL
   f <- function(x) {
@@ -185,8 +196,8 @@ test_that("with_caller by name finds in target env", {
   }
   h <- function(x) {
     get <- "nope"
-    with_caller_(quote(get), fenv)() %is% "x"
-    with_caller_(quote(get), genv)() %is% "b"
+    do_(quo(get, fenv)) %is% "x"
+    do_(quo(get, genv)) %is% "b"
   }
   f()
 })
@@ -199,8 +210,8 @@ test_that("what is function called?", {
   }
   g <- function() {
     foo <- get
-    expect_error(is.function(with_caller(foo, fenv)()))
-    expect_equal(with_caller_(quote(get), fenv)(), quote(get))
+    expect_error(do_(quo(foo, fenv)))
+    expect_equal(do_(quo(get, fenv)), quote(get))
   }
   get <- function() {
     match.call()[[1]]
@@ -208,13 +219,12 @@ test_that("what is function called?", {
   f()
 })
 
-test_that("with_caller down the stack in closed env", {
+test_that("do down the stack in closed env", {
   where <- "0"
   f <- function() {
     where <- "f"
     henv <- g()
-    do(quo(get, henv))            # This did nothing???
-    with_caller(get, henv)()
+    do_(quo(get, henv))
   }
   g <- function() {
     where <- "g"
@@ -231,13 +241,12 @@ test_that("with_caller down the stack in closed env", {
   f()
 })
 
-test_that("with_caller from de novo env.", {
+test_that("do from de novo env.", {
   f <- function() {
     where <- "f"
     e <- new.env()
     e$where <- "e"
-    e
-    with_caller(get, e)("e")
+    do_(quo(get, e), quo("e"))
   }
   get <- function(expected) {
     parent.frame()$where %is% expected
@@ -246,7 +255,7 @@ test_that("with_caller from de novo env.", {
   f()
 })
 
-test_that("arg_envs propagate through with_caller()", {
+test_that("arg_envs propagate through do()", {
   where <- "0"
   eenv <- NULL
   e <- function() {
@@ -264,7 +273,6 @@ test_that("arg_envs propagate through with_caller()", {
   }
   h <- function(...) {
     x <- do_(quo(get, eenv), dots(...))
-    y <- with_caller(get, eenv)(...)
   }
   get <- function(x, y, z) {
     caller()$where %is% "e"

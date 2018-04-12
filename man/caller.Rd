@@ -4,7 +4,7 @@
 \alias{caller}
 \title{Get the calling environment of a given environment.}
 \usage{
-caller(envir = caller(environment()))
+caller(env = caller(environment()), ifnotfound = NULL)
 }
 \arguments{
 \item{env}{The environment to inspect. By default, the
@@ -38,12 +38,8 @@ can return different things depending on the order in which
 arguments are evaluated.
 
 In addition, \code{caller} tries to do the right thing when the
-environment was created by \code{do.call}, \link{eval} or \link{do}.
+environment was instantiated by means \code{do.call}, \link{eval} or \link{do}.
 }
 \description{
 Get the calling environment of a given environment.
-}
-\examples{
-# For further examples please see the test cases
-# located under inst/tests/test-caller.R
 }

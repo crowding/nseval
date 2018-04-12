@@ -19,5 +19,5 @@ replaced.}
 The updated environment, invisibly.
 }
 \description{
-If an empty dotlist is given, the "..." binding is cleared.
+Set the binding of "..." in an environment.
 }

@@ -22,11 +22,11 @@ with_setup <- function(setup=NULL, ..., teardown=NULL) {
 }
 
 ## DOTSXP UNPACKING --------------------------------------------------
-test_that("dots_unpack() method extracts dots information into a data frame", {
-  expect_equal(nrow(dots_unpack()), 0)
+test_that("as.data.frame.dots extracts dots information into a data frame", {
+  expect_equal(nrow(as.data.frame(dots())), 0)
   #
   f <- function(...) {
-    dots_unpack(...)
+    as.data.frame(dots(...))
   }
   x <- 2
   y <- 3
@@ -47,14 +47,14 @@ test_that("dots_unpack() method extracts dots information into a data frame", {
   expect_identical(di$name[[3]], "z")
 })
 
-test_that("dots_unpack(...) exposes promise behavior", {
+test_that("as.data.frame.dots exposes promise behavior", {
   a <- 12
   b <- a+2
   unpack_fns <- function(...) {
     #get functions that to things to the same dotslist
     list()
     list(
-      reunpack=function() dots_unpack(...),
+      reunpack=function() as.data.frame(dots(...)),
       eval_x=function() (function(x, ...) x)(...),
       eval_all=function() list(...),
       inner_env=environment()
@@ -73,7 +73,7 @@ test_that("dots_unpack(...) exposes promise behavior", {
   expect_identical(du2$value[[2]], NULL)
 })
 
-test_that("dots_unpack(...) descends through promise chains if necessary", {
+test_that("as.data.frame.dots descends through promise chains if necessary", {
   y <- 1
   f1_env <- NULL
   f1 <- function(...) {
@@ -81,7 +81,7 @@ test_that("dots_unpack(...) descends through promise chains if necessary", {
     f1_env <<- environment()
     getdots(y=x+1, ...)
   }
-  getdots <- function(...) dots_unpack(...)
+  getdots <- function(...) as.data.frame(dots(...))
 
   du <- f1(a=y+z)
 
@@ -199,7 +199,6 @@ test_that("dots_exprs", {
 test_that("expression mutator", local({
   #Problem here that is a function of optimization level.
   #Not sure that I can do anything about it.
-
   f <- function(...) {
     ## this will be called as f(20, 5)
     ## where the 5 comes from f2() and the 20 comes from f1()
@@ -210,8 +209,8 @@ test_that("expression mutator", local({
     ## So e1$temp1 == 6 and e2$temp2 = 66
     x <- dots(...)
     exprs(x) <- dots_exprs(temp1 <- "6", temp2 <- "66")
-    list %()% x
-    unpack(x)
+    do(list, x)
+    as.data.frame(x)
   }
   e1 <- NULL
   e2 <- NULL
@@ -304,62 +303,45 @@ test_that("dots_exprs is pointer-stable", {
 
 ## DOTS OBJECT, CALLING AND CURRYING -------------------------------------
 
-test_that("%()% is like do.call(quote=TRUE) but doesn't overquote", {
+test_that("do with forced quotations -- like do.call(quote=TRUE) without overquoting", {
   x <- 2
   y <- 5
-
   ff <- function(x, y) list(substitute(x), substitute(y))
-
-  list %()% list(x, y) %is% list(2,5)
-  list %()% alist(x, y) %is% ff(x, y)
-  list %()% ff(x, y+z) %is% ff(x, y+z)
-  ff %()% ff(x, y) %is% ff(x, y)
-  ff %()% list(x,y) %is% ff(2, 5)
+  do(list, as.dots.literal(list(x, y))) %is% list(2,5)
+  do(list, as.dots.literal(alist(x, y))) %is% ff(x, y)
+  do(list, as.dots.literal(ff(x, y+z))) %is% ff(x, y+z)
+  do(list, as.dots.literal(ff(x, y))) %is% ff(x, y)
+  do(ff, as.dots.literal(list(x, y))) %is% ff(2, 5) #???
 })
 
-test_that("x <- dots() captures dots and %()% calls with dots", {
+test_that("x <- dots() captures dots and do() calls with dots", {
   x <- 1;
   y <- 3;
   f <- `/`
   d <- dots(y=x, 4)
-  f %()% d %is% 0.25
+  do(f, d) %is% 0.25
 })
 
-test_that("%()% and %<<% on vectors respects tags", {
-  paste %()% c(sep="monkey", 1, 2, 3) %is% "1monkey2monkey3"
-})
-
-test_that("as.dots.exprs() converts expressions to dotslists w.r.t. a given env", {
-  x <- 3
-  f1 <- function(l) {
-    x <- 1
-    as.dots.exprs(l)
-  }
-  f2 <- function(l) {
-    x <- 2
-    as.dots.exprs(l)
-  }
-  c %()% f1(alist(x)) %is% 1
-  c %()% f2(alist(x)) %is% 2
-  c %()% as.dots.exprs(alist(x)) %is% 3
+test_that("do and %<<% on vectors respects tags", {
+  do(paste, dots(sep="monkey", 1, 2, 3)) %is% "1monkey2monkey3"
 })
 
 test_that("as.dots() is idempotent on dots objects", {
   x <- 3
-  l <- as.dots.exprs(alist(x))
+  l <- dots(x)
   f <- function(l) {
     x <- 4
     as.dots(l)
   }
   l <- f(l)
   x <- 5
-  c %()% l %is% 5
+  do(c, l) %is% 5
 })
 
 test_that("as.dots.literal puts literal values into dots", {
   exprs(as.dots.literal(alist(1, 123L, 3, "6"))) %is% alist(1, 123L, 3, "6")
-  exprs(as.dots.literal(alist(a, b, c, d))) %is% alist(a,b,c,d)
-  exprs(as.dots.literal(list(quote(...)))) %is% list(quote(...))
+  exprs(as.dots.literal(alist(a, b, c, d))) %is% alist(quote(a),quote(b),quote(c),quote(d))
+  exprs(as.dots.literal(list(quote(...)))) %is% list(quote(quote(...)))
 })
 
 test_that("dots() et al with empty inputs", {
@@ -369,8 +351,8 @@ test_that("dots() et al with empty inputs", {
   c <- list(1);
   d <- dots(2);
 
-  f %()% a %is% 8
-  f %()% b %is% 8
+  do(f, a) %is% 8
+  do(f, b) %is% 8
 })
 
 test_that("args() makes tags by default.", {
@@ -449,10 +431,10 @@ test_that("dots() on empty arguments", {
   expect_equal(c(FALSE, TRUE, FALSE),
                (function(...) (function(...) m1(...))(...))(one, , three))
   #FALSE, FALSE, FALSE but these last two are on R
-  expect_equal(c(FALSE, TRUE, FALSE), m1 %()% d1)
-  expect_equal(c(FALSE, TRUE, FALSE), m1 %()% d2) # was FALSE, FALSE, FALSE
-  expect_equal(c(FALSE, TRUE, FALSE), m2 %()% d1) # was FALSE, FALSE, FALSE
-  expect_equal(c(FALSE, TRUE, FALSE), m2 %()% d2) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), do(m1, d1))
+  expect_equal(c(FALSE, TRUE, FALSE), do(m1, d2)) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), do(m2, d1)) # was FALSE, FALSE, FALSE
+  expect_equal(c(FALSE, TRUE, FALSE), do(m2, d2)) # was FALSE, FALSE, FALSE
   expect_equal(c(FALSE, TRUE, FALSE),
                do.call(m1, alist(one, , three)))
   expect_equal(c(FALSE, TRUE, FALSE),
@@ -464,10 +446,11 @@ test_that("dots methods on empty dots", {
   missing_(x) %is% logical(0)
   names(x) %is% NULL
   expect_that(exprs(x), is_equivalent_to(list()))
-  expect_equivalent(unpack(x), list(name=character(0), envir=list(), expr=list(), value=list()))
+  expect_equivalent(as.data.frame(x),
+                    list(name=character(0), envir=list(), expr=list(), value=list()))
   x[] %is% x
   y <- dots(1, 2, 3)
-  list %()% y[c()] %is% list()
+  do(list, y[c()]) %is% list()
 })
 
 test_that("dots [] operator subsets without forcing promises", {
@@ -477,17 +460,17 @@ test_that("dots [] operator subsets without forcing promises", {
       x <- 3
       y <- 4
     }, {
-      c %()% a[1:2] %is% c(3,r=4)
+      do(c, a[1:2]) %is% c(3,r=4)
       x <- 4
-      c %()% a[3] %is% 8
+      do(c, a[3]) %is% 8
       y <- 2
-      c %()% a %is% c(4, r=2, 6)
+      do(c, a) %is% c(4, r=2, 6)
     }, {
-      c %()% a[2:3] %is% c(r=4, 7)
+      do(c, a[2:3]) %is% c(r=4, 7)
       x <- 2
-      c %()% a %is% c(2, r=4, 6)
+      do(c, a) %is% c(2, r=4, 6)
     }, {
-      c %()% a["r"] %is% c(r=4)
+      do(c, a["r"]) %is% c(r=4)
     }
     )
 })
@@ -503,11 +486,11 @@ test_that("[<-.... replacement operator can take values from another dotsxp", {
       expect_error(d[2] <- 10, "convert")
       d[2] <- quo(10)
       y <- 4
-      c %()% d %is% c(a=2, b=10, c=6)
+      do(c, d) %is% c(a=2, b=10, c=6)
     }, {
       d["a"] <- dots(x*y)
       x <- 5
-       c %()% d %is% c(a=15, b=3, c=8)
+       do(c, d) %is% c(a=15, b=3, c=8)
     })
 })
 
@@ -567,7 +550,7 @@ test_that("dots names<- method can set tags w/o forcing", {
     }, {
       names(d) <- c("foo", "bar", "baz")
       y <- 4
-      c %()% d %is% c(foo=2, bar=4, baz=6) }
+      do(c, d) %is% c(foo=2, bar=4, baz=6) }
     )
 })
 
@@ -577,11 +560,11 @@ test_that("dots_", {
   value(d) %is% list(y=13, x=13, z=24)
 })
 
-test_that("dotlist", {
+test_that("c.dots boxed quotations", {
   y <- 4
   z <- 100
   e <- dots2env(dots(x=1+y, y=1+z, `+`=`+`))
-  d <- dotlist(quo_(expr=quote(y+x), env=e))
+  d <- c.dots(quo_(expr=quote(y+x), env=e))
   value(d) %is% list(106)
 })
 

@@ -24,6 +24,18 @@ int recycle_length(int i, int j) {
   return n;
 }
 
+int is_language(SEXP x) {
+  switch(TYPEOF(x)) {
+  case LANGSXP:
+  case SYMSXP:
+  case PROMSXP:
+  case DOTSXP:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 SEXP emptypromise() {
   SEXP out = PROTECT(allocSExp(PROMSXP));
   SET_PRCODE(out, R_MissingArg);
@@ -44,7 +56,11 @@ SEXP new_promise(SEXP expr, SEXP env) {
 
 SEXP new_forced_promise(SEXP expr, SEXP value) {
   SEXP out = PROTECT(allocSExp(PROMSXP));
-  SET_PRCODE(out, expr);
+  if (is_language(value)) {
+    SET_PRCODE(out, Rf_lang2(install("quote"), value));
+  } else {
+    SET_PRCODE(out, value);
+  }
   SET_PRENV(out, R_NilValue);
   SET_PRVALUE(out, value);
   UNPROTECT(1);

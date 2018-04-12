@@ -337,7 +337,7 @@ SEXP promisish_to_closxp(SEXP x) {
   } else {
     LOG("converting nonpromise (a %s, %p) to quotation",
         type2char(TYPEOF(x)), x);
-    if (isLanguage(x)) {
+    if (is_language(x)) {
       SEXP quote = PROTECT(Rf_lang2(install("quote"), x));
       protections++;
       /* we are now making up `quote(x)` as a plausible way of
@@ -372,7 +372,7 @@ SEXP _dotsxp_to_flist(SEXP d) {
   return out;
 }
 
-inline int is_list_type(SEXPTYPE t) {
+int is_list_type(SEXPTYPE t) {
   switch (t) {
   case LISTSXP:
   case DOTSXP:
@@ -383,7 +383,7 @@ inline int is_list_type(SEXPTYPE t) {
   }
 }
 
-inline int is_list_like(SEXP in) {
+int is_list_like(SEXP in) {
   return is_list_type(TYPEOF(in));
 }
 

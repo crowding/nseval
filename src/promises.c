@@ -100,7 +100,21 @@ SEXP _quotation_to_promsxp(SEXP clos) {
     SET_PRVALUE(out, R_UnboundValue);
     SET_PRCODE(out, BODY(clos));
     SET_PRENV(out, CLOENV(clos));
+    UNPROTECT(1);
   }
+  return out;
+}
+
+SEXP forced_promise(SEXP in) {
+  SEXP out = PROTECT(allocSExp(PROMSXP));
+  if (is_language(in)) {
+    SET_PRCODE(out, Rf_lang2(install("quote"), in));
+  } else {
+    SET_PRCODE(out, in);
+  }
+  SET_PRENV(out, R_EmptyEnv);
+  SET_PRVALUE(out, in);
+    
   UNPROTECT(1);
   return out;
 }
@@ -113,30 +127,19 @@ SEXP make_into_promsxp(SEXP in) {
     }
     return in;
   } else {
-    /* wrap in a forced promise */
-    SEXP out = PROTECT(allocSExp(PROMSXP));
-    SET_PRENV(out, R_EmptyEnv);
-    SET_PRVALUE(out, in);
-    SET_PRCODE(out, in);
-    UNPROTECT(1);
-    return out;
+    return forced_promise(in);
   }
 }
 
 SEXP _quotation_literal(SEXP in) {
-  SEXP pr = PROTECT(allocSExp(PROMSXP));
+  SEXP pr = PROTECT(forced_promise(in));
   SEXP fn = PROTECT(allocSExp(CLOSXP));
   
-  /* wrap in a forced promise */
-  SET_PRENV(pr, R_EmptyEnv);
-  SET_PRVALUE(pr, in);
-  SET_PRCODE(pr, in);
-
   SET_CLOENV(fn, R_EmptyEnv);
   SET_BODY(fn, pr);
   SET_FORMALS(fn, R_NilValue);
-
   setAttrib(fn, R_ClassSymbol, mkString("quotation"));
+  
   UNPROTECT(2);
 
   return fn;

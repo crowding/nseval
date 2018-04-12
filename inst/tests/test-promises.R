@@ -20,7 +20,7 @@ test_that("can force quotation, and make forced quotations, and forced", {
   value(q) %is% 2
   value(q) %is% 3 #re-runs
   x %is% 3
-  fq <- quo(x <- x + 1, force=TRUE)
+  fq <- quo(x <- x + 1, force = TRUE)
   forced(fq) %is% TRUE
   x %is% 4
   expr(fq) %is% quote(x <- x + 1)
@@ -71,4 +71,15 @@ test_that("literal quo", {
   forced(as.quo.literal(6)) %is% TRUE
   expr(as.quo.literal(6)) %is% 6
   env(as.quo.literal(6)) %is% emptyenv()
+
+  value(as.quo.literal(2+5)) %is% 7
+  forced(as.quo.literal(2+5)) %is% TRUE
+  env(as.quo.literal(2+5)) %is% emptyenv()
+  expr(as.quo.literal(2+5)) %is% 7
+  env(as.quo.literal(as.name("x"))) %is% emptyenv()
+  expr(as.quo.literal(as.name("x"))) %is% quote(quote(x))
+  value(as.quo.literal(as.name("x"))) %is% as.name("x")
+
+  do(list, as.quo.literal(as.name("x"))) %is% alist(x)
+  do(list, as.quo.literal(quote(x+y))) %is% alist(x+y)
 })

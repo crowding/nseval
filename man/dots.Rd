@@ -12,7 +12,6 @@
 \alias{dots_names}
 \alias{envs<-.dots}
 \alias{dots}
-\alias{dotlist}
 \title{\code{exprs(dots(...))} extracts a list of expressions, one per element
 of a \code{\link{dots}} object.}
 \usage{
@@ -37,8 +36,6 @@ dots_names(...)
 \method{envs}{dots}(x) <- value
 
 dots(...)
-
-dotlist(...)
 }
 \arguments{
 \item{x}{A dots object (see \code{\link{dots}}).}
@@ -55,7 +52,7 @@ dotlist(...)
 A named list of expressions. The mutator \code{exprs<-}
 returns a new dots object with the new expressions.
 
-\code{dots_exprs(...)} is a shorthand for exprs(dots(...))
+\code{dots_exprs(...)} is a shorthand for exprs(dots(...)).
 
 \code{envs(dots(...)} extracts a list of environments from a
 \code(link(dots)) object.
@@ -66,9 +63,9 @@ quotation in x.
 \code{envs<-} returns a list of new quotations with updated
 environments.
 
-\code{dots_exprs(...)} is a shorthand for exprs(dots(...))
+\code{dots_exprs(...)} is a shorthand for `exprs(dots(...))1
 
-\code{dots_names(...)} is a shorthand for names(dots(...))
+\code{dots_names(...)} is a shorthand for \code{names(dots(...))}
 
 \code{envs<-} returns a list of new quotations with updated
 expressions.
@@ -83,17 +80,17 @@ A dots object represents a named list of quotations. It mirrors R's
 special variable \code{...}. Unlike \code{...}, a \code{dots} is:
 \itemize{
 \item immutable (evaluating does not change it),
-\item first-class (you can store it in any variable, not just \code{...}),
+\item first-class (you can give it any name, not just \code{...}),
 \item data (The R interpreter treates it as literal data rather than
 triggering argument splicing).
 }
 }
 \details{
-\code{d <- dots(...)} captures the contents of ... without
-triggering evaluation, and returns a list of class "dots", each
-element of which is a \code{\link{quotation}}. This extends,
+\code{d <- dots(...)} captures the contents of \code{...} without triggering
+evaluation, and returns a list of class "dots", each element of
+which is a \code{\link{quotation}}. This extends,
 e.g. \code{substitute(list(...))[[2]]} by capturing the context of
-each expression along with expressions.
+each expression along with the expressions.
 
 \code{d <- dots(foo, quux=bar+baz)} captures all of its arguments
 in a dots object, like \code{\link{alist}()}, but also captures the
@@ -104,10 +101,8 @@ environment of each argument.)
 named.list <- function(...) {
  # Collect only named arguments, ignoring unnamed arguments.
  d <- dots(...)
- list \%()\% d[names(d) != ""]
+ do(list, d[names(d) != ""])
 }
+
 named.list(a=1, b=2*2, stop("this is not evaluated"))
-}
-\seealso{
-\%()\%
 }

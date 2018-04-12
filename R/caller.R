@@ -31,14 +31,22 @@
 #'   arguments are evaluated.
 #'
 #'   In addition, `caller` tries to do the right thing when the
-#'   environment was created by `do.call`, [eval] or [do].
+#'   environment was instantiated by means `do.call`, [eval] or [do].
 #'
 #' @export
 #'
 #' @examples
-#' # For further examples please see the test cases
-#' # located under inst/tests/test-caller.R
-caller <- function(envir=caller(environment())) {
+caller <- function(env = caller(environment()),
+                   ifnotfound = NULL) {
+  ## I think we want to find the activation record that corresponds
+  ## to the *earliest* invocation of our environment, and look at its
+  ## sys.parent.
+  ##
+  ## Doing that from this side of Rinternals.h is tricky. Doubly so
+  ## since sys.calls() and sys.frame() elide some of the activation
+  ## records. I wrote a small package "stacktrace" which helped to
+  ## figure this out.
+
   ## cat("getting caller of ", format(envir), "\n")
 
   ## print(stacktrace(), max.width=80);
@@ -47,84 +55,44 @@ caller <- function(envir=caller(environment())) {
   ##          calls = oneline(as.list(sys.calls()))),
   ##       max.width=80)
 
-  frames <- sys.frames()
-  where <- which(vapply(frames, identical, FALSE, envir))
+  where <- which_frame(
+    env,
+    ifnotfound %||%
+      stop("caller: environment not found on stack"))
 
-  if (length(where) == 0) {
-    stop("caller: environment not found on stack")
+  if (is.primitive(sys.function(where))) {
+    ifnotfound %||%
+      stop("caller: calling function is a primitive, which has no environment")
   }
-  if (is.primitive(sys.function(where[1]))) {
-    stop("caller: calling function is a primitive, which has no environment")
-  }
 
-  parents <- sys.parents()
-  whichparent <- parents[where[1]]
+  whichparent <- sys.parents()[where]
 
-  if (whichparent == where[1]) {
-    #The env we are querying appears to be on the stack, but its
-    # caller is gone.  This tends to happen in closed-over
-    # environments.
+  if (whichparent == where) {
+    # The env we are querying appears to be on the stack, but
+    # sys.parents() reports it as its own parent, which, I think, is
+    # what it does when the real parent is elided out by sys.parents().
     #
-    # The answer I need is in sysparent, but I have no extension-level
-    # way to access to sysparent, so maybe we can hail mary to parent.frame?
-    result <- do.call(parent.frame, list(), envir=envir)
-    # stop("caller: caller is no longer on stack")
+    # The answer I need is in sysparent, but I have no .Rinternals-level
+    # way to access to sysparent. BUT, parent.frame does.
+    #
+    # do.call will make a frame that points to the right frame and
+    # then parent.frame will get me its sysparent.
+    result <- do.call(parent.frame, list(), envir=env)
+
+    # TODO: check if the do-parent.frame trick works for other cases
+
+    # Do I really need do.call for this? What's the way for NSE to
+    # NSE to directly call with a builtin?
   } else if(whichparent == 0) {
     result <- globalenv()
   } else {
-    result <- frames[[whichparent]]
+    result <- sys.frame(whichparent)
   }
-
-#  cat("Result: ", format(result), "\n")
+  #  cat("Result: ", format(result), "\n")
   result
 }
 
-
-#' Wrap a function so that it will see a particular caller or parent.frame.
-#'
-#' @param f The function to call. A symbol or expression may be given, which must be
-#'   a symbol visible from \code{e}.
-#'
-#' @param envir The environment to issue the call from. If
-#'   \code{\link{caller}()} is called within \code{f}, it will return
-#'   \code{envir}.
-#'
-#' @return A function wrapper. Calling it will call \code{f}, but from
-#'   within \code{f} a call to \code{parent.frame()} or \code{caller}
-#'   will return \code{envir}.
-#'
-#' Use \code{with_caller} to deal with or wrap functions that use
-#' their \code{caller()} or \code{parent.frame()}. (Try not to write
-#' such functions though!)
-#'
-#' \code{with_caller} is intended to be safer than
-#' \code{\link{do.call}} for this purpose.  A function wrapped by
-#' with_caller passes its arguments normally, while \code{do.call}
-#' causes the function arguments to also be interpreted in the target
-#' environment.
-#'
-#' To reproduce the effects of
-#' \code{do.call(f, alist(foo, bar), envir=e)}, you could write
-#' \code{with_caller(f, e) \%()\% dots(alist(foo, bar), e)}.
-#'
-#' Note that there is independent control of the caller of the function and
-#' the context of the arguments.
-#' @export
-#' @useDynLib nse _make_call
-with_caller <- function(f, env=arg_env(f)) {
-  with_caller_(arg_expr(f), env)
-}
-
-#' @rdname with_caller
-#' @export
-with_caller_ <- function(f, env) {
-  head <- quo_(f, env)
-  function(...) {
-    do_(head, dots(...))
-  }
-}
-
-#' Making function calls, with full control of call construction.
+#' Making function calls, with full control of argument scope.
 #'
 #' The functions `do` and `do_` construct and invoke a function call.
 #' In combination with [dots] and [quotation] objects they allow you to
@@ -132,7 +100,7 @@ with_caller_ <- function(f, env) {
 #'
 #' For `do_` all arguments should be `quotation` or `dots` objects, or
 #' convertible to such using `as.quo()`. They will be concatenated
-#' together by `c.dots` to form the call list (a "dots" object).
+#' together by `c.dots` to form the call list (a `dots` object).
 #'
 #' For `do` the first argument is captured unevaluated, but the
 #' rest of the arguments are processed the same as do_.
@@ -180,37 +148,58 @@ do__ <- function(d) {
   .Call(`_do`, d)
 }
 
-#' Obtain the call and arguments associated with an environment.
+#' Get information about calls currently being executed.
+#'
+#' `get_call()` takes an environment, by default the one in which it
+#' was called, and determines what function call created it.  The
+#' return value is a `[dots]` object; the first element of which
+#' represents the calling environment and the name of the function as
+#' it appeared there. The rest of the elements represent the function
+#' args.
 #'
 #' The output of [get_call()] can be passed to [do(x)] in order to
 #' replicate a call.
 #'
-#' `get_call` is meant to replace `[match.call()]` and `[sys.call()]`
+#' `get_call` is meant to replace `[match.call()]` and `[sys.call()]`;
+#' its advantage is that it captures the environments attached to
+#' arguments in addition to their written form.
 #'
-#' @return a dots object; the first element of which represents the call.
+#' @return a dots object, the first element of which represents the
+#'   call.
 #' @seealso do dots caller
 #' @export
-get_call <- function(env = caller(environment())) {
-  frames <- sys.frames()
-  where <- which(vapply(frames, identical, FALSE, env))
-  if (length(where) == 0) {
-    stop("caller: environment not found on stack")
-  }
+#' @param env An environment belonging to a currently executing
+#'   function call.
+#' @param ifnotfound If the call is not found, an error is raised, or
+#'   optionally this is returned.
+get_call <- function(env = caller(environment()),
+                     ifnotfound = stop("caller: environment not found on stack")) {
+  frame <- which_frame(env, ifnotfound)
+
   rho <- caller(env)
-  call <- sys.call(where)
+  call <- sys.call(frame)
   head <- call[[1]]
-  fn <- sys.function(where[1])
+  fn <- sys.function(frame)
   argnames <- names(formals(fn))
   c.dots(quo_(head, rho),
-         env2dots(env, argnames))
+         env2dots(env, argnames));
 }
 
+#' `get_function(env)` returns the function object associated with a
+#' currently executing call (identified by environment).
+#' @rdname get_call
 #' @export
-get_function <- function(env = caller(environment())) {
+get_function <- function(env = caller(environment()),
+                         ifnotfound = NULL) {
+  sys.function(which_frame(env, ifnotfound))
+}
+
+which_frame <- function(env, ifnotfound) {
   frames <- sys.frames()
   where <- which(vapply(frames, identical, FALSE, env))
   if (length(where) == 0) {
-    stop("caller: environment not found on stack")
+    ifnotfound %||% stop("caller: environment not found on stack")
+  } else {
+    where[1]
   }
-  sys.function(where[1])
 }

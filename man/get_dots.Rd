@@ -2,18 +2,18 @@
 % Please edit documentation in R/dots.R
 \name{get_dots}
 \alias{get_dots}
-\title{Retrieve the binding of "..." from a given environment.}
+\title{Retrieve the binding of "..." from an environment.}
 \usage{
 get_dots(env = caller(environment()), inherits = FALSE)
 }
 \arguments{
 \item{env}{The environment to look in.}
 
-\item{inherits}{Whether to look in enclosing environments for a dotsxp.}
+\item{inherits}{Whether to allow '...' to be found in enclosing environments.}
 }
 \value{
 The contents of \code{...} converted to a \code{dots} object.
 }
 \description{
-Retrieve the binding of "..." from a given environment.
+Retrieve the binding of "..." from an environment.
 }
