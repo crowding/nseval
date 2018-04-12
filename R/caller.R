@@ -1,13 +1,13 @@
 #' Get the calling environment of a given environment.
 #'
-#' @param env The environment to inspect. By default, the
-#'   environment from which \code{caller} itself was called. (That is,
-#'   `caller()` should always return the same value as
+#' @param env The environment whose caller to determine. By default,
+#'   the environment from which \code{caller} itself was called. (That
+#'   is, `caller()` should return the the same value as
 #'   `caller(environment())`.)
-#'
-#' @return The environment in which the function call that created
-#'   `env` was executed. If that environment cannot be reliably
-#'   determined, an error is raised.
+#' @param ifnotfound What do return in case the caller cannot be
+#'   determined.
+#' @return The environment which called `env` into being. If that
+#'   environment cannot be determined, `ifnotfound` is returned.
 #'
 #'   For example, in the code:
 #'
@@ -32,10 +32,16 @@
 #'
 #'   In addition, `caller` tries to do the right thing when the
 #'   environment was instantiated by means `do.call`, [eval] or [do].
-#'
 #' @export
 #'
 #' @examples
+#' E <- environment()
+#' F <- function()
+#' {
+#'  Y <- environment()
+#'  caller(Y)
+#'  }
+#' identical(F(), E) ## TRUE
 caller <- function(env = caller(environment()),
                    ifnotfound = NULL) {
   ## I think we want to find the activation record that corresponds

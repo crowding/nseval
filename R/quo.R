@@ -136,12 +136,15 @@ forced.quotation <- function(x) {
   .Call(`_forced_quotation`, x)
 }
 
-##' @export
+# #' @export
 #forced.default <- function(x) forced(as.quo(x))
 
+#' Put data values into quotations.
+#'
+#' `as.quo.literal(x)` creates a forced quotation with the given value.
+#'
+#' @return as.quo.literal
 #' @export
-#' @return `as.quotation.literal(x)` creates a forced promise, containing `x`
-#'    in both the expression and data slots.
 as.quo.literal <- function(x) {
   .Call(`_quotation_literal`, x)
 }

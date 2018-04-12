@@ -7,15 +7,17 @@
 caller(env = caller(environment()), ifnotfound = NULL)
 }
 \arguments{
-\item{env}{The environment to inspect. By default, the
-environment from which \code{caller} itself was called. (That is,
-\code{caller()} should always return the same value as
+\item{env}{The environment whose caller to determine. By default,
+the environment from which \code{caller} itself was called. (That
+is, \code{caller()} should return the the same value as
 \code{caller(environment())}.)}
+
+\item{ifnotfound}{What do return in case the caller cannot be
+determined.}
 }
 \value{
-The environment in which the function call that created
-\code{env} was executed. If that environment cannot be reliably
-determined, an error is raised.
+The environment which called \code{env} into being. If that
+environment cannot be determined, \code{ifnotfound} is returned.
 
 For example, in the code:\preformatted{  X <- environment()
   F <- function() {
@@ -42,4 +44,13 @@ environment was instantiated by means \code{do.call}, \link{eval} or \link{do}.
 }
 \description{
 Get the calling environment of a given environment.
+}
+\examples{
+E <- environment()
+F <- function()
+{
+ Y <- environment()
+ caller(Y)
+ }
+identical(F(), E) ## TRUE
 }

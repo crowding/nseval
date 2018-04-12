@@ -238,15 +238,13 @@ is_missing_ <- function(syms, envs) {
     })
 }
 
-#' Determine which enclosing environments defines a
-#' name.
+#' Determine which enclosing environment defines a name.
 #'
 #' `locate` is useful if you want to implement something that works
 #' like `<<-`, which updates the binding where it is found.
 #'
 #' @param x A name.
 #' @param mode Either "any" or "function".
-#' @rdname locate
 #' @examples
 #' `<<-` <- function(lval, rval) {
 #'  lval <- arg(lval)
@@ -262,6 +260,10 @@ locate <- function(sym,
   locate_(sym = sym_, env = env, mode = mode, ...)
 }
 
+#' `locate_` is the normally evaluating version of
+#' locate; it takes a [name] or a character and an environment.
+#' @rdname locate
+#' @return an environment.
 #' @export
 locate_ <- function(sym,
                     env = arg_env(quote(sym), environment()),
@@ -269,12 +271,14 @@ locate_ <- function(sym,
   UseMethod("locate_")
 }
 
-#' The locate_ method for quotations uses the expr and environment together.
+#' The `locate_` method for quotations uses the expr and environment together.
+#' @rdname locate
 #' @export
 locate_.quotation <- function(sym, ..., mode = "any") {
   locate_(sym=expr(sym), env=env(sym), mode = mode, ...)
 }
 
+#' @rdname locate
 #' @param env Which environment to begin searching from.
 #' @export
 locate_.character <- function(sym, env=arg_env(x, environment()), mode="any", ...) {
@@ -285,17 +289,18 @@ locate_.character <- function(sym, env=arg_env(x, environment()), mode="any", ..
   }
 }
 
+#' The list method accepts a list of [names](name), and returns a list of
+#' [environments](environment).
+#' @rdname locate
 #' @export
 locate_.list <- function(sym, ...) {
   lapply(FUN=locate_, sym, ...)
 }
 
-#' @rdname find
+#' @rdname locate
 #' @param mode Either "any" or "function".
-#' @param ifnotfound What is returned if the locate method is run()
-#' @export
+#' @param ifnotfound What is returned if the name is not found.
 #' @useDynLib nse _locate _locate_all
-#' @param
 #' @export
 locate_.name <- function(sym,
                          env = arg_env_(quote(sym), environment()),

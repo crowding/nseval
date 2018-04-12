@@ -1,11 +1,42 @@
+#' Capture a number of unevaluated arguments as an object.
+#'
+#' A dots object represents a named list of quotations. It mirrors R's
+#' special variable `...`. Unlike `...`, a `dots` is:
+#' * immutable (evaluating does not change it),
+#' * first-class (you can give it any name, not just `...`),
+#' * data (The R interpreter treates it as literal data rather than
+#'   triggering argument splicing).
+#'
+#' `d <- dots(...)` captures the contents of `...` without triggering
+#' evaluation, and returns a list of class `"dots"`, each element of
+#' which is a `[quotation]`. This improves on
+#' `substitute(list(...))[[2]]` by capturing the context of each
+#' expression along with the expressions.
+#'
+#' `d <- dots(foo, quux=bar+baz)` captures all of the given arguments
+#' in a dots object, like `[alist]`, but also captures the
+#' environment of each argument (The present environment in this case).
+#'
+#' @param ... Any number of arguments.
+#' @return A list with class 'dots', each element of which is a [quotation].
+#' @examples
+#'
+#' named.list <- function(...) {
+#'  # Collect only named arguments, ignoring unnamed arguments.
+#'  d <- dots(...)
+#'  do(list, d[names(d) != ""])
+#' }
+#'
+#' named.list(a=1, b=2*2, stop("this is not evaluated"))
+#' @export
+dots <- function(...) {
+  get_dots(environment())
+}
+
 #' Convert a dots object into a data frame.
 #'
 #' `as.data.frame.dots` transforms the contents of a \dots object,
 #' into a data frame with columns "name", "expr", "envir" and "value".
-#'
-#' @param ... Any number of arguments. Usually, you will pass in the
-#' ... from the body of a function,
-#' e.g. \code{dots_unpack(...)}.
 #'
 #' @note There are some issues with R printing data frames containing
 #'   lists of language objects (and more problems when working with
@@ -32,9 +63,25 @@ as.data.frame.dots <- function  (x) {
   x
 }
 
+#' @rdname dots
+#' @return `dots_(exprs, envs)` directly constructs a dots object
+#'   given lists of expresions and environments.
+#' @param exprs An expression or list of expressions.
+#' @param envs An environment or list of environments.
+#' @export
+dots_ <- function(exprs, envs) {
+  if (!is.list(exprs)) {
+    exprs <- list(exprs)
+  }
+  if (!is.list(envs)) {
+    envs <- list(envs)
+  }
+  structure(mapply(FUN=quo_, exprs, envs, SIMPLIFY=FALSE), class="dots")
+}
+
+
 #' \code{exprs(dots(...))} extracts a list of expressions, one per element
 #' of a \code{\link{dots}} object.
-#'
 #' @param x A dots object (see \code{\link{dots}}).
 #' @return A named list of expressions. The mutator \code{exprs<-}
 #'   returns a new dots object with the new expressions.
@@ -50,7 +97,7 @@ exprs.dots <- function(d) {
 
 #' @export
 #' @rdname dots
-#' @return `dots_exprs(...)` is a shorthand for exprs(dots(...)).
+#' @return `dots_exprs(...)` is a shorthand for `exprs(dots(...))`.
 #' @useDynLib nse _dots_exprs
 #' @useDynLib nse _get_dots
 dots_exprs <- function(...) {
@@ -71,15 +118,15 @@ dots_exprs <- function(...) {
 }
 
 #' @rdname dots
-#' @return \code{envs(dots(...)} extracts a list of environments from a
-#' \code(link(dots)) object.
+#' @return `envs(dots(...)` extracts a list of environments from a
+#' `[dots]` object.
 #' @export
 envs <- function(x) {
   UseMethod("envs")
 }
 
 #' @rdname dots
-#' @return \code{envs(x)} returns a list of the environments of each
+#' @return `envs(x)` returns a list of the environments of each
 #'   quotation in x.
 #' @param x a `[dots]` object.
 #' @export
@@ -98,7 +145,7 @@ envs.dots <- function(x) {
 
 #' @export
 #' @rdname dots
-#' @return `dots_exprs(...)` is a shorthand for `exprs(dots(...))1
+#' @return `dots_exprs(...)` is a shorthand for `exprs(dots(...))`
 #' @useDynLib nse _dots_envs
 #' @useDynLib nse _get_dots
 dots_envs <- function(...) {
@@ -142,41 +189,6 @@ list_missing <- function(...) {
   })
 }
 
-#' Capture a number of unevaluated arguments as an object.
-#'
-#' A dots object represents a named list of quotations. It mirrors R's
-#' special variable `...`. Unlike `...`, a `dots` is:
-#' * immutable (evaluating does not change it),
-#' * first-class (you can give it any name, not just `...`),
-#' * data (The R interpreter treates it as literal data rather than
-#'   triggering argument splicing).
-#'
-#' `d <- dots(...)` captures the contents of `...` without triggering
-#' evaluation, and returns a list of class "dots", each element of
-#' which is a \code{\link{quotation}}. This extends,
-#' e.g. \code{substitute(list(...))[[2]]} by capturing the context of
-#' each expression along with the expressions.
-#'
-#' \code{d <- dots(foo, quux=bar+baz)} captures all of its arguments
-#' in a dots object, like \code{\link{alist}()}, but also captures the
-#' environment of each argument.)
-#'
-#' @param ... Any number of arguments.
-#' @return A list with class 'dots', each element of which is a [quotation].
-#' @examples
-#'
-#' named.list <- function(...) {
-#'  # Collect only named arguments, ignoring unnamed arguments.
-#'  d <- dots(...)
-#'  do(list, d[names(d) != ""])
-#' }
-#'
-#' named.list(a=1, b=2*2, stop("this is not evaluated"))
-#' @export
-dots <- function(...) {
-  get_dots(environment())
-}
-
 #' @export
 `[.dots` <- function(x, ..., drop=FALSE) {
   y <- NextMethod("[")
@@ -194,19 +206,6 @@ dots <- function(...) {
 #' @export
 as.dots.quotation <- function(x) {
   structure(list(x), class="dots")
-}
-
-#' @export
-#' @param exprs An expression or list of expressions.
-#' @param envs An environment or list of environments.
-dots_ <- function(exprs, envs) {
-  if (!is.list(exprs)) {
-    exprs <- list(exprs)
-  }
-  if (!is.list(envs)) {
-    envs <- list(envs)
-  }
-  structure(mapply(FUN=quo_, exprs, envs, SIMPLIFY=FALSE), class="dots")
 }
 
 #' R's missing value.
@@ -259,14 +258,28 @@ missing_value <- function(n) {
   }
 }
 
-#' Set the binding of "..." in an environment.
+#' Set or get the contents of "..." in an environment.
 #'
-#' @param env The environment to update.
-#' @param d a \code{\link{dots}} object.
+#' @param env The environment to look in.
+#' @param inherits Whether to allow '...' to be found in enclosing
+#'   environments.
+#' @return `get_dots` returns the contents of `...` converted to a
+#'   `dots` object.
+#' @export
+#' @useDynLib nse _get_dots
+#' @useDynLib nse _dotsxp_to_flist
+get_dots <- function(env = caller(environment()), inherits=FALSE) {
+  dts <- .Call(`_get_dots`, env, inherits)
+  .Call(`_dotsxp_to_flist`, dts)
+}
+
+
+#' @rdname get_dots
+#' @param d a `[dots]` object.
 #' @param append if TRUE, the values should be appended to the
 #'   existing binding. If false, existing binding for "..." will be
 #'   replaced.
-#' @return The updated environment, invisibly.
+#' @return `set_dots` returns the updated environment, invisibly.
 #' @useDynLib nse _set_dots
 #' @useDynLib nse _flist_to_dotsxp
 #' @export
@@ -278,25 +291,13 @@ set_dots <- function(env, d, append=FALSE) {
   invisible(env)
 }
 
-#' Retrieve the binding of "..." from an environment.
-#'
-#' @param env The environment to look in.
-#' @param inherits Whether to allow '...' to be found in enclosing environments.
-#' @return The contents of `...` converted to a `dots` object.
-#' @export
-#' @useDynLib nse _get_dots
-#' @useDynLib nse _dotsxp_to_flist
-get_dots <- function(env = caller(environment()), inherits=FALSE) {
-  dts <- .Call(`_get_dots`, env, inherits)
-  .Call(`_dotsxp_to_flist`, dts)
-}
 
-#' Check for missing_value()s.
+#' Check for [missing values](missing_value).
 #'
-#' For [`dots`] and [`quo`] objects, checks whether the expressions are missing
+#' For `[dots]` and `[quo]` objects, checks whether the expressions are missing
 #' without evaluating.
 #'
-#' For lists, check if they are identical to R's "missing value."
+#' For lists, check if each item is identical to `missing_value()`
 #'
 #' @details
 #' Checking for missing arguments of `...`, without forcing, can be
@@ -313,7 +314,7 @@ get_dots <- function(env = caller(environment()), inherits=FALSE) {
 #' Instead, use \code{x <- list_missing(...)}
 #' and \link{missing_}(x) to detect missing arguments.
 #'
-#' @param x
+#' @param x a value, [dots], or list.
 #' @param unwrap Whether to descend through unevaluated promises
 #'   using [unwrap(x, TRUE)] before deciding if a promise is missing.
 #' @return a vector of boolean values.

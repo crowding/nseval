@@ -8,10 +8,6 @@
 }
 \arguments{
 \item{x}{A \code{\link{dots}} object.}
-
-\item{...}{Any number of arguments. Usually, you will pass in the
-... from the body of a function,
-e.g. \code{dots_unpack(...)}.}
 }
 \value{
 A data frame, with one row for each element of \code{...},

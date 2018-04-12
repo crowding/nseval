@@ -2,19 +2,52 @@
 % Please edit documentation in R/getpromise.R
 \name{locate}
 \alias{locate}
-\title{Determine which enclosing environments defines a
-name.}
+\alias{locate_}
+\alias{locate_.quotation}
+\alias{locate_.character}
+\alias{locate_.list}
+\alias{locate_.name}
+\title{Determine which enclosing environment defines a name.}
 \usage{
 locate(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
+
+locate_(sym, env = arg_env(quote(sym), environment()), mode = "any", ...)
+
+\method{locate_}{quotation}(sym, ..., mode = "any")
+
+\method{locate_}{character}(sym, env = arg_env(x, environment()),
+  mode = "any", ...)
+
+\method{locate_}{list}(sym, ...)
+
+\method{locate_}{name}(sym, env = arg_env_(quote(sym), environment()),
+  mode = "any", ifnotfound = stop("Binding ", deparse(sym), " not found"))
 }
 \arguments{
+\item{env}{Which environment to begin searching from.}
+
 \item{mode}{Either "any" or "function".}
 
+\item{ifnotfound}{What is returned if the name is not found.}
+
 \item{x}{A name.}
+
+\item{mode}{Either "any" or "function".}
+}
+\value{
+an environment.
 }
 \description{
 \code{locate} is useful if you want to implement something that works
 like \code{<<-}, which updates the binding where it is found.
+
+\code{locate_} is the normally evaluating version of
+locate; it takes a \link{name} or a character and an environment.
+
+The \code{locate_} method for quotations uses the expr and environment together.
+
+The list method accepts a list of \href{name}{names}, and returns a list of
+\href{environment}{environments}.
 }
 \examples{
 `<<-` <- function(lval, rval) {

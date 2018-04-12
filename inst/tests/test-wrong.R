@@ -112,8 +112,7 @@ test_that("parent.frame from a lazy argument in a closed environment", {
     }
     f()
   }
-  e()()$where %should_be% "e" %but_is% NULL
-  e()()$where %should_be% "0" %but_is% NULL
+  e()()$where %should_be% "e" %but_is% "0"
 })
 
 test_that("parent.frame from eval and do.call", {
@@ -158,9 +157,8 @@ test_that("parent.frame from eval and do.call in closed environments", {
   e()
   h <- function() {
     eval(quote(parent.frame()))$where %should_be% "0" %but_is% NULL
-    do.call("parent.frame", list(), envir=y)$where %should_be% "e" %but_is% NULL
-    do.call("parent.frame", list(), envir=y)$where %should_be% "e" %but_is% NULL
-    do.call("parent.frame", list(), envir=x)$where %should_be% "f" %but_is% NULL
+    do.call("parent.frame", list(), envir=z)$where %should_be% "f" %but_is% "0"
+    do.call("parent.frame", list(), envir=y)$where %should_be% "e" %but_is% "0"
   }
   h()
 })

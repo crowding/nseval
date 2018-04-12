@@ -3,13 +3,15 @@
 \name{list_missing}
 \alias{list_missing}
 \alias{missing_}
-\title{Check for missing_value()s.}
+\title{Check for \href{missing_value}{missing values}.}
 \usage{
 list_missing(...)
 
 missing_(x, unwrap = TRUE)
 }
 \arguments{
+\item{x}{a value, \link{dots}, or list.}
+
 \item{unwrap}{Whether to descend through unevaluated promises
 using \link{unwrap(x, TRUE)} before deciding if a promise is missing.}
 }
@@ -22,11 +24,11 @@ instead representing them directly.
 a vector of boolean values.
 }
 \description{
-For \code{\link{dots}} and \code{\link{quo}} objects, checks whether the expressions are missing
+For \code{[dots]} and \code{[quo]} objects, checks whether the expressions are missing
 without evaluating.
 }
 \details{
-For lists, check if they are identical to R's "missing value."
+For lists, check if each item is identical to \code{missing_value()}
 
 Checking for missing arguments of \code{...}, without forcing, can be
 useful if you need to implement array subsetting like \code{`[`},
