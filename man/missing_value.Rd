@@ -14,10 +14,10 @@ missing values with this many elements.}
 The symbol with empty name, or a list of such.
 }
 \description{
-The missing sigil (\code{R_MissingArg} at C level) has two related
-uses. One is "at parse time" when it is used to represent empty
-arguments. The other is "at run time" when it is bound to function
-arguments that were not given any value.
+The missing value (\code{R_MissingArg} at C level) has two related uses
+in R's implementation. One is "at parse time" when it is used to
+represent empty arguments. The other is "at run time" when it is
+bound to function arguments that were not given any value.
 }
 \details{
 Manipulating expressions ("computing on the language") means we

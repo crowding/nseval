@@ -1,7 +1,7 @@
-#' Show information about a \dots object.
+#' Convert a dots object into a data frame.
 #'
-#' `unpack` transforms the contents of a \dots object, into a data
-#' frame with columns "name", "expr", "envir" and "value".
+#' `as.data.frame.dots` transforms the contents of a \dots object,
+#' into a data frame with columns "name", "expr", "envir" and "value".
 #'
 #' @param ... Any number of arguments. Usually, you will pass in the
 #' ... from the body of a function,
@@ -12,28 +12,18 @@
 #'   "missing value" objects.) Therefore this sets the class on the
 #'   columns to one that has a special as.character method.
 #' @seealso dots_names dots_missing dots_exprs dots
-#' @aliases unpack
-#' @export
-dots_unpack <- function(...) {
-  unpack(dots(...))
-}
-
-#' @export
 #' @rdname dots_unpack
-#' @return A data frame, with one row for each element of \code{\...},
+#' @return A data frame, with one row for each element of `...`,
 #'   and columns: \describe{ \item{"name"}{The name of each argument,
 #'   or "" if present.}  \item{"envir"}{The enviroment the promise
 #'   came from.}  \item{"expr"}{The expression attached to the
 #'   promise. If the promise has been evaluated, this will be NULL.}
 #'   \item{"value"}{The value attached to the promise. If the promise
 #'   has not been evaluated, this will be NULL.}}
-
 #' @param x A \code{\link{dots}} object.
-unpack <- function(x) UseMethod("unpack")
-
 #' @export
 #' @useDynLib nse _dots_unpack
-unpack.dots <- function  (x) {
+as.data.frame.dots <- function  (x) {
   x <- .Call(`_dots_unpack`, x)
   class(x$envir) <- "oneline"
   class(x$expr) <- "oneline"
@@ -60,7 +50,7 @@ exprs.dots <- function(d) {
 
 #' @export
 #' @rdname dots
-#' @return `dots_exprs(...)` is a shorthand for exprs(dots(...))
+#' @return `dots_exprs(...)` is a shorthand for exprs(dots(...)).
 #' @useDynLib nse _dots_exprs
 #' @useDynLib nse _get_dots
 dots_exprs <- function(...) {
@@ -108,7 +98,7 @@ envs.dots <- function(x) {
 
 #' @export
 #' @rdname dots
-#' @return `dots_exprs(...)` is a shorthand for exprs(dots(...))
+#' @return `dots_exprs(...)` is a shorthand for `exprs(dots(...))1
 #' @useDynLib nse _dots_envs
 #' @useDynLib nse _get_dots
 dots_envs <- function(...) {
@@ -117,7 +107,7 @@ dots_envs <- function(...) {
 
 #' @export
 #' @rdname dots
-#' @return `dots_names(...)` is a shorthand for names(dots(...))
+#' @return `dots_names(...)` is a shorthand for `names(dots(...))`
 #' @useDynLib nse _dots_names
 #' @useDynLib nse _get_dots
 dots_names <- function(...) {
@@ -152,20 +142,20 @@ list_missing <- function(...) {
   })
 }
 
-#' Capture a list of arguments as an object.
+#' Capture a number of unevaluated arguments as an object.
 #'
 #' A dots object represents a named list of quotations. It mirrors R's
 #' special variable `...`. Unlike `...`, a `dots` is:
 #' * immutable (evaluating does not change it),
-#' * first-class (you can store it in any variable, not just `...`),
+#' * first-class (you can give it any name, not just `...`),
 #' * data (The R interpreter treates it as literal data rather than
 #'   triggering argument splicing).
 #'
-#' \code{d <- dots(...)} captures the contents of ... without
-#' triggering evaluation, and returns a list of class "dots", each
-#' element of which is a \code{\link{quotation}}. This extends,
+#' `d <- dots(...)` captures the contents of `...` without triggering
+#' evaluation, and returns a list of class "dots", each element of
+#' which is a \code{\link{quotation}}. This extends,
 #' e.g. \code{substitute(list(...))[[2]]} by capturing the context of
-#' each expression along with expressions.
+#' each expression along with the expressions.
 #'
 #' \code{d <- dots(foo, quux=bar+baz)} captures all of its arguments
 #' in a dots object, like \code{\link{alist}()}, but also captures the
@@ -173,14 +163,14 @@ list_missing <- function(...) {
 #'
 #' @param ... Any number of arguments.
 #' @return A list with class 'dots', each element of which is a [quotation].
-#' @seealso \%()\%
 #' @examples
 #'
 #' named.list <- function(...) {
 #'  # Collect only named arguments, ignoring unnamed arguments.
 #'  d <- dots(...)
-#'  list %()% d[names(d) != ""]
+#'  do(list, d[names(d) != ""])
 #' }
+#'
 #' named.list(a=1, b=2*2, stop("this is not evaluated"))
 #' @export
 dots <- function(...) {
@@ -206,23 +196,6 @@ as.dots.quotation <- function(x) {
   structure(list(x), class="dots")
 }
 
-
-#' dotc casts each of its arguments to a dotlist, and concatenates
-#' the lot, returning a dotlist.
-#'
-#' @param ... Things that can be converted to args or dots.
-#' @seealso quo
-#' @export
-dotc <- function(...) {
-  as.dots(list(...))
-}
-
-#' @rdname dots
-#' @export
-dotlist <- function(...) {
-  as.dots(c(...))
-}
-
 #' @export
 #' @param exprs An expression or list of expressions.
 #' @param envs An environment or list of environments.
@@ -238,10 +211,10 @@ dots_ <- function(exprs, envs) {
 
 #' R's missing value.
 #'
-#' The missing sigil (`R_MissingArg` at C level) has two related
-#' uses. One is "at parse time" when it is used to represent empty
-#' arguments. The other is "at run time" when it is bound to function
-#' arguments that were not given any value.
+#' The missing value (`R_MissingArg` at C level) has two related uses
+#' in R's implementation. One is "at parse time" when it is used to
+#' represent empty arguments. The other is "at run time" when it is
+#' bound to function arguments that were not given any value.
 #'
 #' Manipulating expressions ("computing on the language") means we
 #' have to deal with the first use case, because we have to be able to
@@ -286,43 +259,7 @@ missing_value <- function(n) {
   }
 }
 
-#' Apply a list of arguments to a function.
-#'
-#' These operators help in passing arbitrary lists of arguments to
-#' functions, with a more flexiple interface than
-#' \code{\link{do.call}}.
-#'
-#' @param arglist A dots object, or something that can be converted
-#'   into a dots object.
-#' @param f a function, to be called, or to to have arguments attached
-#'   to.
-#' @return The result of calling the function with the arguments
-#'   provided. When \code{x} is a \code{\dots} object, its contents
-#'   are passed inithout evaluating. When \code{x} is another type of
-#'   sequence its elements are put in the value slots of
-#'   already-evaluated promises. This is slightly different behavior
-#'   from \code{\link{do.call}(f, as.list(x), quote=TRUE)}, which
-#'   passes unevaluated promises with expressions wrapped in
-#'   \code{link{quote}}. This makes a difference if \code{f} performs
-#'   nonstandard evaluation.
-#' @rdname call
-#'
-#' @export "%()%"
-`%()%` <- function(f, arglist)
-    UseMethod("%()%", arglist)
-
-#' @export
-`%()%.dots` <- function(f, arglist) {
-  if (length(arglist) == 0) return(f())
-  (function(...) {
-    set_dots(environment(), arglist)
-    f(...)
-  })()
-}
-
 #' Set the binding of "..." in an environment.
-#'
-#' If an empty dotlist is given, the "..." binding is cleared.
 #'
 #' @param env The environment to update.
 #' @param d a \code{\link{dots}} object.
@@ -341,10 +278,10 @@ set_dots <- function(env, d, append=FALSE) {
   invisible(env)
 }
 
-#' Retrieve the binding of "..." from a given environment.
+#' Retrieve the binding of "..." from an environment.
 #'
 #' @param env The environment to look in.
-#' @param inherits Whether to look in enclosing environments for a dotsxp.
+#' @param inherits Whether to allow '...' to be found in enclosing environments.
 #' @return The contents of `...` converted to a `dots` object.
 #' @export
 #' @useDynLib nse _get_dots
@@ -352,12 +289,6 @@ set_dots <- function(env, d, append=FALSE) {
 get_dots <- function(env = caller(environment()), inherits=FALSE) {
   dts <- .Call(`_get_dots`, env, inherits)
   .Call(`_dotsxp_to_flist`, dts)
-}
-
-#' @export
-`%()%.default` <- function(f, arglist) {
-  set_dots(environment(), as.dots.literal(arglist))
-  f(...)
 }
 
 #' Check for missing_value()s.
@@ -435,7 +366,7 @@ value <- function(p) {
 
 #' @export
 value.dots <- function(d) {
-  list %()% d
+  do(list, d)
 }
 
 values <- function(p) {
@@ -444,12 +375,12 @@ values <- function(p) {
 
 #' @export
 values.dots <- function(d) {
-  list %()% d
+  do(list, d)
 }
 
 #' @export
 values.default <- function(d) {
-  list %()% as.dots(d)
+  do(as.dots, d)
 }
 
 #' @export

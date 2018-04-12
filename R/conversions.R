@@ -55,18 +55,6 @@ as.dots.lazy_dots <- function(x)
   structure(lapply(x, as.quo), class="dots")
 }
 
-#' Convert a list of expressions into a dots object.
-#'
-#' @param exprs a list of expressions
-#' @param env An environment or list of environments.
-#. @return a \link{dots} object with the given expressions.
-#' @export
-as.dots.exprs <- function(exprs, env = arg_env(exprs)) {
-  force(env)
-  dots_(exprs = exprs, envs = env)
-}
-
-
 #' `as.dots.literal` turns a list of data values into a dots object
 #'   consisting of forced promises. (A forced promise records a value
 #'   and an expression, but not an environment.)
@@ -248,7 +236,7 @@ as.lazy_dots <- function(x, env) {
 #' @export
 as.lazy_dots.dots <- function(x)
 {
-  lazyeval::lazy_dots %()% x
+  do(lazyeval::lazy_dots, x)
 }
 
 #' @export

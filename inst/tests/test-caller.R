@@ -222,7 +222,8 @@ test_that("get_call and get_function", {
     list(get_call(), get_function())
   }
   c <- e()
-  c %is% list(dots_(alist( (r), x=where, y=where, z=where),
+  cmp <- list(dots_(alist( (r), x=where, y=where, z=where),
                     list(  genv, genv, fenv, eenv)),
               h)
+  c %is% cmp
 })

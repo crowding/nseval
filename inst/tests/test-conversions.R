@@ -123,7 +123,7 @@ test_that("convert list of closures to dots", {
 
   d <- as.dots(list(fa, fb))
 
-  `%->%` <- function(arglist, f) f %()% arglist
+  `%->%` <- function(arglist, f) do(f, arglist)
 
   f <- function(a, b) {
     arg_expr(a) %is% quote(x + y)

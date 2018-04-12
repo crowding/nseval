@@ -3,7 +3,7 @@ context("formatting")
 `%is%` <- function(...) expect_equal(..., expected.label = ..2)
 
 test_that("dots_unpack has a print method that works", {
-  x <- capture.output(dots_unpack(a, b, c, d, 4, e))
+  x <- capture.output(as.data.frame(dots(a, b, c, d, 4, e)))
   expect_equal(length(x), 7)
 })
 

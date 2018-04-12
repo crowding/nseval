@@ -114,7 +114,7 @@ SEXP do_(SEXP dots) {
 
       if (PRVALUE(thing) != R_UnboundValue) {
         if (PREXPR(thing) == PRVALUE(thing)
-            && !isLanguage(PREXPR(thing))) {
+            && !is_language(PREXPR(thing))) {
           SETCAR(copyTo, PRVALUE(thing));
           LOG("copied 1 forced argument literally (a %s)\n",
               type2char(TYPEOF(CAR(copyTo))));
@@ -139,6 +139,7 @@ SEXP do_(SEXP dots) {
 
   // for the called code to see its caller, we wrap the call in
   // a promsxp that we make the call "from"
+  // FIXME: test if this is necessary
   SEXP from = PROTECT(allocSExp(PROMSXP));
   SET_PRENV(from, callenv);
   SET_PRCODE(from, call);
