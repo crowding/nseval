@@ -1,44 +1,97 @@
-#dots formatting
-
+#' Formatting methods for dots and quotations.
+#'
+#' `format.dots` constructs a string representation of a dots
+#' object. An unevaluated promise is shown as `envir ? expr` and an
+#' evaluated promise is shown as `expr := value`.
+#' @param x A dots object.
+#'
+#' @param compact Implies `show.environments=FALSE` and
+#'   `show.expressions=FALSE`.
+#' @param show.environments Whether to show environments for forced
+#'   quotations.
+#' @param show.expressions Whether to show expressions for unforced
+#'   quotations.
+#' @param ... Further arguments passed to [format] methods.
+#' @rdname format.quotation
 #' @export
-format.deparse <- function(x, ...) {
-  format(vapply(x, deparse, "", nlines=1, width.cutoff=100), ... )
+format.dots <- function(x,
+                        compact = FALSE,
+                        show.environments = !compact,
+                        show.expressions = !compact,
+                        width=30,
+                        ...) {
+  contents <- mapply(
+    x,
+    names(x) %||% rep("", length(x)),
+    FUN=function(x, n) {
+      paste0(c(
+        if (is.na(n)) "<NA> = " else if (n == "") "" else c(n, " = "),
+        format.quotation.inner(x,
+                               compact,
+                               show.environments,
+                               show.expressions,
+                               width)),
+        collapse="")
+    })
+
+  chars <- paste0("dots<< ",
+                  paste0(contents, collapse=", "),
+                  " >>")
+
+  format.default(chars, ...)
+}
+
+
+#' (format.quo)
+#'
+#' `format.quotation` constructs a string representation of a
+#' quotation object.
+#' @rdname format.quotation
+#' @export
+format.quotation <- function(x,
+                             compact = FALSE,
+                             show.environments = !compact,
+                             show.expressions = !compact,
+                             width=30,
+                             ...) {
+  chars = paste0("quo<< ",
+                 format.quotation.inner(
+                   x, compact, show.environments, show.expressions, width=30),
+                 " >>")
+  format.default(chars, ...)
+}
+
+#' (format)
+#'
+#' The `format` method for class `oneline` formats a sequence of
+#' objects to show one line each. It is somewhat similar to
+#' [format.AsIs] but tries harder with language objects.
+#' @param x An object.
+#' @param width The width of line to produce.
+#' @param max.width The maximum width of line to produce.
+#' @param ... Parameters passed to [base::format]
+#' @rdname format.quotation
+#'
+#' @export
+format.oneline <- function(x, max.width=50, width=max.width, ...) {
+  if ("oneline" %in% class(x)) {
+    class(x) <- setdiff(class(x), "oneline")
+  }
+  one_line(x, format_robust, width=width, max.width=max.width, ...)
 }
 
 #' @export
+#' @rdname format.quotation
 print.dots <- function(x, ...) {
   cat(format(x, ...), "\n")
   invisible(x)
 }
 
 #' @export
+#' @rdname format.quotation
 print.quotation <- function(x, ...) {
   cat(format(x, ...), "\n")
   invisible(x)
-}
-
-# call function using data frame as args, ignoring unmatched
-`%(d)%` <- function(f, d) {
-  n <- names(formals(f))
-  if("..." %in% n) {
-    f %()% d }
-  else {
-    f %()% d[intersect(names(d), names(formals(f)))];
-  }
-}
-
-ifelsedf <- function(d, condf, truef, falsef) {
-  cond <- condf %(d)% d
-  whenFalse <- if(!all(cond)) falsef %(d)% d[!cond, ] else logical(0)
-  whenTrue <- if(any(cond)) truef %(d)% d[cond, ] else logical(0)
-
-  #type-stably allocate a sequence (assuming truef and falsef are type-stable)
-  theMode <- mode(c(vector(mode(whenFalse), 0), vector(mode(whenTrue), 0)))
-
-  out <- vector(theMode, length(cond))
-  out[cond] <- whenTrue
-  out[!cond] <- whenFalse
-  out
 }
 
 # adapted from plyr::quickdf
@@ -84,82 +137,7 @@ format_robust <- function(x, ...) {
   tryCatch(format(x, ...), error=function(e) "?FORMAT?")
 }
 
-#' Format a sequence of objects to show one line each.
-#'
-#' Somewhat similar to format.AsIs but tries harder with language objects.
-#' @param x An object
-#'
-#' @param width the width of line to produce.
-#' @param max.width the width of line to produce.
-#' @param ... parameters passed to "format"
-#'
-#' @export
-format.oneline <- function(x, max.width=50, width=max.width, ...) {
-  if ("oneline" %in% class(x)) {
-    class(x) <- setdiff(class(x), "oneline")
-  }
-  one_line(x, format_robust, width=width, max.width=max.width, ...)
-}
-
 oneline <- function(x) structure(x, class=union("oneline", class(x)))
-
-#' Format a [dots] object for printing.
-#'
-#' Constructs a string representation of a dots object. In this representation
-#' an unevaluated promise is printed as `envir ? expr` and an evaluated
-#' promise is shown as `expr := value`.
-#' @param x A dots object.
-#'
-#' @param compact Implies `show.environments=FALSE` and
-#'   `show.expressions=FALSE`.
-#' @param show.environments Whether to show environments for forced
-#'   quotations.
-#' @param show.expressions Whether to show expressions for unforced
-#'   quotations.
-#' @param ... Further arguments passed to [format] methods.
-#'
-#' @export
-format.dots <- function(x,
-                       compact = FALSE,
-                       show.environments = !compact,
-                       show.expressions = !compact,
-                       width=30,
-                       ...) {
-  contents <- mapply(
-    x,
-    names(x) %||% rep("", length(x)),
-    FUN=function(x, n) {
-      paste0(c(
-        if (is.na(n)) "<NA> = " else if (n == "") "" else c(n, " = "),
-        format.quotation.inner(x,
-                               compact,
-                               show.environments,
-                               show.expressions,
-                               width)),
-        collapse="")
-    })
-
-  chars <- paste0("dots<< ",
-                   paste0(contents, collapse=", "),
-                   " >>")
-
-  format.default(chars, ...)
-}
-
-
-format.quotation <- function(x,
-                             compact = FALSE,
-                             show.environments = !compact,
-                             show.expressions = !compact,
-                             width=30,
-                             ...) {
-  chars = paste0("quo<< ",
-                 format.quotation.inner(
-                   x, compact, show.environments, show.expressions, width=30),
-                 " >>")
-  format.default(chars, ...)
-}
-
 
 format.quotation.inner <- function(x,
                                    compact = FALSE,

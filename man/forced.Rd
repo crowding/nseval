@@ -14,8 +14,7 @@
 \alias{value}
 \alias{value.quotation}
 \alias{values}
-\title{Test whether arguments and quotations are forced, or construct
-forced quotations or dots.}
+\title{Working with forced quotations and dots.}
 \usage{
 forced(x)
 
@@ -46,10 +45,9 @@ values(p)
 \arguments{
 \item{...}{any number of arguments.}
 
-\item{q}{a \link{quotation}  or \link{dots} object.}
+\item{q}{a \link{quotation} or \link{dots} object.}
 
-\item{eval}{Determine the value of the quotation by something other
-than 'eval'.}
+\item{eval}{Call something other than 'eval' to "evaluate" the expression.}
 
 \item{mode}{Whether to force in "any" mode or "function" mode (see
 \link{locate}).}
@@ -61,19 +59,18 @@ than 'eval'.}
 
 \code{forced_dots} and \code{forced_dots_} return \link{dots} objects.
 
-\code{value} or \code{values} returns the value of forced quotations.
-For unforced quotations, it forces them first; that
-is, \code{value(force_(quo(x))} is equivalent to \code{value(quo(x))} which
-is also equivalent to just \code{x} (for any expression x).
+\code{value} returns the result of forcing the quotation.
+
+\code{values} returns a list.
 }
 \description{
 In R's implementation of lazy evaluation, function arguments are
-first recorded as a \code{promise} which contains a pair of an
-expression and a source environment. After a promise's value is
-needed, it is converted to a "forced" promise, which records the
-expression and value, but no longer records the source environment
-(This allows the environments to be garbage collected.) \href{quo}{Quotation}
-objects also exist in unforced and forced varieties.
+first recorded as a \code{promise} which pair of an expression with a
+source environment. After a promise's value is needed, it is
+converted to a "forced" promise, which records the expression and
+value, but no longer records the source environment (this allows
+the environments to be garbage collected.) \href{quo}{Quotation} objects
+also exist in unforced and forced varieties.
 
 \code{forced_quo(x)} forces its argument before capturing it as a
 quotation (including the literal expression). It is equivalent to
@@ -91,6 +88,9 @@ containing forced quotations, analogously to \code{forced_quo} and
 \code{force_(x)} evaluates the contents of a quotation or dots object,
 if they are not already forced, and returns a new, forced quotation
 or dots object.
+
+\code{value} or \code{values} returns the value of a quotation, forcing it if
+necessary.
 }
 \seealso{
 is_forced
