@@ -73,7 +73,6 @@ expr <- function(q) UseMethod("expr")
 
 #' @rdname quo
 #' @export
-#' @return `expr(q)` accesses the expression.
 #' @param q A quotation object.
 expr.quotation <- function(q) {
   .Call("_expr_quotation", q)
@@ -91,66 +90,60 @@ expr.quotation <- function(q) {
   quo_(value, env(x))
 }
 
-#' @export
-force_ <- function(q, ...) {
-  UseMethod("force_")
-}
-
-#' @export
-force_.quotation <- function(q, eval=base::eval) {
-  if (forced(q)) {
-    q
-  } else {
-    .Call('_quotation', NULL, expr(q), eval(expr(q), env(q)))
-  }
-}
-
-#' @rdname quo
-#' @return `value(q)` evaluates a quotation. If the quotation is
-#'   already [forced](is_forced) then evaluation retreives the stored
-#'   value and has no other effect. `value()` does not change the
-#'   quotation to forced; repeated calls to `value` will have repeated
-#'   effects.
-#' @export
-value.quotation <- function(q, mode="any") {
-  if (forced(q)) {
-    q()
-  } else {
-    switch(mode,
-           "any" = eval(body(q), environment(q)),
-           "function" = stop("Not implemented"),
-           stop("Invalid mode")
-           )
-  }
-}
-
-##' @export
-#value.default <- function(f) value(as.quo(f))
-
-#' @export
-forced <- function(x) UseMethod("forced")
-
-#' @export
-#' @useDynLib nse _forced_quotation
-forced.quotation <- function(x) {
-  .Call(`_forced_quotation`, x)
-}
-
-# #' @export
-#forced.default <- function(x) forced(as.quo(x))
-
-#' Put data values into quotations.
-#'
-#' `as.quo.literal(x)` creates a forced quotation with the given value.
-#'
-#' @return as.quo.literal
-#' @export
-as.quo.literal <- function(x) {
-  .Call(`_quotation_literal`, x)
-}
-
 #' @rdname quo
 #' @export
 is.quotation <- function(x) {
   inherits(x, "quotation")
 }
+#' @export
+as.quo <- function(x) {
+  UseMethod("as.quo")
+}
+
+#' @export
+as.quo.quotation <- identity
+
+#' @export
+as.quo.function <- function(x) {
+  if (is.primitive(x)) stop("can't convert primitive to quotation")
+  f <- formals(x)
+  if (length(f) != 0) {
+    stop("can only convert function to quotation if it has no args")
+  }
+  quo_(body(x), environment(x))
+}
+
+#' @export
+as.quo.quotation <- identity
+
+#' @export
+as.quo.dots <- function(x) {
+  if (length(x) == 1)
+    x[[1]]
+  else
+    stop("can't convert nonscalar dots to a quotation")
+}
+
+#' @export
+as.quo.default <- function(x) {
+  if (mode(x) == "list") {
+    expr <- x$expr
+    env <- x$env
+  } else {
+    stop(paste0("can't convert ", class(x)[1] ," to a quo"))
+  }
+  quo_(expr, env)
+}
+
+#' @export
+as.quo.formula <- function(x) {
+  expr <- x[[2]]
+  env <- attr(x, ".Environment")
+  quo_(expr, env)
+}
+
+#' @export
+as.quo.lazy <- function(x) {
+  quo_(x$expr, x$env)
+}
+

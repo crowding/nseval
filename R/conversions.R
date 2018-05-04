@@ -1,9 +1,5 @@
-#' Convert a list of expressions into a \code{\dots} object (a list of
-#' promises.)
-#'
+#' @rdname dots
 #' @param x a vector or list.
-#' @param env The environment to attach to each expression.
-#'
 #' @return An object of class \code{\dots}. For \code{as.dots}, the
 #'   list items are treated as data values, and create already-forced
 #'   promises. For \code{as.dots.exprs}, values are treated as the
@@ -32,11 +28,9 @@ as.dots.list <- function(x)
 #' the \dots list. The output will not be in any particular order.
 #'
 #' @export
-#' @aliases dots2env
+#' @rdname dots2env
+#' @seealso env2dots
 as.dots.environment <- function(x) env2dots(x)
-
-#' @export
-as.dots.dots <- function(x) x
 
 is.sequence <- function(x) is.vector(x) || is.list(x)
 
@@ -55,26 +49,14 @@ as.dots.lazy_dots <- function(x)
   structure(lapply(x, as.quo), class="dots")
 }
 
-#' `as.dots.literal` turns a list of data values into a dots object
-#'   consisting of forced promises. (A forced promise records a value
-#'   and an expression, but not an environment.)
-#' @param x a list.
-#' @rdname as.dots
-#' @export
-#' @useDynLib nse _quotation_literal
-as.dots.literal <- function(values) {
-  structure(lapply(as.list(values),
-                   function(x) .Call(`_quotation_literal`, x)),
-            class="dots")
-}
-
 #' Copy bindings from an environment into a dots object.
 #'
 #' @param env An environment.
 #' @param names Which names to extract from the environment. By
-#'   default extracts the bindings present at root level.
+#'   default extracts all bindings present at root, but not in
+#'   enclosing environments.
 #' @param include_missing Whether to include missing bindings.
-#' @param use_dots Whether to unpack the contents of `...`.
+#' @param expand_dots Whether to include the contents of `...`.
 #' @return A \link{dots} object.
 #' @export
 #' @useDynLib nse _env_to_dots
@@ -89,15 +71,15 @@ env2dots <- function(env,
 filter <- function(x, pred) x[pred(x)]
 goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 
-#' Take quotations from a dots object and inject them into an environment.
+#' Take quotations from a dots object and place them into an environment.
 #'
 #' All named entries in the dots object will be bound to
 #' variables. Unnamed entries will be appended to any existing value
 #' of `...` in the order in which they appear.
 #'
-#' @param d A named dots object to use.
+#' @param d A [dots] object.
 #' @param names Which variables to populate in the environment. If
-#'   NULL is given,  will use all names present in the dotlist.  If a
+#'   NULL is given, will use all names present in the dotlist.  If a
 #'   name is given that does not match any names from the dots object,
 #'   an error is raised.
 #' @param env Specify an environment object to populate and return. By
@@ -118,6 +100,7 @@ goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 #'   \code{\link{new.env}}.
 #' @return An environment object.
 #' @aliases as.environment.dots
+#' @seealso env2dots
 #' @export
 #' @useDynLib nse _flist_to_dotsxp
 #' @useDynLib nse _dots_to_env
@@ -150,10 +133,12 @@ dots2env <- function(d,
   }
 }
 
-#' Bind a name in an environment to a promise.
+#' `quo2env` takes a quotation and creates a single lazy binding in a
+#' given environment.
 #' @param q a quotation.
 #' @param env The environment to store in.
 #' @param name The name to use. If "" or NULL, will append to "...".
+#' @rdname dots2env
 quo2env <- function(q, env, name) {
   q <- as.quo(q)
   d <- as.dots(q)
@@ -176,57 +161,6 @@ function_ <- function(args, body, env = caller(environment())) {
   f
 }
 
-#' @export
-as.quo <- function(x) {
-  UseMethod("as.quo")
-}
-
-#' @export
-as.quo.quotation <- identity
-
-#' @export
-as.quo.function <- function(x) {
-  if (is.primitive(x)) stop("can't convert primitive to quotation")
-  f <- formals(x)
-  if (length(f) != 0) {
-    stop("can only convert function to quotation if it has no args")
-  }
-  quo_(body(x), environment(x))
-}
-
-#' @export
-as.quo.quotation <- identity
-
-#' @export
-as.quo.dots <- function(x) {
-  if (length(x) == 1)
-    x[[1]]
-  else
-    stop("can't convert nonscalar dots to a quotation")
-}
-
-#' @export
-as.quo.default <- function(x) {
-  if (mode(x) == "list") {
-    expr <- x$expr
-    env <- x$env
-  } else {
-    stop(paste0("can't convert ", class(x)[1] ," to a quo"))
-  }
-  quo_(expr, env)
-}
-
-#' @export
-as.quo.formula <- function(x) {
-  expr <- x[[2]]
-  env <- attr(x, ".Environment")
-  quo_(expr, env)
-}
-
-#' @export
-as.quo.lazy <- function(x) {
-  quo_(x$expr, x$env)
-}
 
 #' @export
 as.lazy_dots <- function(x, env) {

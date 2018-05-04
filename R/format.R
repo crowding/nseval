@@ -90,6 +90,7 @@ format_robust <- function(x, ...) {
 #' @param x An object
 #'
 #' @param width the width of line to produce.
+#' @param max.width the width of line to produce.
 #' @param ... parameters passed to "format"
 #'
 #' @export
@@ -102,7 +103,7 @@ format.oneline <- function(x, max.width=50, width=max.width, ...) {
 
 oneline <- function(x) structure(x, class=union("oneline", class(x)))
 
-#' Format a dots object for printing.
+#' Format a [dots] object for printing.
 #'
 #' Constructs a string representation of a dots object. In this representation
 #' an unevaluated promise is printed as `envir ? expr` and an evaluated

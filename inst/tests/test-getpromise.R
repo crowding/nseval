@@ -212,7 +212,6 @@ test_that("empty dots accessors return empty lists", {
   length(dots()) %is% 0
   length(dots_exprs()) %is% 0
   length(dots_envs()) %is% 0
-  length(dots_names()) %is% 0
   length(is_forced()) %is% 0
   length(is_missing()) %is% 0
   length(is_literal()) %is% 0
@@ -399,7 +398,7 @@ test_that("locate dots", {
     y <- function() {
       i <- locate_(quote(...), environment())
       k <- locate_("...", environment())
-      j <- locate("...")
+      j <- locate( (...) )
       expect_error(locate("...", mode = "function"))
       expect_identical(i, k)
       expect_identical(j, k)
@@ -445,5 +444,31 @@ test_that("unwrap quotation", {
     f(400, function(x) unwrap(quo(x), TRUE))
   }
   ff <- cmpfun(ff)
-  ff() %is% as.quo.literal(400)
+  ff() %is% forced_quo_(400)
+})
+
+test_that("is_default", {
+  g <- function() {
+    f <- function(x = "this is my default") is_default(x)
+    expect_true(f())
+    expect_false(f("no"))
+    expect_false(f("this is my default"))
+  }
+
+  h <- cmpfun(g)
+  body(g) <- body(g) # strip compilation if any
+  g()
+  h()
+
+  g <- function() {
+    f <- function(x = two+two) is_default(x)
+    expect_true(f())
+    expect_false(f("no"))
+    expect_false(f(two+two))
+  }
+
+  h <- cmpfun(g)
+  body(g) <- body(g)
+  g()
+  h()
 })

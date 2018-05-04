@@ -11,7 +11,6 @@
 \alias{expr.quotation}
 \alias{expr<-}
 \alias{expr<-.quotation}
-\alias{value.quotation}
 \alias{is.quotation}
 \title{Capture or construct a quotation.}
 \usage{
@@ -35,8 +34,6 @@ expr(x) <- value
 
 \method{expr}{quotation}(x) <- value
 
-\method{value}{quotation}(q, mode = "any")
-
 is.quotation(x)
 }
 \arguments{
@@ -53,14 +50,6 @@ an expression and value but no environment.}
 }
 \value{
 an object of class "quotation".
-
-\code{expr(q)} accesses the expression.
-
-\code{value(q)} evaluates a quotation. If the quotation is
-already \href{is_forced}{forced} then evaluation retreives the stored
-value and has no other effect. \code{value()} does not change the
-quotation to forced; repeated calls to \code{value} will have repeated
-effects.
 }
 \description{
 A quo (or quotation) \code{q <- quo( <anything> )} is an object with two

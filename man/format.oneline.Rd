@@ -9,6 +9,8 @@
 \arguments{
 \item{x}{An object}
 
+\item{max.width}{the width of line to produce.}
+
 \item{width}{the width of line to produce.}
 
 \item{...}{parameters passed to "format"}

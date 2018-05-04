@@ -40,15 +40,15 @@ test_that("get_dots", {
 
 test_that("set_dots", {
   g <- function(x, ...) {
-    list(function() dots_exprs(...), environment())
+    list(function() exprs(dots(...)), environment())
   }
   fe <- g(a, b, foo=c)
   f <- fe[[1]]
   e <- fe[[2]]
 
-  f() %is% dots_exprs(b, foo=c)
+  f() %is% exprs(dots(b, foo=c))
   set_dots(e, dots(x, y, bar=z))
-  f() %is% dots_exprs(x, y, bar=z)
+  f() %is% exprs(dots(x, y, bar=z))
 
   set_dots(e, dots())
   f() %is% list()
@@ -56,13 +56,13 @@ test_that("set_dots", {
   # calling set_dots adds dots binding if not already present
   # this will generate warning about ... used in incorrect context
   g <- function() {
-    list(function() dots_exprs(...), environment())
+    list(function() exprs(dots(...)), environment())
   }
   fe <- g()
   f <- fe[[1]]
   e <- fe[[2]]
   set_dots(e, dots(a, foo=b, c))
-  f() %is% dots_exprs(a, foo=b, c)
+  f() %is% exprs(dots(a, foo=b, c))
 
   # and with append=TRUE
   f <- function(...) {
@@ -83,15 +83,6 @@ test_that("set_dots", {
  })
 
 test_that("convert dots to list of closures", {
-  # on further thought, dots actually should just be a list of
-  # closures and promises represented as clocures? but that means that
-  # we have no good way to represent forced promises... other than
-  # literal values. Perhaps we can represent forced values as some
-  # other SEXP, ... oh just function with literal and emptyeny should
-  # do, never mind. You do lose the representation of forced promise
-  # with remaining expression... hmm. that is fairly marginal.
-
-  # Which means this test stands!
   x <- 2
   neg <- `-`
   d <- dots(4+5, n = neg(6), x * 3)

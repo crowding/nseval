@@ -11,11 +11,12 @@ env2dots(env, names = ls(envir = env, all.names = TRUE),
 \item{env}{An environment.}
 
 \item{names}{Which names to extract from the environment. By
-default extracts the bindings present at root level.}
+default extracts all bindings present at root, but not in
+enclosing environments.}
 
 \item{include_missing}{Whether to include missing bindings.}
 
-\item{use_dots}{Whether to unpack the contents of \code{...}.}
+\item{expand_dots}{Whether to include the contents of \code{...}.}
 }
 \value{
 A \link{dots} object.

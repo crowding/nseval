@@ -12,7 +12,7 @@ set_dots(env, d, append = FALSE)
 \arguments{
 \item{env}{The environment to look in.}
 
-\item{inherits}{Whether to allow '...' to be found in enclosing
+\item{inherits}{Whether to allow '...' to be inherited in enclosing
 environments.}
 
 \item{d}{a \code{[dots]} object.}

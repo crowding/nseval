@@ -51,5 +51,5 @@ test_that("format dots and quotations", {
 
 test_that("format outputs one line", {
   expect_equal(length(format(dots(a = function(x){x}))), 1)
-  expect_equal(length(as.dots.literal(list(a = function(x){x}))), 1)
+  expect_equal(length(forced_dots_(list(a = function(x){x}))), 1)
 })

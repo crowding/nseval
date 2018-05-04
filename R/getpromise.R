@@ -1,18 +1,52 @@
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-#' Capture named arguments from the present environment, returning a dots list.
+#' Retreive lazy arguments from environments, by name.
 #'
-#' @param ... Variable names (unevaluated). Arguments may be named; these names
-#' determine the names on the output list.
-#' @return a \code{\link{dots}} object containing the promises that are bound to
-#' those variables in the calling environment.
+#' `arg` looks in the given environment for a binding,
+#' without forcing any promises, and returns it as a [quotation].
 #'
-#' Note that `args(a, b, ...)` probably doesn't do what you want. This
-#' is because R unwraps `...` before invoking `args`, so this ends up
-#' double-unwrapping `...`. You can avoid this using the syntax
-#' `args(x, y, (...))` (which is equivalent to `c(args(x, y), dots(...))`)
+#' Generally, `arg(x)` is equivalent to `unwrap(quo(x))`.
+#'
+#' @param sym The name to look up. For `arg` this is a symbol or
+#'   character.
+#' @param env The environment to look in. By default, the environment
+#'   from which `sym` was passed.
+#' @return `arg` returns a [quotation] object.
+#' @note If you use a a literal character value, as in `arg_("x",
+#'   environment())`, you MUST also give the environment parameter.The
+#'   reason is that the R will discard scope information about code
+#'   literals, depending on optinization settings; so when `arg_("x")
+#'   is called in compiled code, the default value for `env` will be
+#'   found to be [emptyenv()].
+#' @export
+arg <- function(sym,
+                env = arg_env_(quote(sym), environment())) {
+  sym_ <- arg_expr_(quote(sym), environment())
+  arg_(sym_, env)
+}
+
+
+#' arg
+#'
+#' `args` looks up multiple variables, and returns a [dots] object.
+#' `args(x, y)` is equivalent to `unwrap(dots(x=x, y=y))`.
+#'
+#' If any of the given variables are not bound, an error will be raised.
+#'
+#' @param ... Bare names (not forced). Arguments may be named; these
+#'   names determine the names on the output list. If argument names
+#'   are not given, the input is used as output names
+#' @return `args` returns a [dots] object.
+#' @note Beware of writing `args(a, b, ...)` which probably doesn't do
+#'   what you want. This is because R unwraps the symbol `...`
+#'   occurring in argument lists before invoking `args`, so this ends
+#'   up double-unwrapping `...`. For extracting `...` alongside named
+#'   arguments you can use the syntax `args(x, y, (...))` (which is
+#'   equivalent to `c(args(x, y), dots(...))`). You can also use
+#'   [get_call()] to extract all function inputs.
+#' @return `args` returns a `[dots]` object.
 #' @seealso dots get_dots
-#' @rdname arg_list
+#' @rdname arg
 #' @export
 #' @useDynLib nse _arg_dots
 #' @useDynLib nse _dotsxp_to_flist
@@ -21,34 +55,24 @@ args <- function(...) {
   args_(exprs(d), envs(d))
 }
 
-#' Capture an argument by name from the present environment.
+#' arg
 #'
-#' @param sym the name to look up. For \code{arg} this is a symbol
-#'   and not evaluated; for \code{arg_} this is a symbol or
-#'   character.
-#' @rdname arg
-#' @return A [quo] object.
-#' @export
-arg <- function(sym,
-                env = arg_env_(quote(sym), environment())) {
-  sym_ <- arg_expr_(quote(sym), environment())
-  arg_(sym_, env)
-}
-
-#' @param env  The environment to look in.
+#' `arg_` is the normally evaluating version of `arg_`.
+#' `arg(x, e)` is equivalent to `arg_(quo(x, e))`.
 #' @rdname arg
 #' @export
 #' @useDynLib nse _arg
-arg_ <- function(name, env = arg_env(name, environment())) {
-  force(env)
-  .Call(`_arg`, env, as.name(name), TRUE)
+arg_ <- function(sym, env = arg_env(sym, environment())) {
+  .Call(`_arg`, env, as.name(sym), TRUE)
 }
 
-#' `args_` is a normally evaluating version of `args`.
+#' arg
 #'
-#' @rdname arg_list
-#' @param names A character vector or list of names.
-#' @param envs An environment, or list of environments, to look for
+#' `args_` is a normally evaluating version of `args`; `args_(dots(x, y))`
+#' is equivalent to `args(x, y)`.
+#' @rdname arg
+#' @param syms A character vector or list of names.
+#' @param envs An environment, or a list of environments, to look for
 #'   the bindings in.
 #' @export
 #' @useDynLib nse _arg_dots
@@ -59,199 +83,39 @@ args_ <- function(syms, envs) {
   .Call(`_dotsxp_to_flist`, dts)
 }
 
-#' Get environment or expression from a named argument.
-#'
-#' \code{arg_env} finds the origin of an expression of an argument
-#' bound in the present environment. It is equivalent to `env(arg(x))`
-#' is further equivalent to `env(unwrap(quo(x)))`.
-#'
-#' @rdname arg_env
-#' @param name A single argument name; not evaluated.
-#' @param env The environment to look in.
-#' @export
-#' @useDynLib nse _arg_env
-arg_env <- function(name,
-                    env = arg_env_(quote(name), environment())) {
-  name_ <- arg_expr_(quote(name), environment())
-  arg_env_(name_, env)
-}
-
-#' _arg_env(x, env) is the normally evaluating version of arg_env; you
-#' supply a vatiable name and an environment to look in.
-#'
-#' @export
-#' @useDynLib nse _arg_env
-arg_env_ <- function(name,
-                     env = arg_env_(quote(name), environment())) {
-  .Call(`_arg_env`, env, as.name(name), TRUE)
-}
-
-#' \code{arg_expr(x)} is a shortcut for `expr(arg(x))`. It fetches the
-#' expression attached to a promise in the present environment.
-#'
-#' @rdname arg_env
-#' @export
-#' @useDynLib nse _arg_expr
-arg_expr <- function(name,
-                     env=arg_env_(quote(name), environment())) {
-  name_ <- arg_expr_(quote(name), environment())
-  arg_expr_(name_, env)
-}
-
-#' \code{arg_expr_} is the normally evaluating version of arg_expr.
-#' @rdname arg_env
-#' @export
-#' @useDynLib nse _arg_expr
-arg_expr_ <- function(name,
-                      env=arg_env_(quote(name), environment())) {
-  .Call(`_arg_expr`, env, as.name(name), TRUE)
-}
-
-#' \code{is_promise} returns TRUE if a named variable is bound to a
-#' promise. It returns a boolean vector with one entry for each name
-#' given. An error is raised if a binding does not exist.
-#'
-#' @rdname arg_env
-#' @export
-#' @param ... Any number of variable names; not evaluated.
-is_promise <- function(...) {
-  d <- dots(...)
-  is_promise_(exprs(d), envs(d))
-}
-
-#' \code{is_promise_} is a normally evaluating version of \code{is_promise}.
-#' @rdname arg_env
-#' @export
-#' @useDynLib nse _is_promise
-is_promise_ <- function(syms, envs)
-{
-  if (is.null(names(syms)))
-    names(syms) <- as.character(syms)
-  mapply(
-     syms,
-     if (is.list(envs)) envs else list(envs),
-     FUN=function(sym, env) {
-       .Call(`_is_promise`, env, as.name(sym), TRUE)
-     })
-}
-
-#' Detect if named arguments are missing.
-#'
-#' `is_missing(...)` is similar to [missing] but can take multiple
-#' arguments.
-#'
-#' `is_missing_` is a normally evaluating equivalent of
-#' `is_missing`
-#'
-#' @rdname arg_env
-#' @param syms A character vector or list of symbols.
-#' @param envs A list of environment objects.
-#' @param recursive Whether to recursively descend through unforced
-#'   promises. `TRUE` mimics the behavior of [missing].
-#' @export
-#' @useDynLib nse _is_missing
-is_missing_ <- function(syms, envs, recursive=TRUE) {
-  if (is.null(names(syms)))
-    names(syms) <- as.character(syms)
-  if (!is.list(envs)) envs <- list(envs)
-  mapply(
-    syms,
-    if (is.list(envs)) envs else list(envs),
-    FUN=function(sym, env) {
-      .Call(`_is_missing`, env, as.name(sym), unwrap)
-    })
-}
-
-#' ...
-#'
-#' \code{is_forced} returns FALSE if an argument is bound to a promise that
-#' has not yet been forced, TRUE otherwise. An error is raised if a binding
-#' does not exist.
-#'
-#' @rdname arg_env
-#' @export
-is_forced <- function(...) {
-  d <- dots(...)
-  is_forced_(exprs(d), envs(d))
-}
-
-#' ...
-#'
-#' \code{is_forced_} is a normally evaluating version of \code{is_forced}.
-#' @rdname arg_env
-#' @export
-#' @useDynLib nse _is_forced
-is_forced_ <- function(syms, envs) {
-  if (is.null(names(syms)))
-    names(syms) <- as.character(syms)
-  mapply(
-     syms,
-     if(is.list(envs)) envs else list(envs),
-     FUN=function(sym, env) {
-       .Call(`_is_forced`, env, as.name(sym), TRUE)
-     })
-}
-
-#' ...
-#'
-#' \code{is_literal} returns TRUE if a binding is (or could be) a
-#' source literal. This includes singleton vectors and missing
-#' values. (Depending on optimization settings, R will often not
-#' bother constructing promises to wrap a literal.)
-#' @rdname arg_env
-#' @export
-is_literal <- function(...) {
-  d <- dots(...)
-  is_literal_(exprs(d), envs(d))
-}
-
-#' ...
-#'
-#' \code{is_literal_} is a normally evaluating version of \code{is_literal}.
-#' @rdname arg_env
-#' @export
-#' @useDynLib nse _is_literal
-is_literal_ <- function(syms, envs, warn=TRUE) {
-  if (is.null(names(syms)))
-    names(syms) <- as.character(syms)
-  mapply(
-    syms,
-    if (is.list(envs)) envs else list(envs),
-    FUN=function(sym, env) {
-      .Call(`_is_literal`, env, as.name(sym), TRUE)
-    })
-}
-
-is_missing <- function(...) {
-  d <- dots(...)
-  is_missing_(exprs(d), envs(d))
-}
-
-is_missing_ <- function(syms, envs) {
-  if (is.null(names(syms)))
-    names(syms) <- as.character(syms)
-  mapply(
-    syms,
-    if (is.list(envs)) envs else list(envs),
-    FUN=function(sym, env) {
-      .Call(`_is_missing`, env, as.symbol(sym), TRUE, TRUE)
-    })
-}
 
 #' Determine which enclosing environment defines a name.
 #'
-#' `locate` is useful if you want to implement something that works
-#' like `<<-`, which updates the binding where it is found.
-#'
-#' @param x A name.
-#' @param mode Either "any" or "function".
+#' @param sym A name. For `locate` this is used unforced. For
+#'   `locate_` it is a [name] or character.
+#' @param env Which environment to begin searching from.
+#' @param mode Either "any" or "function". "any" finds the lowest
+#'   enclosing environment which defines a symbol. "function" finds an
+#'   environment which defines the symbol as a function, possibly
+#'   forcing promises along the way.
+#' @return An environment object which defines `sym`, if one is found.
+#' @note If you use a literal character argument, as in `locate("x",
+#'   environment())`, you must also provide the environment
+#'   argument. However `locate(x)` will work OK. See note under [arg].
 #' @examples
+#' # `locate` is useful if you want to implement something that works
+#' # like [<<-], which updates the binding where it is found.
 #' `<<-` <- function(lval, rval) {
-#'  lval <- arg(lval)
-#'  rval <- arg(rval)
-#'  target.env <- find_(expr(lval), parent.env(env(lval)))
-#'  do_(quo(`<-`, target.env), lval, arg(rval))
+#'  lval_ <- arg(lval_)
+#'  rval_ <- arg(rval_)
+#'  target.env <- locate_(expr(lval_), parent.env(env(lval_)))
+#'  do_(quo(`<-`, target.env), lval_, rval_)
 #' }
+#'
+#' x <- "not this one"
+#' local({
+#'   x <- "this one"
+#'   local({
+#'     x <- "not this one"
+#'     x <<- "this works just like builtin <<-"
+#'   })
+#'   print(x)
+#' })
 #' @export
 locate <- function(sym,
                    env = arg_env_(quote(sym), environment()),
@@ -260,10 +124,7 @@ locate <- function(sym,
   locate_(sym = sym_, env = env, mode = mode, ...)
 }
 
-#' `locate_` is the normally evaluating version of
-#' locate; it takes a [name] or a character and an environment.
 #' @rdname locate
-#' @return an environment.
 #' @export
 locate_ <- function(sym,
                     env = arg_env(quote(sym), environment()),
@@ -271,7 +132,9 @@ locate_ <- function(sym,
   UseMethod("locate_")
 }
 
-#' The `locate_` method for quotations uses the expr and environment together.
+#' locate
+#'
+#' The method for quotations uses the expr and environment together.
 #' @rdname locate
 #' @export
 locate_.quotation <- function(sym, ..., mode = "any") {
@@ -279,7 +142,6 @@ locate_.quotation <- function(sym, ..., mode = "any") {
 }
 
 #' @rdname locate
-#' @param env Which environment to begin searching from.
 #' @export
 locate_.character <- function(sym, env=arg_env(x, environment()), mode="any", ...) {
   if (length(x) == 1) {
@@ -289,6 +151,19 @@ locate_.character <- function(sym, env=arg_env(x, environment()), mode="any", ..
   }
 }
 
+#' @export
+#' @rdname locate
+`locate_.call` <- function(sym, env=arg_env(x, environment()), mode="any", ...) {
+  locate_(sym[[2]], env=env, mode=mode)
+}
+
+#' @export
+#' @rdname locate
+`locate_.(` <- `locate_.call`
+
+
+#' locate
+#'
 #' The list method accepts a list of [names](name), and returns a list of
 #' [environments](environment).
 #' @rdname locate
@@ -299,8 +174,9 @@ locate_.list <- function(sym, ...) {
 
 #' @rdname locate
 #' @param mode Either "any" or "function".
-#' @param ifnotfound What is returned if the name is not found.
-#' @useDynLib nse _locate _locate_all
+#' @param ifnotfound What is returned if the symbol is not found. By
+#'   default an exception is raised.
+#' @useDynLib nse _locate
 #' @export
 locate_.name <- function(sym,
                          env = arg_env_(quote(sym), environment()),

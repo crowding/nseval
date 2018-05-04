@@ -53,10 +53,10 @@ test_that("do_ with primitives", {
 
   # however `+` is copacetic with promises and being called from emptyenv
   x <- 3
-  do_(as.quo.literal(`+`), dots(x+1, x+2)) %is% 9
+  do_(forced_quo_(`+`), dots(x+1, x+2)) %is% 9
   do_(quo(`+`, force=TRUE), dots(x+1, x+2)) %is% 9
 
-  mode(do(alist, as.quo.literal(as.name("x")))[[1]]) %is% "promise" #???
+  mode(do(alist, forced_quo_(as.name("x")))[[1]]) %is% "promise" #???
   #FIXME. This may point to an incompatibility with how we do do()
   #versus sys.call(), which makes sys.call() leak promsxps to
   #user. However, this package's position is that sys.call() is

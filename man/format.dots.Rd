@@ -2,7 +2,7 @@
 % Please edit documentation in R/format.R
 \name{format.dots}
 \alias{format.dots}
-\title{Format a dots object for printing.}
+\title{Format a \link{dots} object for printing.}
 \usage{
 \method{format}{dots}(x, compact = FALSE, show.environments = !compact,
   show.expressions = !compact, width = 30, ...)

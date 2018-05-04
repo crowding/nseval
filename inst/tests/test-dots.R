@@ -303,15 +303,16 @@ test_that("dots_exprs is pointer-stable", {
 
 ## DOTS OBJECT, CALLING AND CURRYING -------------------------------------
 
-test_that("do with forced quotations -- like do.call(quote=TRUE) without overquoting", {
+test_that("do with forced quos -- like do.call(quote=TRUE) without overquoting", {
   x <- 2
   y <- 5
   ff <- function(x, y) list(substitute(x), substitute(y))
-  do(list, as.dots.literal(list(x, y))) %is% list(2,5)
-  do(list, as.dots.literal(alist(x, y))) %is% ff(x, y)
-  do(list, as.dots.literal(ff(x, y+z))) %is% ff(x, y+z)
-  do(list, as.dots.literal(ff(x, y))) %is% ff(x, y)
-  do(ff, as.dots.literal(list(x, y))) %is% ff(2, 5) #???
+  do(list, forced_dots_(list(x, y))) %is% list(2,5)
+  do(list, forced_dots_(alist(x, y))) %is% ff(x, y)
+  do(list, forced_dots_(ff(x, y+z))) %is% ff(x, y+z)
+  do(list, forced_dots_(ff(x, y))) %is% ff(x, y)
+  do(ff, forced_dots(x, y)) %is% alist(x, y)
+  do(ff, forced_dots_(list(x, y))) %is% list(2, 5)
 })
 
 test_that("x <- dots() captures dots and do() calls with dots", {
@@ -338,10 +339,10 @@ test_that("as.dots() is idempotent on dots objects", {
   do(c, l) %is% 5
 })
 
-test_that("as.dots.literal puts literal values into dots", {
-  exprs(as.dots.literal(alist(1, 123L, 3, "6"))) %is% alist(1, 123L, 3, "6")
-  exprs(as.dots.literal(alist(a, b, c, d))) %is% alist(quote(a),quote(b),quote(c),quote(d))
-  exprs(as.dots.literal(list(quote(...)))) %is% list(quote(quote(...)))
+test_that("forced_dots puts literal values into dots", {
+  exprs(forced_dots_(alist(1, 123L, 3, "6"))) %is% alist(1, 123L, 3, "6")
+  exprs(forced_dots_(alist(a, b, "c", d))) %is% alist(quote(a), quote(b), "c", quote(d))
+  exprs(forced_dots_(list(quote(...)))) %is% list(quote(quote(...)))
 })
 
 test_that("dots() et al with empty inputs", {

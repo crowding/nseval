@@ -137,7 +137,7 @@ caller <- function(env = caller(environment()),
 #' @export
 do <- function(...) {
   d <- dots(...)
-  d[[1]] <- as.quo.literal(arg(..1)) #unwrap and then insulate from forcing
+  d[[1]] <- forced_quo(arg(..1)) #unwrap and then insulate from forcing
   d <- do_(quo(c.dots), d) #force dots and concatenate
   do__(d)
 }

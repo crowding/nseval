@@ -1,0 +1,49 @@
+---
+Title: NSE Identities
+---
+
+
+```{r}
+{expr} %<>% value(quo( {expr} ))
+
+{expr} %<>% value(quo( {expr} ))
+{expr} %<>% value(quo( {expr} ))
+
+local( {expr} )
+(function() {expr}})()
+value( quo( {expr}, new.env()) )
+
+#F: the name of a function
+F( {args} ) %<>% do(F, dots( {args} ))
+F( {args} ) %<>% do_(quo(F), dots( {args} ))
+
+
+#Exprs: a list of expressions to be evaluated
+do.call("F", Exprs) %<>% do(F, dots_(exprs = Exprs))
+do.call("F", Exprs) %<>% do_(quo(F), dots_(exprs = Exprs))
+do.call(F, Exprs) %<>% do_(as.quo.literal(F), dots_(exprs = Exprs)) 
+
+#Data: a list of data (not expressions) to be evaluated
+do(F, as.dots.literal(data))
+
+
+do.call("F", LX) %<>% do_(as.quo.literal(f)
+
+do.call(F, L, quote=TRUE)
+
+
+
+{fun}({expr})                     %<>%      do({fun}, quo({expr}))
+
+do.call("fun", list, envir={env}) %<>% do(quo_(as.name("fun"), {env}), as.dots.literal(args))
+
+quo_( quote({code}), {env}) %<>%      quo( {code}, {env} )
+value( quo({code}) )        %<>%      eval(expr(code), env(code))
+
+x %<-% quo({code})          %<>% delayedAssign("x", {code}, environment())
+
+do(quo_(quote({code}), {env}))
+
+is_forced( {var} ) %<>% forced(arg({var}))
+
+```

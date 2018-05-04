@@ -5,6 +5,8 @@
 \alias{locate_}
 \alias{locate_.quotation}
 \alias{locate_.character}
+\alias{locate_.call}
+\alias{locate_.(}
 \alias{locate_.list}
 \alias{locate_.name}
 \title{Determine which enclosing environment defines a name.}
@@ -18,42 +20,64 @@ locate_(sym, env = arg_env(quote(sym), environment()), mode = "any", ...)
 \method{locate_}{character}(sym, env = arg_env(x, environment()),
   mode = "any", ...)
 
+\method{locate_}{call}(sym, env = arg_env(x, environment()), mode = "any",
+  ...)
+
+\method{locate_}{(}(sym, env = arg_env(x, environment()), mode = "any", ...)
+
 \method{locate_}{list}(sym, ...)
 
 \method{locate_}{name}(sym, env = arg_env_(quote(sym), environment()),
   mode = "any", ifnotfound = stop("Binding ", deparse(sym), " not found"))
 }
 \arguments{
+\item{sym}{A name. For \code{locate} this is used unforced. For
+\code{locate_} it is a \link{name} or character.}
+
 \item{env}{Which environment to begin searching from.}
 
-\item{mode}{Either "any" or "function".}
+\item{mode}{Either "any" or "function". "any" finds the lowest
+enclosing environment which defines a symbol. "function" finds an
+environment which defines the symbol as a function, possibly
+forcing promises along the way.}
 
-\item{ifnotfound}{What is returned if the name is not found.}
-
-\item{x}{A name.}
+\item{ifnotfound}{What is returned if the symbol is not found. By
+default an exception is raised.}
 
 \item{mode}{Either "any" or "function".}
 }
 \value{
-an environment.
+An environment object which defines \code{sym}, if one is found.
 }
 \description{
-\code{locate} is useful if you want to implement something that works
-like \code{<<-}, which updates the binding where it is found.
+Determine which enclosing environment defines a name.
 
-\code{locate_} is the normally evaluating version of
-locate; it takes a \link{name} or a character and an environment.
-
-The \code{locate_} method for quotations uses the expr and environment together.
+The method for quotations uses the expr and environment together.
 
 The list method accepts a list of \href{name}{names}, and returns a list of
 \href{environment}{environments}.
 }
-\examples{
-`<<-` <- function(lval, rval) {
- lval <- arg(lval)
- rval <- arg(rval)
- target.env <- find_(expr(lval), parent.env(env(lval)))
- do_(quo(`<-`, target.env), lval, arg(rval))
+\note{
+If you use a literal character argument, as in \code{locate("x", environment())}, you must also provide the environment
+argument. However \code{locate(x)} will work OK. See note under \link{arg}.
 }
+\examples{
+# `locate` is useful if you want to implement something that works
+# like [<<-], which updates the binding where it is found.
+`<<-` <- function(lval, rval) {
+ lval_ <- arg(lval_)
+ rval_ <- arg(rval_)
+ target.env <- locate_(expr(lval_), parent.env(env(lval_)))
+ do_(quo(`<-`, target.env), lval_, rval_)
+}
+
+x <- "not this one"
+local({
+  x <- "this one"
+  local({
+    x <- "not this one"
+    x <<- "this works just like builtin <<-"
+  })
+  print(x)
+})
 }

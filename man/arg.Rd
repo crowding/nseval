@@ -2,23 +2,74 @@
 % Please edit documentation in R/getpromise.R
 \name{arg}
 \alias{arg}
+\alias{args}
 \alias{arg_}
-\title{Capture an argument by name from the present environment.}
+\alias{args_}
+\title{Retreive lazy arguments from environments, by name.}
 \usage{
 arg(sym, env = arg_env_(quote(sym), environment()))
 
-arg_(name, env = arg_env(name, environment()))
+args(...)
+
+arg_(sym, env = arg_env(sym, environment()))
+
+args_(syms, envs)
 }
 \arguments{
-\item{sym}{the name to look up. For \code{arg} this is a symbol
-and not evaluated; for \code{arg_} this is a symbol or
+\item{sym}{The name to look up. For \code{arg} this is a symbol or
 character.}
 
-\item{env}{The environment to look in.}
+\item{env}{The environment to look in. By default, the environment
+from which \code{sym} was passed.}
+
+\item{...}{Bare names (not forced). Arguments may be named; these
+names determine the names on the output list. If argument names
+are not given, the input is used as output names}
+
+\item{syms}{A character vector or list of names.}
+
+\item{envs}{An environment, or a list of environments, to look for
+the bindings in.}
 }
 \value{
-A \link{quo} object.
+\code{arg} returns a \link{quotation} object.
+
+\code{args} returns a \link{dots} object.
+
+\code{args} returns a \code{[dots]} object.
 }
 \description{
-Capture an argument by name from the present environment.
+\code{arg} looks in the given environment for a binding,
+without forcing any promises, and returns it as a \link{quotation}.
+
+\code{args} looks up multiple variables, and returns a \link{dots} object.
+\code{args(x, y)} is equivalent to \code{unwrap(dots(x=x, y=y))}.
+
+\code{arg_} is the normally evaluating version of \code{arg_}.
+\code{arg(x, e)} is equivalent to \code{arg_(quo(x, e))}.
+
+\code{args_} is a normally evaluating version of \code{args}; \code{args_(dots(x, y))}
+is equivalent to \code{args(x, y)}.
+}
+\details{
+Generally, \code{arg(x)} is equivalent to \code{unwrap(quo(x))}.
+
+If any of the given variables are not bound, an error will be raised.
+}
+\note{
+If you use a a literal character value, as in \code{arg_("x", environment())}, you MUST also give the environment parameter.The
+reason is that the R will discard scope information about code
+literals, depending on optinization settings; so when \code{arg_("x") is called in compiled code, the default value for}env` will be
+found to be \code{\link[=emptyenv]{emptyenv()}}.
+
+Beware of writing \code{args(a, b, ...)} which probably doesn't do
+what you want. This is because R unwraps the symbol \code{...}
+occurring in argument lists before invoking \code{args}, so this ends
+up double-unwrapping \code{...}. For extracting \code{...} alongside named
+arguments you can use the syntax \code{args(x, y, (...))} (which is
+equivalent to \code{c(args(x, y), dots(...))}). You can also use
+\code{\link[=get_call]{get_call()}} to extract all function inputs.
+}
+\seealso{
+dots get_dots
 }

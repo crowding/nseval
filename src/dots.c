@@ -166,7 +166,7 @@ SEXP _dots_exprs(SEXP dots) {
 
   for (s = dots, i = 0; i < length; s = CDR(s), i++) {
     SEXP item = CAR(s);
-    // if we have an unevluated promise whose code is another promise, descend
+    // if we have an unevaluated promise whose code is another promise, descend
     while ((PRENV(item) != R_NilValue) && (TYPEOF(PRCODE(item)) == PROMSXP)) {
       item = PRCODE(item);
     }
@@ -190,11 +190,11 @@ SEXP _dots_envs(SEXP dots) {
 
   for (s = dots, i = 0; i < length; s = CDR(s), i++) {
     SEXP item = CAR(s);
-    // if we have an unevluated promise whose code is another promise, descend
+    // if we have an unevaluated promise whose code is another promise, descend
     while ((PRENV(item) != R_NilValue) && (TYPEOF(PRCODE(item)) == PROMSXP)) {
-      item = PRENV(item);
+      item = PRCODE(item);
     }
-    SET_VECTOR_ELT(envs, i, PREXPR(item));    
+    SET_VECTOR_ELT(envs, i, PRENV(item));    
   }
 
   if (names != R_NilValue)

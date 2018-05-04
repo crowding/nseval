@@ -3,11 +3,6 @@ context("wrong")
 # This test file demonstrates some behavior of R nonstandard evalution
 # functions that I think is wrong, and that this package tries to correct.
 
-`%||%` <- function (object, label = NULL)
-{
-  label %||% label(object)
-}
-
 expect_different <- function(object, expected, ...) {
   lab_act <- deparse(arg_expr(object));
   lab_exp <- deparse(arg_expr(expected));
@@ -21,7 +16,7 @@ expect_different <- function(object, expected, ...) {
 `%is%` <- expect_equal
 
 test_that("parent_frame returns garbage when called from a promise.", {
-  # tediously explained example
+  # A tediously explained example.
   # A problem with using parent_frame to determine a function's caller is that
   # parent.frame()'s return value can change when called at different times
   # from the same environment.
@@ -46,8 +41,9 @@ test_that("parent_frame returns garbage when called from a promise.", {
   count <- make_counter()
   # we expect count() should update that local value, not this global value.
 
-  #x <- 999 # oddly somnetimes it goes for global x...
-  x <<- 999 # whichever x, it should be outside the count!
+  #x <- 999 # oddly sometimes it goes for global x (depending on how
+            # test is invoked?)
+  x <<- 999 # wherever x is, it is scoped outside the count!
 
   # But it does.
   ct <- count()

@@ -5,8 +5,9 @@ Version: 0.3
 Date: 2018-04-07
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: Allows R code to de- and reconstruct calls, lazy arguments
-             (promises) and '...' lists, with safer defaults.
+Description: A cleaner API for metaprogramming in R. Facilities to
+             capture, create and manipulate calls, lazy arguments
+             (promises) and `...` lists.
 License: MIT + file LICENSE
 Depends:
     compiler (>= 3.4)
@@ -24,6 +25,9 @@ Collate:
     'getpromise.R'
     'conversions.R'
     'format.R'
+    'force.R'
+    'shortcut.R'
+    'missing.R'
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 Roxygen: list(markdown=TRUE)

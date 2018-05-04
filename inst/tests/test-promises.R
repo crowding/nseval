@@ -67,19 +67,25 @@ test_that("Can force quo with alternate eval", {
   value(x) %is% 5
 })
 
-test_that("literal quo", {
-  forced(as.quo.literal(6)) %is% TRUE
-  expr(as.quo.literal(6)) %is% 6
-  env(as.quo.literal(6)) %is% emptyenv()
+test_that("forced quos", {
+  forced(forced_quo(6)) %is% TRUE
+  expr(forced_quo(6)) %is% 6
+  env(forced_quo(6)) %is% emptyenv()
 
-  value(as.quo.literal(2+5)) %is% 7
-  forced(as.quo.literal(2+5)) %is% TRUE
-  env(as.quo.literal(2+5)) %is% emptyenv()
-  expr(as.quo.literal(2+5)) %is% 7
-  env(as.quo.literal(as.name("x"))) %is% emptyenv()
-  expr(as.quo.literal(as.name("x"))) %is% quote(quote(x))
-  value(as.quo.literal(as.name("x"))) %is% as.name("x")
+  value(forced_quo(2+5)) %is% 7
+  forced(forced_quo(2+5)) %is% TRUE
+  env(forced_quo(2+5)) %is% emptyenv()
+  expr(forced_quo(2+5)) %is% quote(2+5)
+  expr(forced_quo_(2+5)) %is% 7
+  env(forced_quo_(as.name("x"))) %is% emptyenv()
+  expr(forced_quo_(as.name("x"))) %is% quote(quote(x))
+  value(forced_quo_(as.name("x"))) %is% as.name("x")
+  x <- 5
+  expr(forced_quo(x)) %is% quote(x)
+  value(forced_quo(x)) %is% 5
+  value(forced_quo(as.name("x"))) %is% as.name("x")
 
-  do(list, as.quo.literal(as.name("x"))) %is% alist(x)
-  do(list, as.quo.literal(quote(x+y))) %is% alist(x+y)
+  x <- 3
+  do(list, forced_quo_(quote(x))) %is% alist(x)
+  do(list, forced_quo_(quote(x+y))) %is% alist(x+y)
 })
