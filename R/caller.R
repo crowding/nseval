@@ -43,7 +43,7 @@
 #'  }
 #' identical(F(), E) ## TRUE
 caller <- function(env = caller(environment()),
-                   ifnotfound = NULL) {
+                   ifnotfound = stop("caller: environment not found on stack")) {
   ## I think we want to find the activation record that corresponds
   ## to the *earliest* invocation of our environment, and look at its
   ## sys.parent.
@@ -61,14 +61,12 @@ caller <- function(env = caller(environment()),
   ##          calls = oneline(as.list(sys.calls()))),
   ##       max.width=80)
 
-  where <- which_frame(
-    env,
-    ifnotfound %||%
-      stop("caller: environment not found on stack"))
+  where <- which_frame(env, ifnotfound)
 
   if (is.primitive(sys.function(where))) {
-    ifnotfound %||%
+    if (is_default(ifnotfound)) {
       stop("caller: calling function is a primitive, which has no environment")
+    } else ifnotfound
   }
 
   whichparent <- sys.parents()[where]
@@ -84,8 +82,6 @@ caller <- function(env = caller(environment()),
     # do.call will make a frame that points to the right frame and
     # then parent.frame will get me its sysparent.
     result <- do.call(parent.frame, list(), envir=env)
-
-    # TODO: check if the do-parent.frame trick works for other cases
 
     # Do I really need do.call for this? What's the way for NSE to
     # NSE to directly call with a builtin?
@@ -154,14 +150,14 @@ do__ <- function(d) {
   .Call(`_do`, d)
 }
 
-#' Get information about calls currently being executed.
+#' Get information about currently executing calls.
 #'
 #' `get_call()` takes an environment, by default the one in which it
-#' was called, and determines what function call created it.  The
-#' return value is a `[dots]` object; the first element of which
-#' represents the calling environment and the name of the function as
-#' it appeared there. The rest of the elements represent the function
-#' args.
+#' was called, and extracts the function call and arguments assiciated
+#' with the call.  return value is a `[dots]` object; the first
+#' element of which represents the calling environment and the name of
+#' the function as it appeared there. The rest of the elements
+#' represent the function args.
 #'
 #' The output of [get_call()] can be passed to [do(x)] in order to
 #' replicate a call.
@@ -179,7 +175,7 @@ do__ <- function(d) {
 #' @param ifnotfound If the call is not found, an error is raised, or
 #'   optionally this is returned.
 get_call <- function(env = caller(environment()),
-                     ifnotfound = stop("caller: environment not found on stack")) {
+                     ifnotfound = stop("get_call: environment not found on stack")) {
   frame <- which_frame(env, ifnotfound)
 
   rho <- caller(env)
@@ -196,7 +192,7 @@ get_call <- function(env = caller(environment()),
 #' @rdname get_call
 #' @export
 get_function <- function(env = caller(environment()),
-                         ifnotfound = NULL) {
+                         ifnotfound = stop("get_function: environment not found on stack")) {
   sys.function(which_frame(env, ifnotfound))
 }
 
@@ -204,7 +200,7 @@ which_frame <- function(env, ifnotfound) {
   frames <- sys.frames()
   where <- which(vapply(frames, identical, FALSE, env))
   if (length(where) == 0) {
-    ifnotfound %||% stop("caller: environment not found on stack")
+    ifnotfound
   } else {
     where[1]
   }

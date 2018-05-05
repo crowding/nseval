@@ -53,3 +53,16 @@ test_that("format outputs one line", {
   expect_equal(length(format(dots(a = function(x){x}))), 1)
   expect_equal(length(forced_dots_(list(a = function(x){x}))), 1)
 })
+
+test_that("oneline", {
+  formats <- format.oneline(list(
+    "a",
+    12,
+    function(x) {x},
+    c(1, 2),
+    c(3, 4),
+    quote(x),
+    quote(x+y)))
+
+  expect_true(all(formats != "?FORMAT?"))
+})

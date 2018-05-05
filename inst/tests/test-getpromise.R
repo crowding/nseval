@@ -378,10 +378,12 @@ test_that("locate var", {
       y <- 1
       z <- function() {
         nx <- sort(names(locate(x)))
+        nx_ <- sort(names(locate_(quote(x))))
         ny <- sort(names(locate(y)))
         nyf <- sort(names(locate(y, mode = "function")))
         ny_x <- sort(names(locate(y, env = locate(x))))
         nx %is% c("x", "y")
+        nx_ %is% c("x", "y")
         ny %is% c("y", "z")
         nyf %is% c("x", "y")
         ny_x %is% c("x", "y")
@@ -392,6 +394,29 @@ test_that("locate var", {
   }
   x()
 })
+
+
+test_that("locate list", {
+  xe <- environment()
+  x <- function() {
+    ye <- environment()
+    y <- function() {
+      ze <- environment()
+      z <- function() {
+        exyz <- list(xe, ye, ze)
+        expect_error(locate_(c("x", "y", "z")), "list")
+        ff <- locate_(alist(x, y, z))
+        ff %is% exyz
+        ll <- locate_.list(c("x", "y", "z"))
+        ll %is% exyz
+      }
+      z()
+    }
+    y()
+  }
+  x()
+})
+
 
 test_that("locate dots", {
   x <- function(...) {

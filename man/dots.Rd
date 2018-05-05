@@ -92,7 +92,7 @@ expressions.
 
 An object of class \code{\dots}. For \code{as.dots}, the
 list items are treated as data values, and create already-forced
-promises. For \code{as.dots.exprs}, values are treated as the
+promises. For \code{as.dots.exprs}, values are used as the
 expressions of new unforced promises.
 }
 \description{

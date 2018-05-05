@@ -7,9 +7,9 @@
 #'
 #' @param compact Implies `show.environments=FALSE` and
 #'   `show.expressions=FALSE`.
-#' @param show.environments Whether to show environments for forced
+#' @param show.environments Whether to show environments for unforced
 #'   quotations.
-#' @param show.expressions Whether to show expressions for unforced
+#' @param show.expressions Whether to show expressions for forced
 #'   quotations.
 #' @param ... Further arguments passed to [format] methods.
 #' @rdname format.quotation
@@ -135,6 +135,10 @@ one_line <- function(x, f, max.width=50, width=max.width, ...) {
 
 format_robust <- function(x, ...) {
   tryCatch(format(x, ...), error=function(e) "?FORMAT?")
+}
+
+format.name <- function(x, ...) {
+  format(as.character(x))
 }
 
 oneline <- function(x) structure(x, class=union("oneline", class(x)))

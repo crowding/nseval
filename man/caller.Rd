@@ -4,7 +4,8 @@
 \alias{caller}
 \title{Get the calling environment of a given environment.}
 \usage{
-caller(env = caller(environment()), ifnotfound = NULL)
+caller(env = caller(environment()),
+  ifnotfound = stop("caller: environment not found on stack"))
 }
 \arguments{
 \item{env}{The environment whose caller to determine. By default,

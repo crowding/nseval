@@ -66,7 +66,7 @@ All named entries in the dots object will be bound to
 variables. Unnamed entries will be appended to any existing value
 of \code{...} in the order in which they appear.
 
-\code{quo2env} takes a quotation and creates a single lazy binding in a
+\code{quo2env} takes a quotation and creates a single binding in a
 given environment.
 }
 \seealso{

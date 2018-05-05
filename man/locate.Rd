@@ -3,36 +3,34 @@
 \name{locate}
 \alias{locate}
 \alias{locate_}
+\alias{locate_.list}
 \alias{locate_.quotation}
 \alias{locate_.character}
-\alias{locate_.call}
 \alias{locate_.(}
-\alias{locate_.list}
 \alias{locate_.name}
 \title{Determine which enclosing environment defines a name.}
 \usage{
 locate(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 
-locate_(sym, env = arg_env(quote(sym), environment()), mode = "any", ...)
+locate_(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 
-\method{locate_}{quotation}(sym, ..., mode = "any")
-
-\method{locate_}{character}(sym, env = arg_env(x, environment()),
-  mode = "any", ...)
-
-\method{locate_}{call}(sym, env = arg_env(x, environment()), mode = "any",
+locate_.list(sym, env = arg_env_(quote(sym), environment()), mode = "any",
   ...)
 
-\method{locate_}{(}(sym, env = arg_env(x, environment()), mode = "any", ...)
+locate_.quotation(sym, env = (ignored), mode = "any", ...)
 
-\method{locate_}{list}(sym, ...)
+locate_.character(sym, env = arg_env_(quote(sym), environment()),
+  mode = "any", ...)
 
-\method{locate_}{name}(sym, env = arg_env_(quote(sym), environment()),
-  mode = "any", ifnotfound = stop("Binding ", deparse(sym), " not found"))
+"locate_.("(sym, env = arg_env_(quote(sym), environment()), mode = "any",
+  ...)
+
+locate_.name(sym, env = arg_env_(quote(sym), environment()), mode = "any",
+  ifnotfound = stop("Binding ", deparse(sym), " not found"))
 }
 \arguments{
-\item{sym}{A name. For \code{locate} this is used unforced. For
-\code{locate_} it is a \link{name} or character.}
+\item{sym}{A name. For \code{locate} the argument is used literally. For
+\code{locate_} it should have the value \link{name} or character.}
 
 \item{env}{Which environment to begin searching from.}
 
@@ -52,10 +50,9 @@ An environment object which defines \code{sym}, if one is found.
 \description{
 Determine which enclosing environment defines a name.
 
-The method for quotations uses the expr and environment together.
+If sym is a list (of \link{name}s) or a \link{dots} object, \code{locate} returns a list.
 
-The list method accepts a list of \href{name}{names}, and returns a list of
-\href{environment}{environments}.
+When \code{sym} is a \link{quotation} or \link{dots}, the \code{env} argument is ignored.
 }
 \note{
 If you use a literal character argument, as in \code{locate("x", environment())}, you must also provide the environment

@@ -15,3 +15,6 @@ quotation, like a formula).}
 \description{
 Turn quotations into bindings in the present environment.
 }
+\seealso{
+delayedAssign
+}

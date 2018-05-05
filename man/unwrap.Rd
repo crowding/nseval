@@ -2,29 +2,52 @@
 % Please edit documentation in R/getpromise.R
 \name{unwrap}
 \alias{unwrap}
-\title{If an unforced quotation's expression is a variable name, retrieve the
-binding that is referenced.}
+\title{Peel back layers of variable names from quotations.}
 \usage{
 unwrap(x, recursive = FALSE)
 }
 \arguments{
-\item{recursive}{If \code{FALSE}, the default, unwrap exactly once and
-throw an error If \code{TRUE}, and the referred variable is If the
-binding is another unforced variable name, recursively unwrap}
+\item{x}{a \link{quotation} to unwrap.}
+
+\item{recursive}{Default \code{FALSE} unwraps exactly once. If
+\code{TRUE}, unwrap as far as possible (until a forced promise or
+nontrivial expression is found.)}
+}
+\value{
+The \link{quotation} method returns a \link{quotation}.
 }
 \description{
-In general, \code{nse} direct accessors like \code{arg_expr(x)} can be
-translated to \code{expr(unwrap(quo(x)))}.
+When an un\link{forced} \link{quotation}'s expression is a bare variable
+name, \code{unwrap} follows the variable reference returns a
+quotation. When the quotation is forced or has a nontrivial
+expression \code{unwrap} has no effect.
 }
 \details{
-There are two good use cases for unwrap(x, recursive=TRUE). One is
-to derive axis labels (a.k.a the most inoccuous use of
-metaprogramming). Another is to check for missingness (this is what
-R's \link{missing} does as well).
+The syntax \code{locate( (...) )} is available for locating \code{...}.
 
-Using unwrap(x, recursive=TRUE) in other situations can get you
+There are two good use cases for \code{unwrap(x, recursive=TRUE)}. One
+is to derive plot labels (the most inoccuous use of
+metaprogramming). Another is to check for missingness (this is what
+R's \link{missing} and does as well).
+
+Using \code{unwrap(x, recursive=TRUE)} in other situations can get you
 into confusing situations -- effectively you are changing the
-behavior of a parent function that may be several levels up the
-stack, possibly turning a standard-evaluating function into
-nonstandard-evaluating function.
+behavior of a parent function that may be an unknown number of
+levels up the stack, possibly turning a standard-evaluating
+function into nonstandard-evaluating function. So recursive
+unerapping is not the default behavior.
+}
+\examples{
+# different levels of unwrapping:
+f <- function(x) { g(x) }
+g <- function(y) { h(y) }
+h <- function(z) {
+  print(arg(z))
+  print(unwrap(quo(z)))
+  print(unwrap(unwrap(quo(z))))
+  print(unwrap(quo(z), recursive=TRUE))
+}
+
+w <- 5
+f(w)
 }

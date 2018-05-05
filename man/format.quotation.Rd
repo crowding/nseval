@@ -26,10 +26,10 @@
 \item{compact}{Implies \code{show.environments=FALSE} and
 \code{show.expressions=FALSE}.}
 
-\item{show.environments}{Whether to show environments for forced
+\item{show.environments}{Whether to show environments for unforced
 quotations.}
 
-\item{show.expressions}{Whether to show expressions for unforced
+\item{show.expressions}{Whether to show expressions for forced
 quotations.}
 
 \item{width}{The width of line to produce.}

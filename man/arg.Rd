@@ -43,16 +43,17 @@ the bindings in.}
 without forcing any promises, and returns it as a \link{quotation}.
 
 \code{args} looks up multiple variables, and returns a \link{dots} object.
-\code{args(x, y)} is equivalent to \code{unwrap(dots(x=x, y=y))}.
+\code{args(x, y)} is equivalent to \code{[unwrap](dots(x=x, y=y))}.
 
-\code{arg_} is the normally evaluating version of \code{arg_}.
-\code{arg(x, e)} is equivalent to \code{arg_(quo(x, e))}.
+\code{arg_} is the normally evaluating version of \code{arg_};
+\code{arg(x, e)} is equivalent to \code{arg_(quote(x), e)}.
 
-\code{args_} is a normally evaluating version of \code{args}; \code{args_(dots(x, y))}
-is equivalent to \code{args(x, y)}.
+\code{args_} is a normally evaluating version of \code{args};
+\code{args(x, y)} is equivalent to \code{args_(alist(x, y))}.
 }
 \details{
-Generally, \code{arg(x)} is equivalent to \code{unwrap(quo(x))}.
+Generally, \code{arg(x)} is equivalent to \code{[unwrap](quo(x))} for
+variable names x.
 
 If any of the given variables are not bound, an error will be raised.
 }
@@ -65,11 +66,11 @@ found to be \code{\link[=emptyenv]{emptyenv()}}.
 Beware of writing \code{args(a, b, ...)} which probably doesn't do
 what you want. This is because R unwraps the symbol \code{...}
 occurring in argument lists before invoking \code{args}, so this ends
-up double-unwrapping \code{...}. For extracting \code{...} alongside named
+up double-unwrapping \code{...}. For capturing \code{...} alongside named
 arguments you can use the syntax \code{args(x, y, (...))} (which is
 equivalent to \code{c(args(x, y), dots(...))}). You can also use
-\code{\link[=get_call]{get_call()}} to extract all function inputs.
+\code{[get_call()]} to extract all function inputs.
 }
 \seealso{
-dots get_dots
+dots get_dots unwrap
 }

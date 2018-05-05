@@ -2,7 +2,7 @@
 #' @param x a vector or list.
 #' @return An object of class \code{\dots}. For \code{as.dots}, the
 #'   list items are treated as data values, and create already-forced
-#'   promises. For \code{as.dots.exprs}, values are treated as the
+#'   promises. For \code{as.dots.exprs}, values are used as the
 #'   expressions of new unforced promises.
 #' @export
 as.dots <- function(x) {
@@ -32,6 +32,25 @@ as.dots.list <- function(x)
 #' @seealso env2dots
 as.dots.environment <- function(x) env2dots(x)
 
+#' Copy bindings from an environment into a dots object.
+#'
+#' @param env An environment.
+#' @param names Which names to extract from the environment. By
+#'   default extracts all bindings present in `env`, but not in
+#'   its enclosing environments.
+#' @param include_missing Whether to include missing bindings.
+#' @param expand_dots Whether to include the contents of `...`.
+#' @return A \link{dots} object.
+#' @export
+#' @useDynLib nse _env_to_dots
+env2dots <- function(env,
+                     names = ls(envir = env, all.names = TRUE),
+                     include_missing = TRUE,
+                     expand_dots = TRUE)
+{
+  x <- .Call(`_env_to_dots`, env, names, include_missing, expand_dots)
+}
+
 is.sequence <- function(x) is.vector(x) || is.list(x)
 
 #' @export
@@ -49,29 +68,10 @@ as.dots.lazy_dots <- function(x)
   structure(lapply(x, as.quo), class="dots")
 }
 
-#' Copy bindings from an environment into a dots object.
-#'
-#' @param env An environment.
-#' @param names Which names to extract from the environment. By
-#'   default extracts all bindings present at root, but not in
-#'   enclosing environments.
-#' @param include_missing Whether to include missing bindings.
-#' @param expand_dots Whether to include the contents of `...`.
-#' @return A \link{dots} object.
-#' @export
-#' @useDynLib nse _env_to_dots
-env2dots <- function(env,
-                     names = ls(envir = env, all.names = TRUE),
-                     include_missing = TRUE,
-                     expand_dots = TRUE)
-{
-  x <- .Call(`_env_to_dots`, env, names, include_missing, expand_dots)
-}
-
 filter <- function(x, pred) x[pred(x)]
 goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 
-#' Take quotations from a dots object and place them into an environment.
+#' Convert quotations in a dots object into promises in an environment.
 #'
 #' All named entries in the dots object will be bound to
 #' variables. Unnamed entries will be appended to any existing value
@@ -133,7 +133,7 @@ dots2env <- function(d,
   }
 }
 
-#' `quo2env` takes a quotation and creates a single lazy binding in a
+#' `quo2env` takes a quotation and creates a single binding in a
 #' given environment.
 #' @param q a quotation.
 #' @param env The environment to store in.
@@ -148,13 +148,16 @@ quo2env <- function(q, env, name) {
   dots2env(d, env)
 }
 
-#' Explicitly create closure objects.
-#' @export
+#' Explicitly create closures.
+#'
+#' `function_` is a normally-evaluating version of [function].
 #' @param args Either NULL, or a named list of default value
 #'   expressions (which may be missing_value() to indicate no
-#'   default). [alist] is useful for this.
+#'   default). [alist] and [list_missing] are useful for this.
 #' @param body An expression for the body of the function.
 #' @param env The environment to create a function from.
+#' @return A closure.
+#' @export
 function_ <- function(args, body, env = caller(environment())) {
   f <- do.call("function", list(as.pairlist(args), body), envir=environment())
   environment(f) <- env

@@ -2,19 +2,22 @@
 % Please edit documentation in R/conversions.R
 \name{function_}
 \alias{function_}
-\title{Explicitly create closure objects.}
+\title{Explicitly create closures.}
 \usage{
 function_(args, body, env = caller(environment()))
 }
 \arguments{
 \item{args}{Either NULL, or a named list of default value
 expressions (which may be missing_value() to indicate no
-default). \link{alist} is useful for this.}
+default). \link{alist} and \link{list_missing} are useful for this.}
 
 \item{body}{An expression for the body of the function.}
 
 \item{env}{The environment to create a function from.}
 }
+\value{
+A closure.
+}
 \description{
-Explicitly create closure objects.
+\code{function_} is a normally-evaluating version of \link{function}.
 }

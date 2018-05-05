@@ -3,12 +3,13 @@
 \name{get_call}
 \alias{get_call}
 \alias{get_function}
-\title{Get information about calls currently being executed.}
+\title{Get information about currently executing calls.}
 \usage{
 get_call(env = caller(environment()),
-  ifnotfound = stop("caller: environment not found on stack"))
+  ifnotfound = stop("get_call: environment not found on stack"))
 
-get_function(env = caller(environment()), ifnotfound = NULL)
+get_function(env = caller(environment()),
+  ifnotfound = stop("get_function: environment not found on stack"))
 }
 \arguments{
 \item{env}{An environment belonging to a currently executing
@@ -23,11 +24,11 @@ call.
 }
 \description{
 \code{get_call()} takes an environment, by default the one in which it
-was called, and determines what function call created it.  The
-return value is a \code{[dots]} object; the first element of which
-represents the calling environment and the name of the function as
-it appeared there. The rest of the elements represent the function
-args.
+was called, and extracts the function call and arguments assiciated
+with the call.  return value is a \code{[dots]} object; the first
+element of which represents the calling environment and the name of
+the function as it appeared there. The rest of the elements
+represent the function args.
 
 \code{get_function(env)} returns the function object associated with a
 currently executing call (identified by environment).

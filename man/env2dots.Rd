@@ -11,8 +11,8 @@ env2dots(env, names = ls(envir = env, all.names = TRUE),
 \item{env}{An environment.}
 
 \item{names}{Which names to extract from the environment. By
-default extracts all bindings present at root, but not in
-enclosing environments.}
+default extracts all bindings present in \code{env}, but not in
+its enclosing environments.}
 
 \item{include_missing}{Whether to include missing bindings.}
 
