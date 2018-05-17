@@ -1,15 +1,15 @@
-#' Shortcuts for accessing lazy variables.
+#' Get information about currently bound arguments.
 #'
-#' These are shortcuts for accessing currently bound lazy
+#' Most of these are shortcuts for accessing currently bound lazy
 #' arguments. For example, `arg_env(x)` is equivalent to
-#' `env(arg(x))`, `is_forced(x, y)` is equivalent to `forced(args(x,
-#' y))`, `dots_exprs(...)` is equivalent to `exprs(dots(...))`, and so
+#' [`env(arg(x))`], `is_forced(x, y)` is equivalent to [`forced(args(x,y))`],
+#' `dots_exprs(...)` is equivalent to [`exprs(dots(...))`], and so
 #' on. The shortcut forms, however, skip the construction of the
 #' intermediate [quotation] objects.
 #' @rdname shortcut
 #' @param sym For `arg_env`, etc, a bare name (not forced). For
-#'   the normally evaluating `arg_env_` a [name].
-#' @param env The environment to look in.
+#'   the normally evaluating `arg_env_` and so on, [name].
+#' @param env The environment to search in.
 #' @export
 arg_env <- function(sym,
                     env = arg_env_(quote(sym), environment())) {
@@ -62,8 +62,6 @@ dots_exprs <- function(...) {
 }
 
 #' @rdname shortcut
-#' @return \code{is_forced} returns FALSE if an argument is bound to a
-#'   promise that has not yet been forced, TRUE otherwise.
 #' @export
 is_forced <- function(...) {
   d <- dots(...)

@@ -13,33 +13,57 @@ get_function(env = caller(environment()),
 }
 \arguments{
 \item{env}{An environment belonging to a currently executing
-function call.}
+function call. By default, the \link{caller} (so \code{get_call()} is
+equivalent to \code{get_call(environment())}.)}
 
-\item{ifnotfound}{If the call is not found, an error is raised, or
-optionally this is returned.}
+\item{ifnotfound}{What to return if the call is not found. By
+default an error is thrown.}
 }
 \value{
-a dots object, the first element of which represents the
-call.
+\code{get_call} returns a \link{dots} object, the first element of
+which represents the function name and \href{caller}{callingenvironment}.
+
+\code{get_function} returns a closure.
 }
 \description{
-\code{get_call()} takes an environment, by default the one in which it
-was called, and extracts the function call and arguments assiciated
-with the call.  return value is a \code{[dots]} object; the first
-element of which represents the calling environment and the name of
-the function as it appeared there. The rest of the elements
-represent the function args.
+\code{get_call(env)}, given an environment, returns the function call
+and its arguments, as a \link{dots} object which can be passed to \code{\link[=do]{do()}}
+in order to replicate a call.
 
-\code{get_function(env)} returns the function object associated with a
-currently executing call (identified by environment).
+\code{get_function(env)} finds the function object associated with a
+currently executing call.
 }
 \details{
-The output of \code{\link[=get_call]{get_call()}} can be passed to \link{do(x)} in order to
-replicate a call.
-
-\code{get_call} is meant to replace \code{[match.call()]} and \code{[sys.call()]};
-its advantage is that it captures the environments attached to
+\code{get_call} is meant to replace \code{\link{match.call}} and \code{\link{sys.call}};
+its advantage is that it captures the environments bound to
 arguments in addition to their written form.
+
+\code{get_function} is similar to \code{\link{sys.function}}, but is keyed by
+environment rather than number.
+}
+\examples{
+# We might think of re-writing the start of [lm] like so:
+LM <- function(formula, data, subset, weights, na.action, method = "qr",
+               model = TRUE, x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, 
+               contrasts = NULL, offset, ...) {
+  cl <- get_call()
+  mf <- do(model.frame,
+           args(formula, data, subset, weights, na.action, offset))
+
+  z <- get.call()
+
+  class(z) <- c("LM", class(z))
+  z$call <- cl
+  z
+}
+
+# and `update` like so:
+update.LM <- function(object, formula., ...) {
+  call <- object$call
+  extras <- dots(...)
+  call$formula <- forced_quo(update.formula(formula(object), formula.))
+  do(call)
+}
 }
 \seealso{
 do dots caller

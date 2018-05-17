@@ -18,21 +18,13 @@ as.dots.list <- function(x)
   structure(mapply(FUN=as.quo, x), class="dots")
 }
 
-#' Capture promises present in an environment and construct a dots object.
+#' Copy bindings from an environment into a dots object, or vice versa.
 #'
-#' All bindings in the environment (but not those from its parents) will be
-#' copied into a new \code{\dots} list. Bindings that are promises
-#' will be added to the \dots list without forcing, while other
-#' bindings will be wrapped in an already-forced promise.  If `...` is
-#' bound in the environment, all bindings it contains will be added to
-#' the \dots list. The output will not be in any particular order.
-#'
-#' @export
-#' @rdname dots2env
-#' @seealso env2dots
-as.dots.environment <- function(x) env2dots(x)
-
-#' Copy bindings from an environment into a dots object.
+#' `env2dots` copies all bindings in the environment (but not those
+#' from its parents) into a new [dots] object. Bindings that are
+#' promises will be captured without forcing. Bindings that are not
+#' promises will be rendered as [forced] quotations. The output will
+#' not be in any particular order.
 #'
 #' @param env An environment.
 #' @param names Which names to extract from the environment. By
@@ -40,7 +32,7 @@ as.dots.environment <- function(x) env2dots(x)
 #'   its enclosing environments.
 #' @param include_missing Whether to include missing bindings.
 #' @param expand_dots Whether to include the contents of `...`.
-#' @return A \link{dots} object.
+#' @return `env5 A \link{dots} object.
 #' @export
 #' @useDynLib nse _env_to_dots
 env2dots <- function(env,
@@ -51,25 +43,13 @@ env2dots <- function(env,
   x <- .Call(`_env_to_dots`, env, names, include_missing, expand_dots)
 }
 
-is.sequence <- function(x) is.vector(x) || is.list(x)
-
+#' `as.dots.environment` is a synonym for `env2dots`.
 #' @export
-as.dots.default <- function(x) {
-  if(is.sequence(x)) {
-    as.dots.list(as.list(x))
-  } else {
-    stop("can't convert this into a dots")
-  }
-}
-
-#' @export
-as.dots.lazy_dots <- function(x)
-{
-  structure(lapply(x, as.quo), class="dots")
-}
-
-filter <- function(x, pred) x[pred(x)]
-goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
+#' @rdname dots2env
+#' @seealso env2dots
+#'
+#" rdname dots2env
+as.dots.environment <- function(x) env2dots(x)
 
 #' Convert quotations in a dots object into promises in an environment.
 #'
@@ -133,37 +113,78 @@ dots2env <- function(d,
   }
 }
 
-#' `quo2env` takes a quotation and creates a single binding in a
-#' given environment.
-#' @param q a quotation.
-#' @param env The environment to store in.
-#' @param name The name to use. If "" or NULL, will append to "...".
-#' @rdname dots2env
-quo2env <- function(q, env, name) {
-  q <- as.quo(q)
-  d <- as.dots(q)
-  if (!is.null(name)) {
-    names(d) <- as.character(name)
+is.sequence <- function(x) is.vector(x) || is.list(x)
+
+#' @export
+as.dots.default <- function(x) {
+  if(is.sequence(x)) {
+    as.dots.list(as.list(x))
+  } else {
+    stop("can't convert this into a dots")
   }
-  dots2env(d, env)
 }
+
+#' @export
+as.dots.lazy_dots <- function(x)
+{
+  structure(lapply(x, as.quo), class="dots")
+}
+
+filter <- function(x, pred) x[pred(x)]
+goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
+
 
 #' Explicitly create closures.
 #'
-#' `function_` is a normally-evaluating version of [function].
-#' @param args Either NULL, or a named list of default value
-#'   expressions (which may be missing_value() to indicate no
-#'   default). [alist] and [list_missing] are useful for this.
-#' @param body An expression for the body of the function.
-#' @param env The environment to create a function from.
+#' `function_` is a normally-evaluating version of [`function`], which
+#' creates closures. A closure object has three components: the
+#' argument list the body expression, and the enclosing environment.
+#'
+#' @param args The argument list. NULL is accepted to make a function
+#'   with no arguments. Arguments are specified as a named list; the
+#'   list names become the argument names, and the list values become
+#'   the default expressions. A value of [missing_value()] indicates
+#'   no default. [alist] and [arglist] are useful for making argument
+#'   lists.
+#' @param body An expression.
+#' @param env An environment.
 #' @return A closure.
+#' @seealso environment formals body
 #' @export
+#' @examples
+#' f1 <- function(x, y = x) { x + y }
+#' f2 <- function_(alist(x = , y = x),
+#'                 quote( { x + y } ),
+#'                 environment())
+#' identical(f1, f2) # TRUE
+#'
+#' # `fn` makes a compact way to write functions;
+#' # `fn(x+y)` is equivalent to `function(x, y) x+y`
+#' fn <- function(exp) {
+#'   exp_ <- arg(exp)
+#'   nn <- arglist(all.names(expr(exp)))
+#'   function_(arglist(nn), expr(exp_), env(exp_))
+#' }
+#'
+#' fn(x^2)
+#' fn(x+y)
 function_ <- function(args, body, env = caller(environment())) {
   f <- do.call("function", list(as.pairlist(args), body), envir=environment())
   environment(f) <- env
   f
 }
 
+#' function_
+#'
+#' `arglist` is a helper that produces argument templates given a
+#' character vector of names.
+#' @rdname function_
+#' @param names A character vector.
+#' @param fill The default expression to use.
+#' @export
+arglist <- function(names, rest = list(), fill = missing_value()) {
+  structure(rep(list(fill), length(names)), names = names)
+}
 
 #' @export
 as.lazy_dots <- function(x, env) {

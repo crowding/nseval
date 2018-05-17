@@ -19,32 +19,32 @@ The return value of the call.
 }
 \description{
 The functions \code{do} and \code{do_} construct and invoke a function call.
-In combination with \link{dots} and \link{quotation} objects they allow you to
-control the scope of the function call and each of its arguments.
+In combination with \link{dots} and \link{quotation} objects they allow you
+to control the scope of the function call and each of its arguments
+independently.
 }
 \details{
 For \code{do_} all arguments should be \code{quotation} or \code{dots} objects, or
 convertible to such using \code{as.quo()}. They will be concatenated
-together by \code{c.dots} to form the call list (a \code{dots} object).
-
-For \code{do} the first argument is captured unevaluated, but the
-rest of the arguments are processed the same as do_.
+together by \link{c.dots} to form the call list (a \code{dots} object).
+For \code{do} the first argument is quoted literally, but the
+rest of the arguments are evaluated the same way as do_.
 
 The first element of the call list represents the function, and it
-should \href{value}{evaluate} to a function object. The rest of the call
-list is used as that function's arguments.
+should evaluate to a function object. The rest of the call list is
+used as that function's arguments.
 
-When a quotation is given as the function, the call is evaluated
+When a quotation is used as the first element, the call is evaluated
 from the environment given in that quotation. This means that calls
 to \code{\link[=caller]{caller()}} (or \code{parent.frame()}) from within that function
-should get back to that environment. Meanwhile, using \code{sys.call} or
-\code{match.call} from that function should return the original expression.
-
-Note that primitive functions (e.g. \code{\link{<-}}, \code{\link{for}}) may require
-that certain arguments come from the same environment as the
-calling environment.
+should return that environment.
 
 \code{do} is intended to be a replacement for base function \link{do.call}.
+}
+\note{
+\href{is.primitive}{primitive} functions (e.g. \code{\link{<-}}, \code{\link{for}})
+may require that they are called from the same environment as
+their args.
 }
 \seealso{
 get_call do.call match.call

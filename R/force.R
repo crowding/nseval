@@ -1,12 +1,13 @@
-#' Working with forced quotations and dots.
+#' Forcing and forcedness of arguments and quotations.
 #'
-#' In R's implementation of lazy evaluation, function arguments are
-#' first recorded as a `promise` which pair of an expression with a
-#' source environment. After a promise's value is needed, it is
-#' converted to a "forced" promise, which records the expression and
-#' value, but no longer records the source environment (this allows
-#' the environments to be garbage collected.) [Quotation](quo) objects
-#' also exist in unforced and forced varieties.
+#' There are two kinds of [quotations](quo): forced and unforced.
+#' Unforced quotations have an expression and an environment; forced
+#' quotations have an expression and a value. `forced` returns a
+#' logical or logical vector givenm a [quotation] or [dots].
+#'
+#' In normal R evaluation, function arguments are recorded as unforced
+#' [promise]s, which are converted into forced promises as
+#' well. Quotation objects therefore exist in the same two varieties.
 #'
 #' @export
 #' @rdname forced
@@ -15,36 +16,30 @@
 forced <- function(x) UseMethod("forced")
 
 
-#' (forced)
-#'
-#' `forced_quo(x)` forces its argument before capturing it as a
-#' quotation (including the literal expression). It is equivalent to
-#' `quo(x, force=TRUE)`.
+#' `forced_quo(x)` constructs a forced quotation directly from its
+#' argument.  It is equivalent to `quo(x, force=TRUE)`.
 #' @rdname forced
-#' @return `forced_quo` and `forced_quo_` return [quotation](quo) objects.
 #' @export
 forced_quo <- function(x) {
   force(x)
   arg(x)
 }
 
-#' (forced)
-#'
 #' `forced_quo_(x)` makes a forced quotation from any data.
-#' Specifically it constructs a [quotation] with the same
-#' object in both the `expr` and `value` slots, and does not capture
-#' the expression like `forced_quo`.
+#' Specifically it constructs a [quotation] with the same object in
+#' both the `expr` and `value` slots, except if is a
+#' [language](is.language) object in which case the value is wrapped
+#' in `quote()`.
 #' @rdname forced
+#' @return `forced_quo` and `forced_quo_` return [quotation](quo)
+#'   objects.
 forced_quo_ <- function(x) {
   .Call(`_quotation_literal`, x)
 }
 
 
-#' (forced)
-#'
 #' `forced_dots` and `forced_dots_` construct a [dots] object
-#'   containing forced quotations, analogously to `forced_quo` and
-#'   `forced_quo_`.
+#'   containing forced quotations.
 #' @rdname forced
 #' @export
 #' @return `forced_dots` and `forced_dots_` return [dots] objects.
@@ -55,7 +50,7 @@ forced_dots <- function(...) {
   get_dots(environment())
 }
 
-#' @rdname forced
+#' `forced_dots`
 #' @export
 forced_dots_ <- function(values) {
   structure(lapply(as.list(values),
@@ -63,13 +58,10 @@ forced_dots_ <- function(values) {
             class="dots")
 }
 
+# hmm:  force_(quo(x)) is not equivalent to force(x) because it returns a quo.
 
-
-#' (forced)
-#'
-#' `force_(x)` evaluates the contents of a quotation or dots object,
-#' if they are not already forced, and returns a new, forced quotation
-#' or dots object.
+#' `force_(x)` evaluates the contents of a quotation or dots object.
+#' if they are not already forced, and returns a new forced object.
 #' @export
 #' @rdname forced
 #' @seealso force
@@ -106,10 +98,8 @@ forced.quotation <- function(x) {
 #' @rdname forced
 forced.default <- function(x) forced(as.quo(x))
 
-#' (forced)
-#'
-#' `value` or `values` returns the value of a quotation, forcing it if
-#'   necessary.
+#' `value` or `values` returns the value of a quotation or dots,
+#'   forcing it if necessary.
 #' @param q a [quotation] or [dots] object.
 #' @rdname forced
 #' @return `value` returns the result of forcing the quotation.
@@ -135,11 +125,13 @@ value.quotation <- function(q, mode="any") {
 }
 
 #' @export
+#' @rdname forced
 value.dots <- function(d) {
   do(list, d)
 }
 
 ##' @export
+##' @rdname forced
 #value.default <- function(f) value(as.quo(f))
 
 #' @rdname forced
@@ -149,12 +141,14 @@ values <- function(p) {
   UseMethod("values")
 }
 
+#' @rdname forced
 #' @export
 values.dots <- function(d) {
   do(list, d)
 }
 
-#' @export
-values.default <- function(d) {
-  do(list, as.dots(d))
-}
+## #' @rdname forced
+## #' @export
+## values.default <- function(d) {
+##   do(list, as.dots(d))
+## }

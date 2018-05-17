@@ -123,13 +123,14 @@ test_that("convert list of closures to dots", {
     b %is% 12
   }
 
+  do(f, d)
+
   d %->% (function(a, b) {
-    browser
-    arg_expr(a) %is% quote(x + y)
-    arg_expr(b) %is% quote(x * y)
-    a %is% 3
-    b %is% 12
-  })
+                              arg_expr(a) %is% quote(x + y)
+                              arg_expr(b) %is% quote(x * y)
+                              a %is% 3
+                              b %is% 12
+                              })
 
   #invalid closures
   l <- list(function(x=5) x+1)

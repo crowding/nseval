@@ -136,8 +136,7 @@ environment of each argument (The present environment in this case).
 [alist]: R:alist
 }
 \note{
-The columns have a class \link{oneline} to better print printing
-the data frame.
+The columns have a class \link{oneline} for better printing.
 }
 \examples{
 

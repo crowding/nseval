@@ -2,21 +2,22 @@
 % Please edit documentation in R/getpromise.R
 \name{arg}
 \alias{arg}
-\alias{args}
 \alias{arg_}
+\alias{args}
 \alias{args_}
-\title{Retreive lazy arguments from environments, by name.}
+\title{Capture variables as quotations, or the reverse.}
 \usage{
 arg(sym, env = arg_env_(quote(sym), environment()))
 
-args(...)
-
 arg_(sym, env = arg_env(sym, environment()))
+
+args(...)
 
 args_(syms, envs)
 }
 \arguments{
-\item{sym}{The name to look up. For \code{arg} this is a symbol or
+\item{sym}{The name to look up. For \code{arg} this is a literal name,
+not evaluated. For \code{arg_} this should evaluate to a symbol or
 character.}
 
 \item{env}{The environment to look in. By default, the environment
@@ -39,14 +40,14 @@ the bindings in.}
 \code{args} returns a \code{[dots]} object.
 }
 \description{
-\code{arg} looks in the given environment for a binding,
-without forcing any promises, and returns it as a \link{quotation}.
+\code{arg(x)} looks in the calling environment for the binding \code{x},
+taken literally, without forcing any promises, and returns it as a
+\link{quotation}.
 
-\code{args} looks up multiple variables, and returns a \link{dots} object.
-\code{args(x, y)} is equivalent to \code{[unwrap](dots(x=x, y=y))}.
-
-\code{arg_} is the normally evaluating version of \code{arg_};
+\code{arg_} is the normally evaluating version;
 \code{arg(x, e)} is equivalent to \code{arg_(quote(x), e)}.
+
+If any of the requested variables are not bound, an error will be raised.
 
 \code{args_} is a normally evaluating version of \code{args};
 \code{args(x, y)} is equivalent to \code{args_(alist(x, y))}.
@@ -54,8 +55,6 @@ without forcing any promises, and returns it as a \link{quotation}.
 \details{
 Generally, \code{arg(x)} is equivalent to \code{[unwrap](quo(x))} for
 variable names x.
-
-If any of the given variables are not bound, an error will be raised.
 }
 \note{
 If you use a a literal character value, as in \code{arg_("x", environment())}, you MUST also give the environment parameter.The

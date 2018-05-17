@@ -5,7 +5,6 @@
 \alias{forced_quo}
 \alias{forced_quo_}
 \alias{forced_dots}
-\alias{forced_dots_}
 \alias{force_}
 \alias{force_.quotation}
 \alias{force_.dots}
@@ -13,8 +12,10 @@
 \alias{forced.default}
 \alias{value}
 \alias{value.quotation}
+\alias{value.dots}
 \alias{values}
-\title{Working with forced quotations and dots.}
+\alias{values.dots}
+\title{Forcing and forcedness of arguments and quotations.}
 \usage{
 forced(x)
 
@@ -23,8 +24,6 @@ forced_quo(x)
 forced_quo_(x)
 
 forced_dots(...)
-
-forced_dots_(values)
 
 force_(q, ...)
 
@@ -40,7 +39,11 @@ value(q, ...)
 
 \method{value}{quotation}(q, mode = "any")
 
+\method{value}{dots}(d)
+
 values(p)
+
+\method{values}{dots}(d)
 }
 \arguments{
 \item{...}{any number of arguments.}
@@ -55,7 +58,8 @@ values(p)
 \value{
 \code{forced(x)} returns a \link{logical} value.
 
-\code{forced_quo} and \code{forced_quo_} return \href{quo}{quotation} objects.
+\code{forced_quo} and \code{forced_quo_} return \href{quo}{quotation}
+objects.
 
 \code{forced_dots} and \code{forced_dots_} return \link{dots} objects.
 
@@ -64,33 +68,33 @@ values(p)
 \code{values} returns a list.
 }
 \description{
-In R's implementation of lazy evaluation, function arguments are
-first recorded as a \code{promise} which pair of an expression with a
-source environment. After a promise's value is needed, it is
-converted to a "forced" promise, which records the expression and
-value, but no longer records the source environment (this allows
-the environments to be garbage collected.) \href{quo}{Quotation} objects
-also exist in unforced and forced varieties.
+There are two kinds of \href{quo}{quotations}: forced and unforced.
+Unforced quotations have an expression and an environment; forced
+quotations have an expression and a value. \code{forced} returns a
+logical or logical vector givenm a \link{quotation} or \link{dots}.
 
-\code{forced_quo(x)} forces its argument before capturing it as a
-quotation (including the literal expression). It is equivalent to
-\code{quo(x, force=TRUE)}.
+\code{forced_quo(x)} constructs a forced quotation directly from its
+argument.  It is equivalent to \code{quo(x, force=TRUE)}.
 
 \code{forced_quo_(x)} makes a forced quotation from any data.
-Specifically it constructs a \link{quotation} with the same
-object in both the \code{expr} and \code{value} slots, and does not capture
-the expression like \code{forced_quo}.
+Specifically it constructs a \link{quotation} with the same object in
+both the \code{expr} and \code{value} slots, except if is a
+\href{is.language}{language} object in which case the value is wrapped
+in \code{quote()}.
 
 \code{forced_dots} and \code{forced_dots_} construct a \link{dots} object
-containing forced quotations, analogously to \code{forced_quo} and
-\code{forced_quo_}.
+containing forced quotations.
 
-\code{force_(x)} evaluates the contents of a quotation or dots object,
-if they are not already forced, and returns a new, forced quotation
-or dots object.
+\code{force_(x)} evaluates the contents of a quotation or dots object.
+if they are not already forced, and returns a new forced object.
 
-\code{value} or \code{values} returns the value of a quotation, forcing it if
-necessary.
+\code{value} or \code{values} returns the value of a quotation or dots,
+forcing it if necessary.
+}
+\details{
+In normal R evaluation, function arguments are recorded as unforced
+\link{promise}s, which are converted into forced promises as
+well. Quotation objects therefore exist in the same two varieties.
 }
 \seealso{
 is_forced

@@ -45,8 +45,7 @@ as.dots.quotation <- function(x) {
 #'  * `env`: an [environment] object or NULL if [forced],
 #'  * `value`: NULL or a value if forced.
 #'
-#' @note The columns have a class [oneline] to better print printing
-#'   the data frame.
+#' @note The columns have a class [oneline] for better printing.
 #' @return `as.data.frame.dots` returns a data frame.
 #' @param x A \code{\link{dots}} object.
 #' @rdname dots
@@ -183,11 +182,14 @@ c.dots <- function(...) {
 
 #' Set or get the contents of "..." in an environment.
 #'
+#' `get_dots()` is equivalent to [`dots(...)`] or [`args( (...) )`].
+#'
 #' @param env The environment to look in.
-#' @param inherits Whether to allow '...' to be inherited in enclosing
+#' @param inherits Whether to allow '...' to be inherited from enclosing
 #'   environments.
 #' @return `get_dots` returns the contents of `...` converted to a
-#'   `dots` object.
+#'   [dots] object.
+#' @seealso env2dots
 #' @export
 #' @useDynLib nse _get_dots
 #' @useDynLib nse _dotsxp_to_flist
@@ -202,10 +204,12 @@ get_dots <- function(env = caller(environment()), inherits=FALSE) {
 #'   existing binding. If false, existing binding for "..." will be
 #'   replaced.
 #' @return `set_dots` returns the updated environment, invisibly.
+#' @seealso "%<-%" dots2env quo2env
 #' @useDynLib nse _set_dots
 #' @useDynLib nse _flist_to_dotsxp
 #' @export
 set_dots <- function(env, d, append=FALSE) {
+  d <- as.dots(d)
   if (append) {
     d = c(get_dots(env), d);
   }

@@ -2,22 +2,58 @@
 % Please edit documentation in R/conversions.R
 \name{function_}
 \alias{function_}
+\alias{arglist}
 \title{Explicitly create closures.}
 \usage{
 function_(args, body, env = caller(environment()))
+
+arglist(names, rest = list(), fill = missing_value())
 }
 \arguments{
-\item{args}{Either NULL, or a named list of default value
-expressions (which may be missing_value() to indicate no
-default). \link{alist} and \link{list_missing} are useful for this.}
+\item{args}{The argument list. NULL is accepted to make a function
+with no arguments. Arguments are specified as a named list; the
+list names become the argument names, and the list values become
+the default expressions. A value of \code{\link[=missing_value]{missing_value()}} indicates
+no default. \link{alist} and \link{arglist} are useful for making argument
+lists.}
 
-\item{body}{An expression for the body of the function.}
+\item{body}{An expression.}
 
-\item{env}{The environment to create a function from.}
+\item{env}{An environment.}
+
+\item{names}{A character vector.}
+
+\item{fill}{The default expression to use.}
 }
 \value{
 A closure.
 }
 \description{
-\code{function_} is a normally-evaluating version of \link{function}.
+\code{function_} is a normally-evaluating version of \code{\link{function}}, which
+creates closures. A closure object has three components: the
+argument list the body expression, and the enclosing environment.
+
+\code{arglist} is a helper that produces argument templates given a
+character vector of names.
+}
+\examples{
+f1 <- function(x, y = x) { x + y }
+f2 <- function_(alist(x = , y = x),
+                quote( { x + y } ),
+                environment())
+identical(f1, f2) # TRUE
+
+# `fn` makes a compact way to write functions;
+# `fn(x+y)` is equivalent to `function(x, y) x+y`
+fn <- function(exp) {
+  exp_ <- arg(exp)
+  nn <- arglist(all.names(expr(exp)))
+  function_(arglist(nn), expr(exp_), env(exp_))
+}
+
+fn(x^2)
+fn(x+y)
+}
+\seealso{
+environment formals body
 }

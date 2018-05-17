@@ -12,7 +12,7 @@ set_dots(env, d, append = FALSE)
 \arguments{
 \item{env}{The environment to look in.}
 
-\item{inherits}{Whether to allow '...' to be inherited in enclosing
+\item{inherits}{Whether to allow '...' to be inherited from enclosing
 environments.}
 
 \item{d}{a \code{[dots]} object.}
@@ -23,10 +23,15 @@ replaced.}
 }
 \value{
 \code{get_dots} returns the contents of \code{...} converted to a
-\code{dots} object.
+\link{dots} object.
 
 \code{set_dots} returns the updated environment, invisibly.
 }
 \description{
-Set or get the contents of "..." in an environment.
+\code{get_dots()} is equivalent to \code{\link{dots(...)}} or \code{\link{args( (...) )}}.
+}
+\seealso{
+env2dots
+
+"%<-%" dots2env quo2env
 }

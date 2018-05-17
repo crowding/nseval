@@ -1,11 +1,11 @@
 #include "vadr.h"
 #include "promises.h"
 
-/* Immutable promise objects (quotations) are stored by this package as
-   CLOSXPS with a class attribute.  For unforced quotations, the
-   environment and body slots are filled, while the arg slot is
-   empty. For forced quotations, the environment is set to R_EmptyEnv,
-   and the body to the value.  In both cases the arglist is empty. */
+/* Immutable promise objects (quotations) are stored as CLOSXPS with a
+   class attribute.  For unforced quotations, the environment and body
+   slots are filled, while the arg slot is empty. For forced
+   quotations, the environment is set to R_EmptyEnv, and the body to
+   the value.  In both cases the arglist is empty. */
 
 SEXP _quotation(SEXP envir, SEXP expr, SEXP value) {
   SEXP out = PROTECT(allocSExp(CLOSXP));
@@ -23,7 +23,7 @@ SEXP _quotation(SEXP envir, SEXP expr, SEXP value) {
     UNPROTECT(1);
   } else {
     assert_type(envir, ENVSXP);
-    if (value != R_NilValue) {
+    if (value != R_MissingArg) {
       error("Can't make a promise with both an env and a value");
     } else {
       SET_CLOENV(out, envir);

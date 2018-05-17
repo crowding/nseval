@@ -21,7 +21,7 @@
 \method{print}{quotation}(x, ...)
 }
 \arguments{
-\item{x}{A dots object.}
+\item{x}{An object.}
 
 \item{compact}{Implies \code{show.environments=FALSE} and
 \code{show.expressions=FALSE}.}
@@ -34,18 +34,14 @@ quotations.}
 
 \item{width}{The width of line to produce.}
 
-\item{...}{Further arguments passed to \link{format} methods.}
+\item{...}{Parameters passed to \link[base:format]{base::format}}
 
 \item{max.width}{The maximum width of line to produce.}
-
-\item{x}{An object.}
-
-\item{...}{Parameters passed to \link[base:format]{base::format}}
 }
 \description{
 \code{format.dots} constructs a string representation of a dots
-object. An unevaluated promise is shown as \code{envir ? expr} and an
-evaluated promise is shown as \code{expr := value}.
+object. An un\link{forced} quotation is shown as \code{envir ? expr} and a
+forced quotation is shown as \code{expr := value}.
 
 \code{format.quotation} constructs a string representation of a
 quotation object.

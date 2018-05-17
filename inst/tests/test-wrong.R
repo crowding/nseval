@@ -95,21 +95,32 @@ test_that("parent_frame returns garbage when called from a promise.", {
 #wrong.
 
 test_that("parent.frame from a lazy argument in a closed environment", {
-  where <- "0"
-  e <- function() {
-    where <- "e"
-    f <- function() {
-      where <- "f"
-      g <- function(g) {
-        where <- "g"
-        function(f) g
+  where <<- "00"
+  where <- "00"
+  d <- function() {
+    where <- "0"
+    e <- function() {
+      where <- "e"
+      f <- function() {
+        where <- "f"
+        g <- function(g) {
+          where <- "g"
+          function(f) g
+        }
+        g(parent.frame())
       }
-      g(parent.frame())
+      f()
     }
-    f()
+    e()()$where
   }
-  e()()$where %should_be% "e" %but_is% "0"
+  d <- cmpfun(d)
+  print(d())
+
+  d() %should_be% "e" %but_is% "00"
 })
+
+
+
 
 test_that("parent.frame from eval and do.call", {
   where <- "0"
@@ -134,27 +145,33 @@ test_that("parent.frame from eval and do.call", {
 })
 
 test_that("parent.frame from eval and do.call in closed environments", {
-  where <- "0"
+  where <<- "00"
   x <- y <- z <- NULL
-  e <- function() {
-    where <- "e"
-    x <<- environment()
-    f <- function() {
-      where <- "f"
-      y <<- environment()
-      g <- function() {
-        where <- "g"
-        z <<- environment()
+  d <- function() {
+    where <- "0"
+    function(x) x
+    e <- function() {
+      where <- "e"
+      x <<- environment()
+      f <- function() {
+        where <- "f"
+        y <<- environment()
+        g <- function() {
+          where <- "g"
+          z <<- environment()
+        }
+        g()
       }
-      g()
+      f()
     }
-    f()
+    e()
   }
-  e()
+  d <- cmpfun(d)
+  d()
   h <- function() {
     eval(quote(parent.frame()))$where %should_be% "0" %but_is% NULL
-    do.call("parent.frame", list(), envir=z)$where %should_be% "f" %but_is% "0"
-    do.call("parent.frame", list(), envir=y)$where %should_be% "e" %but_is% "0"
+    do.call("parent.frame", list(), envir=z)$where %should_be% "f" %but_is% "00"
+    do.call("parent.frame", list(), envir=y)$where %should_be% "e" %but_is% "00"
   }
   h()
 })

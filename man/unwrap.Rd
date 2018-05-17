@@ -2,9 +2,12 @@
 % Please edit documentation in R/getpromise.R
 \name{unwrap}
 \alias{unwrap}
+\alias{unwrap.dots}
 \title{Peel back layers of variable names from quotations.}
 \usage{
 unwrap(x, recursive = FALSE)
+
+\method{unwrap}{dots}(x, recursive = FALSE)
 }
 \arguments{
 \item{x}{a \link{quotation} to unwrap.}
@@ -15,6 +18,8 @@ nontrivial expression is found.)}
 }
 \value{
 The \link{quotation} method returns a \link{quotation}.
+
+The \link{dots} method returns a dots object with each quotation unwrapped.
 }
 \description{
 When an un\link{forced} \link{quotation}'s expression is a bare variable

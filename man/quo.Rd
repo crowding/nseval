@@ -12,66 +12,102 @@
 \alias{expr<-}
 \alias{expr<-.quotation}
 \alias{is.quotation}
-\title{Capture or construct a quotation.}
+\alias{as.quo}
+\alias{as.quo.quotation}
+\alias{as.quo.function}
+\alias{as.quo.quotation}
+\alias{as.quo.dots}
+\alias{as.quo.default}
+\alias{as.quo.formula}
+\alias{as.quo.lazy}
+\title{Quotation objects.}
 \usage{
-quo(x, env = arg_env_(quote(x), environment()), force = FALSE)
+quo(expr, env = arg_env_(quote(expr), environment()), force = FALSE)
 
 quo_(expr, env, force = FALSE)
 
-env(x)
+env(q)
 
-\method{env}{quotation}(x)
+\method{env}{quotation}(q)
 
-env(x) <- value
+env(q) <- value
 
-\method{env}{quotation}(x) <- value
+\method{env}{quotation}(q) <- value
 
 expr(q)
 
 \method{expr}{quotation}(q)
 
-expr(x) <- value
+expr(q) <- value
 
-\method{expr}{quotation}(x) <- value
+\method{expr}{quotation}(q) <- value
 
 is.quotation(x)
+
+as.quo(x)
+
+\method{as.quo}{quotation}(x)
+
+\method{as.quo}{function}(x)
+
+\method{as.quo}{quotation}(x)
+
+\method{as.quo}{dots}(x)
+
+\method{as.quo}{default}(x)
+
+\method{as.quo}{formula}(x)
+
+\method{as.quo}{lazy}(x)
 }
 \arguments{
-\item{x}{an argument, left unevaluated.}
+\item{expr}{An expression. For \code{quo} this is taken literally and
+not evaluated. For \code{quo_} this is evaluated normally.}
 
-\item{env}{An environment.g}
+\item{env}{An environment.}
 
-\item{force}{Create a "forced" quotation; this is one that stores
-an expression and value but no environment.}
-
-\item{expr}{An expression.}
+\item{force}{Immediately evaluate the expression and create a
+"forced" quotation, i.e. one that stores an expression and value,
+but no environment.}
 
 \item{q}{A quotation object.}
+
+\item{x}{Any object.}
+
+\item{expr}{An expression.}
 }
 \value{
-an object of class "quotation".
+\code{quo_} and \code{quo} return an object of class "quotation".
+
+\code{as.quo} returns a quotation.
 }
 \description{
-A quo (or quotation) \code{q <- quo( <anything> )} is an object with two
-parts: an expression \link{expr(q)} with an environment \link{env(q)}. (Like
-in writing, an 'expression' may be a phrase used in many different
-contexts, but a 'quotation' needs to be bundled with a citation, to
-reference a context in which it was said.)
+\code{quo} captures its argument literally, that is, without evaluating,
+and constructs a quotation.
 
-quo_ is a normally evaluating, explicit constructor for quotations.
+\code{quo_(expr, env)} is the normally evaluating version. It
+constructs a quotation given an expression and environment.
+
+\code{as.quo(x)} converts an object into a quotation. Closures,
+formulas, and single-element \link{dots} can be converted this way.
 }
 \details{
+A quo (or quotation) \code{q <- quo( something )} has two parts: an
+expression \link{expr(q)} with an environment \link{env(q)}. (Like in
+writing, an 'expression' may simply be a set of words, but a
+'quotation' comes bundled with a citation, to reference a context
+in which it was said.)
+
 A quo is parallel to a 'promise' which is the data structure R uses
-to hold lazily evaluated arguments. A quo is different from a promise
-because it is an immutable data object.
+to hold lazily evaluated arguments. A quo is different from a
+promise because it is an immutable data object.
 
 As a data object, a quo does not automatically evaluate like a
-promise, but can be evaluated explicitly with the method
-\code{value(q)}.  A quo is immutable, so it does not mutate into a
+promise, but can be evaluated explicitly with the methods \link{value}
+or \link{force_}.  A quo is immutable, so it does not mutate into a
 "forced" state if you choose to evaluate it.
 
-Quotation objects can be extracted from the arguments to a currently
-evaluating function using \link{arg}.
+A function can capture its arguments as quotations using \code{\link{arg}}.
 
 A \link{dots} object is a list of quotations.
 }

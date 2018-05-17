@@ -2,7 +2,7 @@
 % Please edit documentation in R/conversions.R
 \name{env2dots}
 \alias{env2dots}
-\title{Copy bindings from an environment into a dots object.}
+\title{Copy bindings from an environment into a dots object, or vice versa.}
 \usage{
 env2dots(env, names = ls(envir = env, all.names = TRUE),
   include_missing = TRUE, expand_dots = TRUE)
@@ -19,8 +19,12 @@ its enclosing environments.}
 \item{expand_dots}{Whether to include the contents of \code{...}.}
 }
 \value{
-A \link{dots} object.
+`env5 A \link{dots} object.
 }
 \description{
-Copy bindings from an environment into a dots object.
+\code{env2dots} copies all bindings in the environment (but not those
+from its parents) into a new \link{dots} object. Bindings that are
+promises will be captured without forcing. Bindings that are not
+promises will be rendered as \link{forced} quotations. The output will
+not be in any particular order.
 }

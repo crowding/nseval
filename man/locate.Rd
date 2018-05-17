@@ -8,7 +8,7 @@
 \alias{locate_.character}
 \alias{locate_.(}
 \alias{locate_.name}
-\title{Determine which enclosing environment defines a name.}
+\title{Find the environment which defines a name.}
 \usage{
 locate(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 
@@ -30,37 +30,42 @@ locate_.name(sym, env = arg_env_(quote(sym), environment()), mode = "any",
 }
 \arguments{
 \item{sym}{A name. For \code{locate} the argument is used literally. For
-\code{locate_} it should have the value \link{name} or character.}
+\code{locate_} it should be a \link{name} or list of names.}
 
 \item{env}{Which environment to begin searching from.}
 
-\item{mode}{Either "any" or "function". "any" finds the lowest
-enclosing environment which defines a symbol. "function" finds an
-environment which defines the symbol as a function, possibly
-forcing promises along the way.}
+\item{mode}{Either \code{"any"} or \code{"function"}. \code{"any"} finds the
+lowest enclosing environment which gives any definiton for \code{sym}.
+\code{"function"} searches for an environment which defines \code{sym} as a
+function. This may force lazy arguments in the process, in the
+same way as \link{get}.}
 
 \item{ifnotfound}{What is returned if the symbol is not found. By
 default an exception is raised.}
-
-\item{mode}{Either "any" or "function".}
 }
 \value{
 An environment object which defines \code{sym}, if one is found.
 }
 \description{
-Determine which enclosing environment defines a name.
+\code{locate} starts at a given environment, and searches enclosing
+environments for a name. It returns the first which defines \code{sym}.
 
-If sym is a list (of \link{name}s) or a \link{dots} object, \code{locate} returns a list.
+\code{locate_} is the normally evaluating method; \code{locate(x)} is
+equivalent to \code{locate_(quo(x))} or \code{locate_(quote(x), environment())}.
 
-When \code{sym} is a \link{quotation} or \link{dots}, the \code{env} argument is ignored.
+If \code{sym} is a list (of \link{name}s) or a \link{dots} object, \code{locate_(sym)}
+returns a list.
+
+When \code{sym} is a \link{quotation} or \link{dots}, any \code{env} argument is ignored.
 }
 \note{
-If you use a literal character argument, as in \code{locate("x", environment())}, you must also provide the environment
-argument. However \code{locate(x)} will work OK. See note under \link{arg}.
+If you use a literal character argument, as in \code{locate("x", environment())}, you must also provide the environment argument
+explicitly; \code{locate("x")} won't work in compiled
+functions. However using a literal name like \code{locate(x)} will
+work OK. See note under \link{arg}.
 }
 \examples{
-# `locate` is useful if you want to implement something that works
-# like [<<-], which updates the binding where it is found.
+# Here is how to implement R's `<<-` operator, using `locate_`:
 `<<-` <- function(lval, rval) {
  lval_ <- arg(lval_)
  rval_ <- arg(rval_)
@@ -72,7 +77,7 @@ x <- "not this one"
 local({
   x <- "this one"
   local({
-    x <- "not this one"
+    x <- "not this one either"
     x <<- "this works just like builtin <<-"
   })
   print(x)

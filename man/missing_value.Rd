@@ -2,24 +2,24 @@
 % Please edit documentation in R/missing.R
 \name{missing_value}
 \alias{missing_value}
-\alias{list_missing}
 \alias{missing_}
-\alias{missing_.dots}
 \alias{missing_.default}
+\alias{missing_.dots}
 \alias{missing_.quotation}
+\alias{list_missing}
 \title{R's missing value.}
 \usage{
 missing_value(n)
 
-list_missing(...)
-
 missing_(x, unwrap = TRUE)
-
-\method{missing_}{dots}(x, unwrap = TRUE)
 
 \method{missing_}{default}(x, unwrap = TRUE)
 
+\method{missing_}{dots}(x, unwrap = TRUE)
+
 \method{missing_}{quotation}(x, unwrap = TRUE)
+
+list_missing(...)
 }
 \arguments{
 \item{n}{Optional; a number. If provided, will return a list of
@@ -27,80 +27,91 @@ missing values with this many elements.}
 
 \item{x}{a value, \link{dots}, or list.}
 
-\item{unwrap}{Whether to descend through unevaluated promises
-using \link{unwrap(x, TRUE)} before deciding if a promise is missing.}
+\item{unwrap}{Whether to descend recursively through unevaluated
+promises using \link{unwrap(x, TRUE)}}
 }
 \value{
 The symbol with empty name, or a list of such.
 
-\code{list_missing} A list containing the values of all arguments, including
-missing values. That is, \code{list_missing} works like
-\code{list}, but does not complain about missing arguments,
-instead representing them directly.
+\code{missing} returns a logical vector.
 
-\code{missing} returns a logical vector
+\code{list_missing} returns a list.
 }
 \description{
-The missing value (\code{R_MissingArg} at C level) has two related uses
-in R's implementation. One is "at parse time" when it is used to
-represent empty arguments. The other is "at run time" when it is
-bound to function arguments that were not given any value.
+The missing value is what R uses to represent a missing
+argument. It is distinct from either NULL or NA. \code{missing_value()}
+returns this object.
 
-\code{missing_} checks for missingness in R data.
+\code{missing_} checks for missingness in R data. It is a generic
+function with methods for \link{dots}, \link{quotation}s and lists.
 
-For \code{[dots]} and \code{[quo]} objects, \code{missing()} checks whether the
-expressions are missing without evaluating.
+\code{missing_} on a list compares each element of the list to the
+missing value, and returns a logical vector.
+
+For \code{[dots]} and \code{[quo]} objects, \code{missing_} checks whether the
+expressions are identical to the missing value.
+
+\code{list_missing} is similar to \code{list} but allows missing arguments.
 }
 \details{
-Manipulating expressions ("computing on the language") means we
-have to deal with the first use case, because we have to be able to
-make calls that have empty arguments, like the first index in
-\code{arr[,c]}.
+The missing value occurs naturally in a quoted R expression that has an empty argument.\preformatted{    exp <- quote( x[1, ] )
+    identical(exp[[4]], missing_value()) #TRUE
+    is_missing(exp[[4]]) #also TRUE
+}
 
-The second use of the missing sigil makes this tricky. Generally it
-is a bad idea to assign a bare \code{missing_value} to a variable or use
-one as the argument to a function, because this makes R think that
-the variable \emph{is} missing rather than that it \emph{contains a}
-missing. For instance, you can say
+So we can use [missing_value] to help construct expressions:\preformatted{    substitute(f[x, y], list(x = 1, y=missing_value()))
+}
 
-x <- list(missing_value(), 2, 3)
+When such an expression is evaluated and starts a function call,
+the missing value winds up in the promise expression.\preformatted{    f <- function(x) arg_expr(x)
+    identical(f(), missing_value()) # TRUE
+}
 
-and get a valid list, but this:
+During "normal evaluation", finding a missing value in a
+variable raises an error.\preformatted{    m <- missing_value()
+    list(m) # raises error
+}
 
-a <- missing_value(); b <- 2; c <- 3
-x <- list(a, b, c)
+This means that it's sometimes tricky to work with missings:\preformatted{    exp <- quote( x[1, ] )
+    cols <- x[[4]]
+    x <- list(missing_value(), 2, 3)     # this is ok, but...
+    a <- missing_value(); b <- 2; c <- 3 # this stores missing in "cols",
+    x <- list(a, b, c)                   # throws an error: "a" missing
+}
 
-fails with an error about the missing variable "a". When dealing
-with missing values, then, best to keep them wrapped up in lists,
-\link{quotations} or others
+Generally, keep your missing values wrapped up in lists or quotations,
+instead of assigning them to variables directly.
 
-Checking for missing arguments of \code{...}, without forcing, can be
-useful if you need to implement array subsetting like \code{`[`},
-where a missing argument means to take all indexes on that
-dimension.
-
-There is not a good way to emulate \code{`[`}'s behavior in base R;
-using \code{list(\dots)} to collect all positional arguments will throw
-errors on missing arguments. Meanwile, using
-\code{substitute(list(...))[[2]]} gives you the unevaluated arguments,
-but stripts them of their environments (breaking hygeine).
-
-Instead, use \code{x <- list_missing(...)}
-and \link{missing_}(x) to detect missing arguments.
-
-[[2]: R:[2
+[[4]: R:[4
+[[4]: R:[4
+[missing_value]: R:missing_value
+[x, y]: R:x,%20y
+\link{1, }: R:1,%20
+[[4]: R:[4
 }
 \examples{
 # These expressions are equivalent:
-quote(function(x, y=1) x+y)
-call("function", pairlist(x=missing_value(), y=1), call("+", as.name("x"), as.name("y"))
+function(x, y=1) {x+y}
+function_(list(x=missing_value, y=1),
+          quote( {x+y} ))
 
 # These expressions are also equivalent:
 quote(df[,1])
-substitute(df[row,col], list(row = missing_value(), col = 1))
+substitute(df[row,col],
+           list(row = missing_value(), col = 1))
+# How to do the trick of `[` where it can tell which arguments are
+# missing:
+`[.myclass` <- function(x, ...) {
+   indices <- list_missing(...)
+   kept.axes <- which(missing_(indices))
+   cat(paste0("Keeping axes ", kept_axes, "\\n"))
+   #...
+}
+ar <- structure(array(1:24, c(2, 3, 4)))
+ar[, 3, ]
 }
 \seealso{
-list_missing
+missing is_missing
 
-missing, is_missing
+missing is_missing
 }

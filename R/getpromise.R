@@ -1,14 +1,16 @@
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-#' Retreive lazy arguments from environments, by name.
+#' Capture variables as quotations, or the reverse.
 #'
-#' `arg` looks in the given environment for a binding,
-#' without forcing any promises, and returns it as a [quotation].
+#' `arg(x)` looks in the calling environment for the binding `x`,
+#' taken literally, without forcing any promises, and returns it as a
+#' [quotation].
 #'
 #' Generally, `arg(x)` is equivalent to `[unwrap](quo(x))` for
 #' variable names x.
 #'
-#' @param sym The name to look up. For `arg` this is a symbol or
+#' @param sym The name to look up. For `arg` this is a literal name,
+#'   not evaluated. For `arg_` this should evaluate to a symbol or
 #'   character.
 #' @param env The environment to look in. By default, the environment
 #'   from which `sym` was passed.
@@ -26,13 +28,20 @@ arg <- function(sym,
   arg_(sym_, env)
 }
 
+#' `arg_` is the normally evaluating version;
+#' `arg(x, e)` is equivalent to `arg_(quote(x), e)`.
+#' @rdname arg
+#' @export
+#' @useDynLib nse _arg
+arg_ <- function(sym, env = arg_env(sym, environment())) {
+  .Call(`_arg`, env, as.name(sym), TRUE)
+}
 
-#' (arg)
-#'
+
 #' `args` looks up multiple variables, and returns a [dots] object.
 #' `args(x, y)` is equivalent to `[unwrap](dots(x=x, y=y))`.
 #'
-#' If any of the given variables are not bound, an error will be raised.
+#' If any of the requested variables are not bound, an error will be raised.
 #'
 #' @param ... Bare names (not forced). Arguments may be named; these
 #'   names determine the names on the output list. If argument names
@@ -56,16 +65,6 @@ args <- function(...) {
   args_(exprs(d), envs(d))
 }
 
-#' arg
-#'
-#' `arg_` is the normally evaluating version of `arg_`;
-#' `arg(x, e)` is equivalent to `arg_(quote(x), e)`.
-#' @rdname arg
-#' @export
-#' @useDynLib nse _arg
-arg_ <- function(sym, env = arg_env(sym, environment())) {
-  .Call(`_arg`, env, as.name(sym), TRUE)
-}
 
 #' arg
 #'
@@ -87,22 +86,21 @@ args_ <- function(syms, envs) {
 }
 
 
-#' Determine which enclosing environment defines a name.
+#' Find the environment which defines a name.
 #'
+#' `locate` starts at a given environment, and searches enclosing
+#' environments for a name. It returns the first which defines `sym`.
 #' @param sym A name. For `locate` the argument is used literally. For
-#'   `locate_` it should have the value [name] or character.
+#'   `locate_` it should be a [name] or list of names.
 #' @param env Which environment to begin searching from.
-#' @param mode Either "any" or "function". "any" finds the lowest
-#'   enclosing environment which defines a symbol. "function" finds an
-#'   environment which defines the symbol as a function, possibly
-#'   forcing promises along the way.
+#' @param mode Either `"any"` or `"function"`. `"any"` finds the
+#'   lowest enclosing environment which gives any definiton for `sym`.
+#'   `"function"` searches for an environment which defines `sym` as a
+#'   function. This may force lazy arguments in the process, in the
+#'   same way as [get].
 #' @return An environment object which defines `sym`, if one is found.
-#' @note If you use a literal character argument, as in `locate("x",
-#'   environment())`, you must also provide the environment
-#'   argument. However `locate(x)` will work OK. See note under [arg].
 #' @examples
-#' # `locate` is useful if you want to implement something that works
-#' # like [<<-], which updates the binding where it is found.
+#' # Here is how to implement R's `<<-` operator, using `locate_`:
 #' `<<-` <- function(lval, rval) {
 #'  lval_ <- arg(lval_)
 #'  rval_ <- arg(rval_)
@@ -114,7 +112,7 @@ args_ <- function(syms, envs) {
 #' local({
 #'   x <- "this one"
 #'   local({
-#'     x <- "not this one"
+#'     x <- "not this one either"
 #'     x <<- "this works just like builtin <<-"
 #'   })
 #'   print(x)
@@ -127,6 +125,8 @@ locate <- function(sym,
   locate_(sym = sym_, env = env, mode = mode, ...)
 }
 
+#' `locate_` is the normally evaluating method; `locate(x)` is
+#' equivalent to `locate_(quo(x))` or `locate_(quote(x), environment())`.
 #' @rdname locate
 #' @export
 locate_ <- function(sym,
@@ -146,9 +146,8 @@ locate.dispatch <- function(sym, env, mode, ...) {
 }
 
 
-#' locate
-#'
-#' If sym is a list (of [name]s) or a [dots] object, `locate` returns a list.
+#' If `sym` is a list (of [name]s) or a [dots] object, `locate_(sym)`
+#' returns a list.
 #' @rdname locate
 #' @export
 locate_.list <- function(sym,
@@ -158,9 +157,7 @@ locate_.list <- function(sym,
   lapply(sym, locate_, env=env, mode=mode, ...)
 }
 
-#' locate
-#'
-#' When `sym` is a [quotation] or [dots], the `env` argument is ignored.
+#' When `sym` is a [quotation] or [dots], any `env` argument is ignored.
 #' @rdname locate
 #' @export
 locate_.quotation <- function(sym,
@@ -171,6 +168,11 @@ locate_.quotation <- function(sym,
 }
 
 #' @rdname locate
+#' @note If you use a literal character argument, as in `locate("x",
+#'   environment())`, you must also provide the environment argument
+#'   explicitly; `locate("x")` won't work in compiled
+#'   functions. However using a literal name like `locate(x)` will
+#'   work OK. See note under [arg].
 #' @export
 locate_.character <- function(sym,
                               env = arg_env_(quote(sym), environment()),
@@ -208,7 +210,6 @@ locate_.dots <- function(sym,
 }
 
 #' @rdname locate
-#' @param mode Either "any" or "function".
 #' @param ifnotfound What is returned if the symbol is not found. By
 #'   default an exception is raised.
 #' @useDynLib nse _locate
@@ -279,37 +280,8 @@ unwrap.quotation <- function(x, recursive=FALSE) {
 
 
 #' @export
-#' @return The [dots] method returns a dots object with each component unwrapped.
+#' @rdname unwrap
+#' @return The [dots] method returns a dots object with each quotation unwrapped.
 unwrap.dots <- function(x, recursive=FALSE) {
   structure(lapply(x, function(x) .Call("_unwrap_quotation", x, recursive)), class="dots")
 }
-
-#' Turn quotations into bindings in the present environment.
-#' @param dst A name,
-#' @param src A [quotation] (or something that can be converted to a
-#'   quotation, like a formula).
-#' @seealso delayedAssign
-`%<-%` <- function(dst, src)  {
-  dst <- arg(dst)
-  UseMethod("%<-%", src)
-}
-
-`%<-%.default` <- function(dst, src) {
-  src <- as.quo(src)
-  .Class <- class(src)
-  NextMethod("%<-%", src)
-}
-
-#' @useDynLib nse _quotation_to_promsxp
-`%<-%.quotation` <- function(dst, src) {
-  dst <- arg(dst) # Interesting... dst is not remembered from the
-                  # dispatch function. The original call is
-                  # replicated?
-  switch(mode(expr(dst)),
-         name = assign(as.character(expr(dst)),
-                       envir=env(dst),
-                       .Call(`_quotation_to_promsxp`, src)),
-         call = stop("Subassignment with %<-% not implemented"),
-         stop("Don't know how to put a quotation into a ", typeof(expr(dst))))
-}
-

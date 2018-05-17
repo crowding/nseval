@@ -17,7 +17,7 @@
 \alias{is_promise_}
 \alias{is_default}
 \alias{is_default_}
-\title{Shortcuts for accessing lazy variables.}
+\title{Get information about currently bound arguments.}
 \usage{
 arg_env(sym, env = arg_env_(quote(sym), environment()))
 
@@ -53,9 +53,9 @@ is_default_(syms, envs = arg_env(syms))
 }
 \arguments{
 \item{sym}{For \code{arg_env}, etc, a bare name (not forced). For
-the normally evaluating \code{arg_env_} a \link{name}.}
+the normally evaluating \code{arg_env_} and so on, \link{name}.}
 
-\item{env}{The environment to look in.}
+\item{env}{The environment to search in.}
 
 \item{...}{Bare variable names (for \code{is_*_}) or expressions (for
 \code{dots_*}). Not forced.}
@@ -75,9 +75,6 @@ missingness.}
 \code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))} which
 is nearly equivalent to \code{alist(...)}.
 
-\code{is_forced} returns FALSE if an argument is bound to a
-promise that has not yet been forced, TRUE otherwise.
-
 \code{is_literal(x)} returns TRUE if \code{x} could be a source
 literal. Specifically this tests whether it is X is bound to a
 singleton vector or a \link{missing_value}.
@@ -93,9 +90,10 @@ code often omits creating a promise for literal arguments
 \code{is_default} returns a logical vector
 }
 \description{
-These are shortcuts for accessing currently bound lazy
+Most of these are shortcuts for accessing currently bound lazy
 arguments. For example, \code{arg_env(x)} is equivalent to
-\code{env(arg(x))}, \code{is_forced(x, y)} is equivalent to \code{forced(args(x, y))}, \code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))}, and so
+\code{\link{env(arg(x))}}, \code{is_forced(x, y)} is equivalent to \code{\link{forced(args(x,y))}},
+\code{dots_exprs(...)} is equivalent to \code{\link{exprs(dots(...))}}, and so
 on. The shortcut forms, however, skip the construction of the
 intermediate \link{quotation} objects.
 

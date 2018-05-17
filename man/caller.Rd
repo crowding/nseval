@@ -2,31 +2,36 @@
 % Please edit documentation in R/caller.R
 \name{caller}
 \alias{caller}
-\title{Get the calling environment of a given environment.}
+\title{Find the caller of a given environment.}
 \usage{
 caller(env = caller(environment()),
   ifnotfound = stop("caller: environment not found on stack"))
 }
 \arguments{
-\item{env}{The environment whose caller to determine. By default,
-the environment from which \code{caller} itself was called. (That
-is, \code{caller()} should return the the same value as
-\code{caller(environment())}.)}
+\item{env}{The environment whose caller to find. The default is
+\code{caller}'s caller; that is, \code{caller()} should return the the same
+value as \code{caller(environment())}.)}
 
-\item{ifnotfound}{What do return in case the caller cannot be
-determined.}
+\item{ifnotfound}{What to return in case the caller cannot be
+determined. By default an error is raised.}
 }
 \value{
 The environment which called \code{env} into being. If that
 environment cannot be determined, \code{ifnotfound} is returned.
-
-For example, in the code:\preformatted{  X <- environment()
-  F <- function() {
-    Y <- environment()
-    caller(Y)
-  }
-  F()
 }
+\description{
+Given an environment that is currently on the stack, \code{caller}
+determines the calling environment, that is
+}
+\details{
+For example, in the code:
+
+X <- environment()
+F <- function() {
+Y <- environment()
+caller(Y)
+}
+F()
 
 the environment called "Y" was created by calling F(), and that
 call occurs in the environment called "X". In this case X is the
@@ -35,23 +40,21 @@ as \code{X()}.
 
 \code{caller} is intended as a replacement for \link{parent.frame}, which
 returns the next environment up the calling stack -- which is
-sometimes the same value, but differs in some cases (e.g. when
-lazy evaluation re-activates an environment.) So \code{parent.frame()}
-can return different things depending on the order in which
-arguments are evaluated.
+sometimes the same value, but differs in some cases such as when
+lazy evaluation re-activates an environment. \code{parent.frame()} can
+return different things depending on the order in which arguments
+are evaluated, and without warning. \code{caller} will by default throw
+an error if the caller cannot be determined.
 
 In addition, \code{caller} tries to do the right thing when the
-environment was instantiated by means \code{do.call}, \link{eval} or \link{do}.
-}
-\description{
-Get the calling environment of a given environment.
+environment was instantiated by means of \code{do.call}, \link{eval} or
+\link{do} rather than an ordinary function call.
 }
 \examples{
 E <- environment()
-F <- function()
-{
+F <- function() {
  Y <- environment()
  caller(Y)
- }
+}
 identical(F(), E) ## TRUE
 }

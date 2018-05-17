@@ -4,16 +4,13 @@
 \alias{as.dots.environment}
 \alias{dots2env}
 \alias{as.environment.dots}
-\alias{quo2env}
-\title{Capture promises present in an environment and construct a dots object.}
+\title{\code{as.dots.environment} is a synonym for \code{env2dots}.}
 \usage{
 \method{as.dots}{environment}(x)
 
 dots2env(d, env = new.env(hash = hash, parent = parent, size = size),
   names = NULL, use_dots = TRUE, append = TRUE, hash = (length(dots) >
   100), size = max(29L, length(dots)), parent = emptyenv())
-
-quo2env(q, env, name)
 }
 \arguments{
 \item{d}{A \link{dots} object.}
@@ -44,30 +41,16 @@ is FALSE.)}
 
 \item{parent}{if \code{env} is NULL, this argument is paseed to
 \code{\link{new.env}}.}
-
-\item{q}{a quotation.}
-
-\item{name}{The name to use. If "" or NULL, will append to "...".}
-
-\item{env}{The environment to store in.}
 }
 \value{
 An environment object.
 }
 \description{
-All bindings in the environment (but not those from its parents) will be
-copied into a new \code{\dots} list. Bindings that are promises
-will be added to the \dots list without forcing, while other
-bindings will be wrapped in an already-forced promise.  If \code{...} is
-bound in the environment, all bindings it contains will be added to
-the \dots list. The output will not be in any particular order.
+\code{as.dots.environment} is a synonym for \code{env2dots}.
 
 All named entries in the dots object will be bound to
 variables. Unnamed entries will be appended to any existing value
 of \code{...} in the order in which they appear.
-
-\code{quo2env} takes a quotation and creates a single binding in a
-given environment.
 }
 \seealso{
 env2dots

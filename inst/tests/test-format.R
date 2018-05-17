@@ -46,6 +46,8 @@ test_that("format dots and quotations", {
   format(d[[4]]) %is% paste0("quo<< ", e, " ? 3 + 3 >>")
   format(d[[5]]) %is% paste0("quo<< ", e, " ? \"5\" >>")
 
+  format(quo_(quote(f), globalenv())) %is% "quo<< <environment: R_GlobalEnv> ? f >>"
+  format(dots_(list(quote(f)), globalenv())) %is% "dots<< <environment: R_GlobalEnv> ? f >>"
   format(dots(a, b, c)) %is% paste0("dots<< ", e, " ? a, ", e, " ? b, ", e, " ? c >>")
 })
 

@@ -1,17 +1,16 @@
 #' Formatting methods for dots and quotations.
 #'
 #' `format.dots` constructs a string representation of a dots
-#' object. An unevaluated promise is shown as `envir ? expr` and an
-#' evaluated promise is shown as `expr := value`.
-#' @param x A dots object.
-#'
+#' object. An un[forced] quotation is shown as `envir ? expr` and a
+#' forced quotation is shown as `expr := value`.
+#' @param x An object.
 #' @param compact Implies `show.environments=FALSE` and
 #'   `show.expressions=FALSE`.
 #' @param show.environments Whether to show environments for unforced
 #'   quotations.
 #' @param show.expressions Whether to show expressions for forced
 #'   quotations.
-#' @param ... Further arguments passed to [format] methods.
+#' @param ... Parameters passed to [base::format]
 #' @rdname format.quotation
 #' @export
 format.dots <- function(x,
@@ -66,10 +65,8 @@ format.quotation <- function(x,
 #' The `format` method for class `oneline` formats a sequence of
 #' objects to show one line each. It is somewhat similar to
 #' [format.AsIs] but tries harder with language objects.
-#' @param x An object.
 #' @param width The width of line to produce.
 #' @param max.width The maximum width of line to produce.
-#' @param ... Parameters passed to [base::format]
 #' @rdname format.quotation
 #'
 #' @export
