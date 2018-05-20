@@ -5,11 +5,11 @@ title: An R Interpreter in R
 Probably the best advice you can give about metaprogramming is that it
 should be minimized.
 
-Think of the "standard" or baseline behavior of R as a baseline which
+Think of the "standard" evaluation behavior of R as a baseline which
 you are making certain minimal exceptions to.  Sure, introduce new
 syntax, but don't break scoping -- sure, bend the rules of scoping,
 but don't break the operational logic -- sure, have a different
-operational logic here, but let namesspacing behave normally.
+operational logic here, but let scope and namespaces behave normally.
 
 This suggests a sort of principle for the design of metaprogramming
 facilities, rephrasing [Shutt][1]: 1:
@@ -18,7 +18,7 @@ https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf
 * A baseline: A metaprogramming API *must* allow you to, at least, implement
   the host language in terms of itself.
   * A guideline: A metaprogramming API _should_ have defaults or
-    nudges that allow the package developer to deviate minimally from
+    nudges that allow the package developer to deviate _minimally_ from
     the host language's rules (i.e. minimizing user surprise).
 
 Many issues encountered with the base R metaprogramming API arise can
@@ -26,33 +26,19 @@ be blamed on breaking these rules. For instance, you access the
 unevaluated parse tree of an argument using `substitute(x)`, but
 `substutute` divorces the program text from the lexical
 environment. But associating program text with environments is how R
-normally keeps track of scope! So if you want to extend syntax, you end
-up breaking scoping in the bargain.
+normally keeps track of scope! So if you want to extend syntax, you
+end up breaking scoping in the bargain.
 
-This principle also suggests a test to make sure we are on the right
+This principle also suggests a test to make sure I am on the right
 track with the `nse` package: use it to implement R in R.
 
 Specifically, I'll implement `eval` with R-level implementations of
 function calling, name lookup, closures, and lazy evaluation, using
 R-level imitations of NSE builtins like `function` `{`, `for`, `<<-` such,
 while deferring to R to provide data structures like environments.
-An attempt to model the S3/S4 dispatch, condition system, etc, are not made.
 
 The hope is that this exercise may reveal pressure points and needed
 methods that will inform the design of the package.
-
-Things learned.
-* Nomenclature.
-  * Functions ending in `_` work on quotations and args, while
-    corresponding to functions that work by NSE.
-    * force(x) -> force_(arg(x))
-    * () -> value_(arg(x))
-    * `function` -> function_
-  * Functions that operate on quos and args that don't end in `_`:
-    * forced()
-* Need a way to construct a forced promise.
-* Decent way to emulate <- - unwrapping would be good too.
-
 
 To start with, here is a set of builtins.
 
@@ -66,7 +52,7 @@ builtins <- as.environment(list(
           return value_(x[[i]], eval=reval)
         }
         if (!missing_(x[[i]])) {
-          force_(x[[i]], eval=reval) 
+          value_(x[[i]], eval=reval) 
           x[[i]] <- NULL
         }
       }
@@ -112,7 +98,7 @@ builtins <- as.environment(list(
   },
 
   `break` <- function(cond, body) {
-    
+    # ???condition handling???
   },
 
   `repeat` <- function(body) {
@@ -149,12 +135,12 @@ builtins <- as.environment(list(
   },
 
   `UseMethod` = function(generic, object) {
-    
+    # ??? s3 dispatch ???
   },
 
   `NextMethod` = function(generic = NULL, object = NULL, ...) {
     
-  })) # builtins <- as.environment(list( ..., {...} ))
+  }))
 
 munge_assignment <- function(lval, rval) {
   switch(mode(expr(lval)) {
@@ -168,7 +154,7 @@ munge_assignment <- function(lval, rval) {
 }
 ```
 
-Having cleared our throat, now it's time to consider how to tackle 'eval'.
+After that throat-clearing, now to tackle 'eval'.
 
 ```
 reval <- function(expr, env) {

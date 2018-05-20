@@ -3,17 +3,23 @@
 \name{arg}
 \alias{arg}
 \alias{arg_}
-\alias{args}
-\alias{args_}
-\title{Capture variables as quotations, or the reverse.}
+\alias{arg_list}
+\alias{arg_list_}
+\alias{set_arg}
+\alias{set_arg_}
+\title{Convert bound variables to quotations and back.}
 \usage{
 arg(sym, env = arg_env_(quote(sym), environment()))
 
 arg_(sym, env = arg_env(sym, environment()))
 
-args(...)
+arg_list(...)
 
-args_(syms, envs)
+arg_list_(syms, envs)
+
+set_arg(dst, src)
+
+set_arg_(dst, src)
 }
 \arguments{
 \item{sym}{The name to look up. For \code{arg} this is a literal name,
@@ -31,26 +37,34 @@ are not given, the input is used as output names}
 
 \item{envs}{An environment, or a list of environments, to look for
 the bindings in.}
+
+\item{dst}{A name; for \code{set_arg} this is quoted literally; for
+\code{set_arg_} this should be a \link{quotation}.}
+
+\item{src}{A \link{quotation} (or something that can be converted to a
+quotation, like a formula).}
 }
 \value{
 \code{arg} returns a \link{quotation} object.
 
 \code{args} returns a \link{dots} object.
 
-\code{args} returns a \code{[dots]} object.
+\code{arg_list} returns a \code{[dots]} object.
 }
 \description{
-\code{arg(x)} looks in the calling environment for the binding \code{x},
-taken literally, without forcing any promises, and returns it as a
-\link{quotation}.
+\code{arg(x)} looks in the calling environment for the binding \code{x}, taken
+literally, and returns it as a \link{quotation}.
 
 \code{arg_} is the normally evaluating version;
 \code{arg(x, e)} is equivalent to \code{arg_(quote(x), e)}.
 
 If any of the requested variables are not bound, an error will be raised.
 
-\code{args_} is a normally evaluating version of \code{args};
-\code{args(x, y)} is equivalent to \code{args_(alist(x, y))}.
+\code{arg_list_} is a normally evaluating version of \code{arg_list};
+\code{arg_list(x, y)} is equivalent to \code{arg_list_(alist(x, y), environment())}.
+
+\code{set_arg} and set_arg_ create bindings from quotations. They
+replace base function \link{delayedAssign}.
 }
 \details{
 Generally, \code{arg(x)} is equivalent to \code{[unwrap](quo(x))} for
@@ -62,12 +76,12 @@ reason is that the R will discard scope information about code
 literals, depending on optinization settings; so when \code{arg_("x") is called in compiled code, the default value for}env` will be
 found to be \code{\link[=emptyenv]{emptyenv()}}.
 
-Beware of writing \code{args(a, b, ...)} which probably doesn't do
+Beware of writing \code{arg_list(a, b, ...)} which probably doesn't do
 what you want. This is because R unwraps the symbol \code{...}
-occurring in argument lists before invoking \code{args}, so this ends
+occurring in argument lists before invoking \code{arg_list}, so this ends
 up double-unwrapping \code{...}. For capturing \code{...} alongside named
-arguments you can use the syntax \code{args(x, y, (...))} (which is
-equivalent to \code{c(args(x, y), dots(...))}). You can also use
+arguments you can use the syntax \code{arg_list(x, y, (...))} (which is
+equivalent to \code{c(arg_list(x, y), dots(...))}). You can also use
 \code{[get_call()]} to extract all function inputs.
 }
 \seealso{

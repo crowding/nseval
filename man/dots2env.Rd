@@ -13,7 +13,7 @@ dots2env(d, env = new.env(hash = hash, parent = parent, size = size),
   100), size = max(29L, length(dots)), parent = emptyenv())
 }
 \arguments{
-\item{d}{A \link{dots} object.}
+\item{d}{A \link{dots} object with names.}
 
 \item{env}{Specify an environment object to populate and return. By
 default a new environment is created.}

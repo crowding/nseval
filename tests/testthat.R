@@ -1,4 +1,4 @@
 library(testthat)
-library(promises)
+library(nse)
 
-test_package("promises")
+test_package("nse")

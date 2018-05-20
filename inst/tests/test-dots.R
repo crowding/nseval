@@ -356,11 +356,11 @@ test_that("dots() et al with empty inputs", {
   do(f, b) %is% 8
 })
 
-test_that("args() makes tags by default.", {
+test_that("arg_list() makes tags by default.", {
   f <- function(a, b) {
-    x <- args(a, b)
-    y <- args(f=a, b)
-    z <- args(aa=a, bb=b)
+    x <- arg_list(a, b)
+    y <- arg_list(f=a, b)
+    z <- arg_list(aa=a, bb=b)
 
     exprs(x) %is% alist(a=foo, b=bar)
     exprs(x) %is% alist(a=foo, b=bar)
@@ -368,13 +368,13 @@ test_that("args() makes tags by default.", {
   f(foo, bar)
 })
 
-test_that("args gets (...)",
+test_that("arg_list gets (...)",
 {
   f <- function(a, b, ...) {
-    args(a, b, (...))
+    arg_list(a, b, (...))
   }
 
-  f <- cmpfun(f)
+  f <- compiler::cmpfun(f)
 
   f(foo, bar) %is% dots(a=foo, b=bar)
   f(foo, bar, baz) %is% dots(a=foo, b=bar, baz)
@@ -382,10 +382,10 @@ test_that("args gets (...)",
   f(foo, bar, baz, g=qux) %is% dots(a=foo, b=bar, baz, g=qux)
 
   f <- function(a, b, ...) {
-    args_(list(quote(a),
-               quote(b),
-               quote(...)),
-          environment())
+    arg_list_(list(quote(a),
+                   quote(b),
+                   quote(...)),
+              environment())
   }
 
   f(foo, bar) %is% dots(a=foo, b=bar)
@@ -561,11 +561,11 @@ test_that("dots_", {
   value(d) %is% list(y=13, x=13, z=24)
 })
 
-test_that("c.dots boxed quotations", {
+test_that("c.dots boxes quotations", {
   y <- 4
   z <- 100
   e <- dots2env(dots(x=1+y, y=1+z, `+`=`+`))
-  d <- c.dots(quo_(expr=quote(y+x), env=e))
+  d <- c(quo_(expr=quote(y+x), env=e))
   value(d) %is% list(106)
 })
 
@@ -624,8 +624,8 @@ test_that("Can get missingness and forcedness of quo", {
   x <- missing_value()
   delayedAssign("y", x)
   delayedAssign("z", stop("Should not force"))
-  missing_(args(w, x, y, z)) %is% c(w=FALSE, x=TRUE, y=TRUE, z=FALSE)
-  missing_(args(a=w, x)) %is% c(a=FALSE, TRUE)
+  missing_(arg_list(w, x, y, z)) %is% c(w=FALSE, x=TRUE, y=TRUE, z=FALSE)
+  missing_(arg_list(a=w, x)) %is% c(a=FALSE, TRUE)
   missing_(arg(w)) %is% c(FALSE)
   missing_(arg(x)) %is% c(TRUE)
   missing_(arg(y)) %is% c(TRUE)

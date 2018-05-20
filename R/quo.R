@@ -164,52 +164,5 @@ as.quo.lazy <- function(x) {
   quo_(x$expr, x$env)
 }
 
-#TODO: these should be called "arg<-" or set_arg or set_arg_
 
-#' Turn quotations into bindings in the present environment.
-#'
-#' `arg<-` creates a binding in the present environment from a quotation.
-#' @param dst A name, taken literally and not evaluated.
-#' @param src A [quotation] (or something that can be converted to a
-#'   quotation, like a formula).
-#' @rdname quo2env
-`%<-%` <- function(dst, src)  {
-  dst <- arg(dst)
-  UseMethod("%<-%", src)
-}
 
-#' @export
-`%<-%.default` <- function(dst, src) {
-  src <- as.quo(src)
-  .Class <- class(src)
-  NextMethod("%<-%", src)
-}
-
-#' @useDynLib nse _quotation_to_promsxp
-`%<-%.quotation` <- function(dst, src) {
-  dst <- arg(dst) # Interesting... dst is not remembered from the
-  # dispatch function. The original call is
-  # replicated?
-  switch(mode(expr(dst)),
-         name = assign(as.character(expr(dst)),
-                       envir=env(dst),
-                       .Call(`_quotation_to_promsxp`, src)),
-         call = stop("Subassignment with %<-% not implemented"),
-         stop("Don't know how to put a quotation into a ", typeof(expr(dst))))
-}
-
-#' `quo2env` is the standard-evaluating version.
-#'
-#' These replace base function [delayedAssign]. For the inverse
-#' operation, capturing a binding as a quotation, see [arg].
-#' @param q a quotation.
-#' @param env The environment to store in.
-#' @param name The name to assign to. If "" or NULL, will append to "...".
-quo2env <- function(q, env, name) {
-  q <- as.quo(q)
-  d <- as.dots(q)
-  if (!is.null(name)) {
-    names(d) <- as.character(name)
-  }
-  dots2env(d, env)
-}

@@ -113,10 +113,10 @@ Recall that every time a function is called, an R environment object is created.
 # Bind a lazy value
 
 ```
-x %<-% promise(x+1)
-x %<-% promise_(quote(x+1), environment())
+set_arg(x, quo(x+1))
+set_arg(x, quo(x+1))
+set_arg(x, quo_(quote(x+1), environment())
 ```
-
 # Bind a lazy value in another environment
 
 # Make a lazy variable from some expression

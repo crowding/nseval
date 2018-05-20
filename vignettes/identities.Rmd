@@ -28,7 +28,6 @@ do(F, as.dots.literal(data))
 
 
 do.call("F", LX) %<>% do_(as.quo.literal(f)
-
 do.call(F, L, quote=TRUE)
 
 
@@ -40,7 +39,7 @@ do.call("fun", list, envir={env}) %<>% do(quo_(as.name("fun"), {env}), as.dots.l
 quo_( quote({code}), {env}) %<>%      quo( {code}, {env} )
 value( quo({code}) )        %<>%      eval(expr(code), env(code))
 
-x %<-% quo({code})          %<>% delayedAssign("x", {code}, environment())
+set_arg(x, quo({code}))          %<>% delayedAssign("x", {code}, environment())
 
 do(quo_(quote({code}), {env}))
 

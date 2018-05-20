@@ -38,28 +38,6 @@ as.dots.quotation <- function(x) {
   structure(list(x), class="dots")
 }
 
-#' `as.data.frame.dots` transforms the contents of a [dots] object,
-#' into a data frame with one row per [quotation], with columns:
-#'  * `name`: a character,
-#'  * `expr`: an expression,
-#'  * `env`: an [environment] object or NULL if [forced],
-#'  * `value`: NULL or a value if forced.
-#'
-#' @note The columns have a class [oneline] for better printing.
-#' @return `as.data.frame.dots` returns a data frame.
-#' @param x A \code{\link{dots}} object.
-#' @rdname dots
-#' @export
-#' @useDynLib nse _dots_unpack
-as.data.frame.dots <- function(x) {
-  x <- .Call(`_dots_unpack`, x)
-  class(x$envir) <- "oneline"
-  class(x$expr) <- "oneline"
-  class(x$value) <- "oneline"
-  attr(x, "row.names") <- make.unique(x$name)
-  x
-}
-
 #' @rdname dots
 #' @return `dots_(exprs, envs)` directly constructs a dots object
 #'   given lists of expresions and environments.
@@ -77,15 +55,12 @@ dots_ <- function(exprs, envs) {
 }
 
 
-#' Access or mutate quotation or dots objects.
-#' \code{exprs(dots(...))} extracts a list of expressions, one per element
-#' of a \code{\link{dots}} object.
-#' @param x A dots object (see \code{\link{dots}}).
-#' @return A named list of expressions. The mutator \code{exprs<-}
-#'   returns a new dots object with the new expressions.
+#' `exprs(d)` extracts a list of expressions.
+#' @param d A [dots] object.
+#' @return `exprs` returns a named list of expressions.
 #' @rdname dots
 #' @export
-exprs <- function(x) UseMethod("exprs")
+exprs <- function(d) UseMethod("exprs")
 
 #' @export
 #' @rdname dots
@@ -93,58 +68,50 @@ exprs.dots <- function(d) {
   lapply(unclass(d), function(x) .Call("_expr_quotation", x))
 }
 
+#' The mutator `exprs(d) <- value` returns a new dots object with the new
+#' expressions.
 #' @export
-#' @param value A replacement value.
 #' @rdname dots
-`exprs<-` <- function(x, value) {
+`exprs<-` <- function(d, value) {
   UseMethod("exprs<-")
 }
 
 #' @export
 #' @rdname dots
-`exprs<-.dots` <- function(x, value) {
+`exprs<-.dots` <- function(d, value) {
   structure(mapply(FUN=quo_, SIMPLIFY=FALSE,
-                   expr = value, env = envs(x)), class="dots")
+                   expr = value, env = envs(d)), class="dots")
 }
 
-#' (dots)
-#'
-#' `envs(dots(...)` extracts a list of environments from a
-#' [dots] object.
-#'
+#' `envs(d)` extracts a list of environments from a [dots]
+#'   object. `envs(d) <- value` returns a dots object containing new
+#'   quotations with updated environments.
 #' @rdname dots
 #' @export
-envs <- function(x) {
+envs <- function(d) {
   UseMethod("envs")
 }
 
-#' @rdname dots
-#' @return `envs(x)` returns a list of the environments of each
-#'   quotation in x.
-#' @param x a `[dots]` object.
+#' @return `envs(d)` returns a named list of environments.
 #' @rdname dots
 #' @export
-envs.dots <- function(x) {
-  lapply(x, environment)
+envs.dots <- function(d) {
+  lapply(d, environment)
 }
 
 #' @rdname dots
-#' @return `envs<-` returns a list of new quotations with updated
-#'   environments.
-#' @param value A replacement list.
+#' @param value A replacement value.
 #' @rdname dots
 #' @export
-`envs<-` <- function(x, value) {
+`envs<-` <- function(d, value) {
   UseMethod("envs<-")
 }
 
-#' @export
-#' @return `envs<-` returns a list of new quotations with updated
-#'   expressions.
 #' @rdname dots
-`envs<-.dots` <- function(x, value) {
+#' @export
+`envs<-.dots` <- function(d, value) {
   structure(mapply(FUN=quo_,
-                   expr=exprs(x),
+                   expr=exprs(d),
                    env=value,
                    SIMPLIFY = FALSE),
             class="dots")
@@ -166,10 +133,12 @@ envs.dots <- function(x) {
   structure(y, class="dots")
 }
 
+#' `forced` tests whether each element is forced (see [is_forced].)
 #' @export
 #' @rdname dots
-forced.dots <- function(d) {
-  lapply(d, forced)
+#' @return `forced` returns a named logical vector.
+forced.dots <- function(q) {
+  lapply(q, forced)
 }
 
 #' @export
@@ -180,16 +149,23 @@ c.dots <- function(...) {
   structure(unlist(subdots, recursive=FALSE), class="dots")
 }
 
-#' Set or get the contents of "..." in an environment.
+#' @export
+#' @rdname dots
+c.quotation <- c.dots
+
+#' Set or get the contents of `...`.
 #'
-#' `get_dots()` is equivalent to [`dots(...)`] or [`args( (...) )`].
+#' `get_dots()` unpacks `...` from a given environment and returns a
+#'   [dots] object.
+#'
+#' `get_dots()` is equivalent to [`dots(...)`] or
+#' [`arg_list( (...) )`].
 #'
 #' @param env The environment to look in.
-#' @param inherits Whether to allow '...' to be inherited from enclosing
-#'   environments.
-#' @return `get_dots` returns the contents of `...` converted to a
-#'   [dots] object.
-#' @seealso env2dots
+#' @param inherits Whether to pull '...' from enclosing environments.
+#' @return `get_dots` returns a [dots] list. If `...` is not bound or
+#'   is missing, it returns an empty dots list.
+#' @seealso env2dots set_arg dots2env
 #' @export
 #' @useDynLib nse _get_dots
 #' @useDynLib nse _dotsxp_to_flist
@@ -198,13 +174,14 @@ get_dots <- function(env = caller(environment()), inherits=FALSE) {
   .Call(`_dotsxp_to_flist`, dts)
 }
 
-#' @rdname get_dots
+#' `set_dots` takes a [dots] list and uses it to create a binding for
+#' `...` in a given environment.
 #' @param d a `[dots]` object.
 #' @param append if TRUE, the values should be appended to the
 #'   existing binding. If false, existing binding for "..." will be
 #'   replaced.
+#' @rdname get_dots
 #' @return `set_dots` returns the updated environment, invisibly.
-#' @seealso "%<-%" dots2env quo2env
 #' @useDynLib nse _set_dots
 #' @useDynLib nse _flist_to_dotsxp
 #' @export

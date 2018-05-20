@@ -3,7 +3,7 @@
 \name{get_dots}
 \alias{get_dots}
 \alias{set_dots}
-\title{Set or get the contents of "..." in an environment.}
+\title{Set or get the contents of \code{...}.}
 \usage{
 get_dots(env = caller(environment()), inherits = FALSE)
 
@@ -12,8 +12,7 @@ set_dots(env, d, append = FALSE)
 \arguments{
 \item{env}{The environment to look in.}
 
-\item{inherits}{Whether to allow '...' to be inherited from enclosing
-environments.}
+\item{inherits}{Whether to pull '...' from enclosing environments.}
 
 \item{d}{a \code{[dots]} object.}
 
@@ -22,16 +21,22 @@ existing binding. If false, existing binding for "..." will be
 replaced.}
 }
 \value{
-\code{get_dots} returns the contents of \code{...} converted to a
-\link{dots} object.
+\code{get_dots} returns a \link{dots} list. If \code{...} is not bound or
+is missing, it returns an empty dots list.
 
 \code{set_dots} returns the updated environment, invisibly.
 }
 \description{
-\code{get_dots()} is equivalent to \code{\link{dots(...)}} or \code{\link{args( (...) )}}.
+\code{get_dots()} unpacks \code{...} from a given environment and returns a
+\link{dots} object.
+
+\code{set_dots} takes a \link{dots} list and uses it to create a binding for
+\code{...} in a given environment.
+}
+\details{
+\code{get_dots()} is equivalent to \code{\link{dots(...)}} or
+\code{\link{arg_list( (...) )}}.
 }
 \seealso{
-env2dots
-
-"%<-%" dots2env quo2env
+env2dots set_arg dots2env
 }

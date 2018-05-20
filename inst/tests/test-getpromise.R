@@ -65,7 +65,7 @@ test_that("arg_expr and arg_env fudge when could have been literal.", {
 
   # force optimization of literals
   f <- (function() normal(5000))
-  f <- cmpfun(f)
+  f <- compiler::cmpfun(f)
   expect_identical(f(), list(5000, emptyenv()))
 })
 
@@ -169,7 +169,7 @@ test_that("empty arguments return missing value and empty environment", {
 })
 
 test_that("get dotslists of args direct", {
-  f1 <- function(x, y) args(x, b=y)
+  f1 <- function(x, y) arg_list(x, b=y)
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
   exprs(d) %is% alist(one.arg, b=two.arg)
@@ -177,13 +177,13 @@ test_that("get dotslists of args direct", {
 })
 
 test_that("args mirrors arg names by default", {
-  f1 <- function(x, y) args(x, y)
+  f1 <- function(x, y) arg_list(x, y)
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("x", "y")
 })
 
 test_that("get dotslist of args by name", {
-  f1 <- function(x, y) args_(c("x", b="y"), environment())
+  f1 <- function(x, y) arg_list_(c("x", b="y"), environment())
   d <- f1(x=one.arg, two.arg)
   names(d) %is% c("", "b")
   exprs(d) %is% alist(one.arg, b=two.arg)
@@ -191,7 +191,7 @@ test_that("get dotslist of args by name", {
 })
 
 test_that("get dotslists handles missing arguments", {
-  f1 <- function(x, y) args(x, b=y)
+  f1 <- function(x, y) arg_list(x, b=y)
   d <- f1(, two.arg)
   missing_(exprs(d)) %is% c(TRUE, b=FALSE)
   expect_identical(envs(d), list(emptyenv(), b=environment()))
@@ -216,8 +216,8 @@ test_that("empty dots accessors return empty lists", {
   length(is_missing()) %is% 0
   length(is_literal()) %is% 0
   length(is_promise()) %is% 0
-  length(forced(args())) %is% 0
-  length(missing_(args())) %is% 0
+  length(forced(arg_list())) %is% 0
+  length(missing_(arg_list())) %is% 0
 })
 
 test_that("get args by character", {
@@ -233,7 +233,7 @@ test_that("get args by character", {
   expect_error(ff(foo, bar, "..."))
 
   g <- function(a, b, ...) {
-    args_(c("a", "b", "..."), environment())
+    arg_list_(c("a", "b", "..."), environment())
   }
 
   exprs(g(a=foo, c=baz, q=quux, b=bar)) %is%
@@ -259,7 +259,7 @@ test_that("R_MissingValue bound directly", {
   x <- missing_value()
   (function(x) arg_env(x))() %is% emptyenv()
   expect_true(missing_( (function(x) arg_expr(x))() ))
-  expect_true(missing_( (function(x) args(x))() ))
+  expect_true(missing_( (function(x) arg_list(x))() ))
   expect_true(is_literal(x))
 })
 
@@ -274,7 +274,7 @@ test_that("missing_ matches R behavior with unwrapping", {
                    e = missing(e), f = missing(f), g = missing(g), h = missing(h))
     is_missing.tst <- is_missing(aa, bb, cc, dd, e, f, g, h)
     missing_dots.tst <- missing_(dots(aa=aa, bb=bb, cc=cc, dd=dd, e=e, f=f, g=g, h=h))
-    missing_args.tst <- missing_(args(aa, bb, cc, dd, e, f, g, h))
+    missing_args.tst <- missing_(arg_list(aa, bb, cc, dd, e, f, g, h))
     missing_quo.tst <- c(aa = missing_(quo(aa)),
                          bb = missing_(quo(bb)),
                          cc = missing_(quo(cc)),
@@ -304,7 +304,7 @@ test_that("getting promises handles DDVAL (..1 etc)", {
 })
 
 test_that("ddvals", {
-  x <- {function(...) args(..1, ..2)}(a, b, c)
+  x <- {function(...) arg_list(..1, ..2)}(a, b, c)
   exprs(x) %is% alist("..1" = a, "..2" = b)
 })
 
@@ -468,7 +468,7 @@ test_that("unwrap quotation", {
   ff <- function() {
     f(400, function(x) unwrap(quo(x), TRUE))
   }
-  ff <- cmpfun(ff)
+  ff <- compiler::cmpfun(ff)
   ff() %is% forced_quo_(400)
 })
 
@@ -480,7 +480,7 @@ test_that("is_default", {
     expect_false(f("this is my default"))
   }
 
-  h <- cmpfun(g)
+  h <- compiler::cmpfun(g)
   body(g) <- body(g) # strip compilation if any
   g()
   h()
@@ -492,7 +492,7 @@ test_that("is_default", {
     expect_false(f(two+two))
   }
 
-  h <- cmpfun(g)
+  h <- compiler::cmpfun(g)
   body(g) <- body(g)
   g()
   h()

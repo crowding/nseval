@@ -271,33 +271,17 @@ test_that("quotation to binding", {
   x <- quo(a+b)
   e <- new.env()
 
-  (4.0 %<-% x) %throws% "double"
-  (e["x"] %<-% x) %throws% "implemented"
-  (e$y %<-% x) %throws% "implemented"
-
-  z %<-% x
+  set_arg(4.0, x) %throws% "double"
+  set_arg(e["x"], x) %throws% "support"
+  set_arg(e$y, x) %throws% "support"
+  set_arg(z, x)
   arg_expr(z) %is% quote(a+b)
 
-  quo2env(x, environment(), "y")
+  set_arg_(quo(y, environment()), x)
   arg_expr(y) %is% quote(a+b)
-  quo2env(x, environment(), quote(zz))
+  set_arg_(quo(zz), x)
   arg_expr(zz) %is% quote(a+b)
 
-  quo2env(x, e <- new.env(), "...")
-  get_dots(e)[[1]] %is% x
-
-  # blank name appends to "..."
-  f <- function(x) {
-    x <- as.dots(arg(x))
-    quo2env(x, environment(), "")
-    environment()
-  }
-  e <- f()
-  exprs(get_dots(e)) %is% list(missing_value())
-  e <- f(a+b)
-  exprs(get_dots(e)) %is% alist(a+b)
-
-  # NULL appends to dots also.
-  quo2env(quo(a+b), e <- new.env(), NULL)
-  exprs(get_dots(e)) %is% alist(a+b)
+  set_arg_( quo("...", e <- new.env()), x) %throws% "set_dots"
+  set_arg_( quo((...), f <- new.env()), x) %throws% "set_dots"
 })

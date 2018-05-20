@@ -48,7 +48,7 @@ LM <- function(formula, data, subset, weights, na.action, method = "qr",
                contrasts = NULL, offset, ...) {
   cl <- get_call()
   mf <- do(model.frame,
-           args(formula, data, subset, weights, na.action, offset))
+           arg_list(formula, data, subset, weights, na.action, offset))
 
   z <- get.call()
 

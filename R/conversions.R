@@ -1,3 +1,25 @@
+#' `as.data.frame.dots` transforms the contents of a [dots] object
+#' into a data frame with one row per [quotation], with columns:
+#'  * `name`: a character,
+#'  * `expr`: an expression,
+#'  * `env`: an [environment] object or NULL if [forced],
+#'  * `value`: NULL or a value if forced.
+#'
+#' @note The columns have a class ["oneline"] for better printing.
+#' @return `as.data.frame.dots` returns a data frame.
+#' @param x A \code{\link{dots}} object.
+#' @rdname dots
+#' @export
+#' @useDynLib nse _dots_unpack
+as.data.frame.dots <- function(x, row.names = NULL, ...) {
+  x <- .Call(`_dots_unpack`, x)
+  class(x$envir) <- "oneline"
+  class(x$expr) <- "oneline"
+  class(x$value) <- "oneline"
+  attr(x, "row.names") <- make.unique(row.names %||% x$name)
+  x
+}
+
 #' @rdname dots
 #' @param x a vector or list.
 #' @return An object of class \code{\dots}. For \code{as.dots}, the
@@ -51,13 +73,13 @@ env2dots <- function(env,
 #" rdname dots2env
 as.dots.environment <- function(x) env2dots(x)
 
-#' Convert quotations in a dots object into promises in an environment.
+#' Make or update an environment with bindings from a dots list.
 #'
 #' All named entries in the dots object will be bound to
 #' variables. Unnamed entries will be appended to any existing value
 #' of `...` in the order in which they appear.
 #'
-#' @param d A [dots] object.
+#' @param d A [dots] object with names.
 #' @param names Which variables to populate in the environment. If
 #'   NULL is given, will use all names present in the dotlist.  If a
 #'   name is given that does not match any names from the dots object,
@@ -192,12 +214,12 @@ as.lazy_dots <- function(x, env) {
 }
 
 #' @export
-as.lazy_dots.dots <- function(x)
+as.lazy_dots.dots <- function(x, env="ignored")
 {
   do(lazyeval::lazy_dots, x)
 }
 
 #' @export
-as.environment.dots <- function(dots) {
-  dots2env(dots)
+as.environment.dots <- function(x) {
+  dots2env(x)
 }

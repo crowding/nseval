@@ -113,9 +113,7 @@ test_that("parent.frame from a lazy argument in a closed environment", {
     }
     e()()$where
   }
-  d <- cmpfun(d)
-  print(d())
-
+  d <- compiler::cmpfun(d)
   d() %should_be% "e" %but_is% "00"
 })
 
@@ -166,7 +164,7 @@ test_that("parent.frame from eval and do.call in closed environments", {
     }
     e()
   }
-  d <- cmpfun(d)
+  d <- compiler::cmpfun(d)
   d()
   h <- function() {
     eval(quote(parent.frame()))$where %should_be% "0" %but_is% NULL
