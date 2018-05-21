@@ -29,6 +29,17 @@ test_that("can force quotation, and make forced quotations, and forced", {
   value(fq) %is% 4 #not re-forced
 })
 
+test_that("can force dots", {
+  x <- 1
+  y <- 2
+  d <- dots(a = x <- x + 1, b = y <- y + 2)
+  values(d) %is% list(a = 2, b = 4)
+  values(d) %is% list(a = 3, b = 6)
+  d <- force_(d)
+  values(d) %is% list(a = 4, b = 8)
+  values(d) %is% list(a = 4, b = 8)
+})
+
 test_that("can get expr and environment of quo", {
   where <- "top"
   f <- function(x = x+y) {

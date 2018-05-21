@@ -5,9 +5,10 @@
 #'  * `env`: an [environment] object or NULL if [forced],
 #'  * `value`: NULL or a value if forced.
 #'
-#' @note The columns have a class ["oneline"] for better printing.
+#' @note The columns have a class `"oneline"` for better printing.
 #' @return `as.data.frame.dots` returns a data frame.
 #' @param x A \code{\link{dots}} object.
+#' @param row.names If not given, uses `make.unique(x$name)`
 #' @rdname dots
 #' @export
 #' @useDynLib nse _dots_unpack
@@ -20,24 +21,50 @@ as.data.frame.dots <- function(x, row.names = NULL, ...) {
   x
 }
 
-#' @rdname dots
+#' Convert items into quotations or dots.
+#'
+#' `as.dots` is a generic function for converting data into [dots].
 #' @param x a vector or list.
 #' @return An object of class \code{\dots}. For \code{as.dots}, the
 #'   list items are treated as data values, and create already-forced
 #'   promises. For \code{as.dots.exprs}, values are used as the
 #'   expressions of new unforced promises.
 #' @export
+#' @rdname as.dots
 as.dots <- function(x) {
   UseMethod("as.dots")
 }
 
 #' @export
+#' @rdname as.dots
 as.dots.dots <- identity
 
+
 #' @export
+#' @rdname as.dots
+as.dots.quotation <- function(x) {
+  structure(list(x), class="dots")
+}
+
+#' @export
+#' @rdname as.dots
 as.dots.list <- function(x)
 {
   structure(mapply(FUN=as.quo, x), class="dots")
+}
+
+#' `as.dots.environment` is a synonym for [`env2dots`].
+#' @export
+#' @rdname as.dots
+#' @seealso env2dots
+#' rdname dots2env
+as.dots.environment <- function(x) env2dots(x)
+
+#' @export
+#' @rdname as.dots
+as.dots.lazy_dots <- function(x)
+{
+  structure(lapply(x, as.quo), class="dots")
 }
 
 #' Copy bindings from an environment into a dots object, or vice versa.
@@ -65,13 +92,6 @@ env2dots <- function(env,
   x <- .Call(`_env_to_dots`, env, names, include_missing, expand_dots)
 }
 
-#' `as.dots.environment` is a synonym for `env2dots`.
-#' @export
-#' @rdname dots2env
-#' @seealso env2dots
-#'
-#" rdname dots2env
-as.dots.environment <- function(x) env2dots(x)
 
 #' Make or update an environment with bindings from a dots list.
 #'
@@ -79,7 +99,7 @@ as.dots.environment <- function(x) env2dots(x)
 #' variables. Unnamed entries will be appended to any existing value
 #' of `...` in the order in which they appear.
 #'
-#' @param d A [dots] object with names.
+#' @param x A [dots] object with names.
 #' @param names Which variables to populate in the environment. If
 #'   NULL is given, will use all names present in the dotlist.  If a
 #'   name is given that does not match any names from the dots object,
@@ -106,7 +126,7 @@ as.dots.environment <- function(x) env2dots(x)
 #' @export
 #' @useDynLib nse _flist_to_dotsxp
 #' @useDynLib nse _dots_to_env
-dots2env <- function(d,
+dots2env <- function(x,
                      env = new.env(hash = hash, parent = parent, size = size),
                      names = NULL,
                      use_dots = TRUE,
@@ -115,41 +135,42 @@ dots2env <- function(d,
                      size = max(29L, length(dots)),
                      parent = emptyenv()) {
   if (is.null(names)) {
-    names <- filter(names(d) %||% c(), goodname)
+    names <- filter(names(x) %||% c(), goodname)
   }
   if (use_dots) {
-    m <- match(names, names(d) %||% c())
+    m <- match(names, names(x) %||% c())
     if (any(is.na(m))) {stop("Named variable(s) requested but not present in dotlist.")}
-    picked <- d[m]
-    d[m] <- NULL
+    picked <- x[m]
+    x[m] <- NULL
     if (append) {
-      d <- c(get_dots(env), d)
+      x <- c(get_dots(env), x)
     }
     picked <- .Call(`_flist_to_dotsxp`, picked)
-    extras <- .Call(`_flist_to_dotsxp`, d)
+    extras <- .Call(`_flist_to_dotsxp`, x)
     .Call(`_dots_to_env`, picked, env, extras)
   } else {
-    picked <- d[names]
-    picked <- .Call(`_flist_to_dotsxp`, d)
+    picked <- x[names]
+    picked <- .Call(`_flist_to_dotsxp`, x)
     .Call(`_dots_to_env`, picked, env, NULL)
   }
+}
+
+#' @export
+#' @rdname dots2env
+as.environment.dots <- function(x) {
+  dots2env(x)
 }
 
 is.sequence <- function(x) is.vector(x) || is.list(x)
 
 #' @export
+#' @rdname as.dots
 as.dots.default <- function(x) {
   if(is.sequence(x)) {
     as.dots.list(as.list(x))
   } else {
     stop("can't convert this into a dots")
   }
-}
-
-#' @export
-as.dots.lazy_dots <- function(x)
-{
-  structure(lapply(x, as.quo), class="dots")
 }
 
 filter <- function(x, pred) x[pred(x)]
@@ -184,42 +205,45 @@ goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 #' # `fn(x+y)` is equivalent to `function(x, y) x+y`
 #' fn <- function(exp) {
 #'   exp_ <- arg(exp)
-#'   nn <- arglist(all.names(expr(exp)))
-#'   function_(arglist(nn), expr(exp_), env(exp_))
+#'   nn <- arglist(all.names(expr(exp_), functions=FALSE))
+#'   function_(nn, expr(exp_), env(exp_))
 #' }
 #'
 #' fn(x^2)
 #' fn(x+y)
-function_ <- function(args, body, env = caller(environment())) {
+function_ <- function(args, body, env = arg_env(args, environment())) {
   f <- do.call("function", list(as.pairlist(args), body), envir=environment())
   environment(f) <- env
   f
 }
 
-#' function_
-#'
-#' `arglist` is a helper that produces argument templates given a
-#' character vector of names.
+#' `arglist` is a helper that produces a named list of
+#' [missings](missing_value)[s] given a character vector of names.
 #' @rdname function_
 #' @param names A character vector.
-#' @param fill The default expression to use.
+#' @param fill The expression (default missing)
 #' @export
-arglist <- function(names, rest = list(), fill = missing_value()) {
+arglist <- function(names, fill = missing_value()) {
   structure(rep(list(fill), length(names)), names = names)
 }
 
+#' Compatibility conversions.
+#'
+#' Convert quotations and dot lists to the representations used
+#' by other packages.
 #' @export
+#' @rdname compat
+#' @seealso as.dots
+#' @param x A [lazyeval::lazy_dots] object.
+#' @param env See [[lazyeval::as.lazy_dots]]
 as.lazy_dots <- function(x, env) {
   UseMethod("as.lazy_dots")
 }
 
 #' @export
+#' @rdname compat
 as.lazy_dots.dots <- function(x, env="ignored")
 {
   do(lazyeval::lazy_dots, x)
 }
 
-#' @export
-as.environment.dots <- function(x) {
-  dots2env(x)
-}

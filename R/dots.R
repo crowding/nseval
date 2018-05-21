@@ -33,11 +33,6 @@ dots <- function(...) {
   get_dots(environment())
 }
 
-#' @export
-as.dots.quotation <- function(x) {
-  structure(list(x), class="dots")
-}
-
 #' @rdname dots
 #' @return `dots_(exprs, envs)` directly constructs a dots object
 #'   given lists of expresions and environments.
@@ -119,6 +114,7 @@ envs.dots <- function(d) {
 
 #' @export
 #' @rdname dots
+#' @param drop See [Extract].
 `[.dots` <- function(x, ..., drop=FALSE) {
   y <- NextMethod("[")
   structure(y, class="dots")
@@ -131,14 +127,6 @@ envs.dots <- function(d) {
   if (!is.null(value)) value <- as.dots(value)
   y <- NextMethod("[")
   structure(y, class="dots")
-}
-
-#' `forced` tests whether each element is forced (see [is_forced].)
-#' @export
-#' @rdname dots
-#' @return `forced` returns a named logical vector.
-forced.dots <- function(q) {
-  lapply(q, forced)
 }
 
 #' @export
@@ -158,8 +146,8 @@ c.quotation <- c.dots
 #' `get_dots()` unpacks `...` from a given environment and returns a
 #'   [dots] object.
 #'
-#' `get_dots()` is equivalent to [`dots(...)`] or
-#' [`arg_list( (...) )`].
+#' `get_dots()` is equivalent to `dots(...)` or
+#' `arg_list( (...) )`.
 #'
 #' @param env The environment to look in.
 #' @param inherits Whether to pull '...' from enclosing environments.

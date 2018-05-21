@@ -7,17 +7,36 @@
 #'
 #' In normal R evaluation, function arguments are recorded as unforced
 #' [promise]s, which are converted into forced promises as
-#' well. Quotation objects therefore exist in the same two varieties.
-#'
+#' well. Quotation objects therefore also exist in two varieties.
 #' @export
 #' @rdname forced
-#' @return `forced(x)` returns a [logical] value.
+#' @param x A [quotation] or [dots] object.
+#' @return `forced(x)` returns a [logical].
 #' @seealso is_forced
 forced <- function(x) UseMethod("forced")
 
+#' The `forced` method on [dots] tests whether each element of a dots
+#' list is forced, returning a named logical vector.
+#' @export
+#' @rdname dots
+forced.dots <- function(x) {
+  lapply(x, forced)
+}
 
-#' `forced_quo(x)` constructs a forced quotation directly from its
-#' argument.  It is equivalent to `quo(x, force=TRUE)`.
+#' @export
+#' @useDynLib nse _forced_quotation
+#' @rdname forced
+forced.quotation <- function(x, ...) {
+  .Call(`_forced_quotation`, x)
+}
+
+#' @export
+#' @rdname forced
+forced.default <- function(x) forced(as.quo(x))
+
+#' `forced_quo(x)` constructs a forced quotation that quotes its
+#' argument literally.  It is equivalent to `quo(x,
+#' force=TRUE)`.
 #' @rdname forced
 #' @export
 forced_quo <- function(x) {
@@ -38,19 +57,20 @@ forced_quo_ <- function(x) {
 }
 
 
-#' `forced_dots` and `forced_dots_` construct a [dots] object
+#' `forced_dots` and `forced_dots_` create [dots] objects
 #'   containing forced quotations.
-#' @rdname forced
 #' @export
+#' @rdname forced
+#' @param ... any number of arguments; they will be quoted literally.
 #' @return `forced_dots` and `forced_dots_` return [dots] objects.
 #' @useDynLib nse _quotation_literal
-#' @param ... any number of arguments.
 forced_dots <- function(...) {
   list(...)
   get_dots(environment())
 }
 
-#' `forced_dots`
+#' @param values A list; each element will be used as data.
+#' @rdname dots
 #' @export
 forced_dots_ <- function(values) {
   structure(lapply(as.list(values),
@@ -58,53 +78,38 @@ forced_dots_ <- function(values) {
             class="dots")
 }
 
-# hmm:  force_(quo(x)) is not equivalent to force(x) because it returns a quo.
-
 #' `force_(x)` evaluates the contents of a quotation or dots object.
 #' if they are not already forced, and returns a new forced object.
 #' @export
 #' @rdname forced
 #' @seealso force
-force_ <- function(q, ...) {
+force_ <- function(x, ...) {
   UseMethod("force_")
 }
 
 #' @export
 #' @rdname forced
 #' @param eval Call something other than 'eval' to "evaluate" the expression.
-force_.quotation <- function(q, eval=base::eval) {
-  if (forced(q)) {
+force_.quotation <- function(x, eval=base::eval, ...) {
+  if (forced(x)) {
     q
   } else {
-    .Call('_quotation', NULL, expr(q), eval(expr(q), env(q)))
+    .Call('_quotation', NULL, expr(x), eval(expr(x), env(x)))
   }
 }
 
 #' @export
 #' @rdname forced
-force_.dots <- function(d, ...) {
-  structure(lapply(d, force_.quotation, ...), class="dots")
+force_.dots <- function(x, ...) {
+  structure(lapply(x, force_.quotation, ...), class="dots")
 }
-
-
-#' @export
-#' @useDynLib nse _forced_quotation
-#' @rdname forced
-forced.quotation <- function(x) {
-  .Call(`_forced_quotation`, x)
-}
-
-#' @export
-#' @rdname forced
-forced.default <- function(x) forced(as.quo(x))
 
 #' `value` or `values` returns the value of a quotation or dots,
 #'   forcing it if necessary.
-#' @param q a [quotation] or [dots] object.
 #' @rdname forced
 #' @return `value` returns the result of forcing the quotation.
 #' @export
-value <- function(q, ...) {
+value <- function(x, ...) {
   UseMethod("value")
 }
 
@@ -112,12 +117,12 @@ value <- function(q, ...) {
 #' @rdname forced
 #' @param mode Whether to force in "any" mode or "function" mode (see
 #'   [locate]).
-value.quotation <- function(q, mode="any") {
-  if (forced(q)) {
-    q()
+value.quotation <- function(x, mode="any", ...) {
+  if (forced(x)) {
+    x()
   } else {
     switch(mode,
-           "any" = eval(body(q), environment(q)),
+           "any" = eval(body(x), environment(x)),
            "function" = stop("Not implemented"),
            stop("Invalid mode")
            )
@@ -126,8 +131,8 @@ value.quotation <- function(q, mode="any") {
 
 #' @export
 #' @rdname forced
-value.dots <- function(d) {
-  do(list, d)
+value.dots <- function(x, ...) {
+  do(list, x)
 }
 
 ##' @export
@@ -137,14 +142,14 @@ value.dots <- function(d) {
 #' @rdname forced
 #' @return `values` returns a list.
 #' @export
-values <- function(p) {
+values <- function(x) {
   UseMethod("values")
 }
 
 #' @rdname forced
 #' @export
-values.dots <- function(d) {
-  do(list, d)
+values.dots <- function(x) {
+  do(list, x)
 }
 
 ## #' @rdname forced

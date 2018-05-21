@@ -2,6 +2,7 @@
 % Please edit documentation in R/quo.R
 \name{quo}
 \alias{quo}
+\alias{quotation}
 \alias{quo_}
 \alias{env}
 \alias{env.quotation}
@@ -64,7 +65,7 @@ as.quo(x)
 \item{expr}{An expression. For \code{quo} this is taken literally and
 not evaluated. For \code{quo_} this is evaluated normally.}
 
-\item{env}{An environment.}
+\item{env}{An \link{environment}.}
 
 \item{force}{Immediately evaluate the expression and create a
 "forced" quotation, i.e. one that stores an expression and value,
@@ -72,9 +73,9 @@ but no environment.}
 
 \item{q}{A quotation object.}
 
-\item{x}{Any object.}
+\item{value}{An updated value.}
 
-\item{expr}{An expression.}
+\item{x}{Any object.}
 }
 \value{
 \code{quo_} and \code{quo} return an object of class "quotation".
@@ -93,7 +94,7 @@ formulas, and single-element \link{dots} can be converted this way.
 }
 \details{
 A quo (or quotation) \code{q <- quo( something )} has two parts: an
-expression \link{expr(q)} with an environment \link{env(q)}. (Like in
+expression \code{expr(q)} with an environment \code{env(q)}. (Like in
 writing, an 'expression' may simply be a set of words, but a
 'quotation' comes bundled with a citation, to reference a context
 in which it was said.)

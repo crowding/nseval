@@ -28,7 +28,9 @@ missing values with this many elements.}
 \item{x}{a value, \link{dots}, or list.}
 
 \item{unwrap}{Whether to descend recursively through unevaluated
-promises using \link{unwrap(x, TRUE)}}
+promises using \code{unwrap(x, TRUE)}}
+
+\item{...}{Arguments evaluated normally. except those which are missing.}
 }
 \value{
 The symbol with empty name, or a list of such.
@@ -54,7 +56,7 @@ expressions are identical to the missing value.
 \code{list_missing} is similar to \code{list} but allows missing arguments.
 }
 \details{
-The missing value occurs naturally in a quoted R expression that has an empty argument.\preformatted{    exp <- quote( x[1, ] )
+The missing value occurs naturally in a quoted R expression that has an empty argument.\preformatted{    exp <- quote( x\[1, \] )
     identical(exp[[4]], missing_value()) #TRUE
     is_missing(exp[[4]]) #also TRUE
 }
@@ -82,11 +84,12 @@ This means that it's sometimes tricky to work with missings:\preformatted{    ex
 Generally, keep your missing values wrapped up in lists or quotations,
 instead of assigning them to variables directly.
 
+[1, ]: R:1,%20%5C
 [[4]: R:[4
 [[4]: R:[4
 [missing_value]: R:missing_value
 [x, y]: R:x,%20y
-\link{1, }: R:1,%20
+[1, ]: R:1,%20
 [[4]: R:[4
 }
 \examples{

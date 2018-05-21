@@ -1,6 +1,10 @@
 nse
 ======
 
+[![CRAN version badge](http://www.r-pkg.org/badges/version/msgpack)](https://cran.r-project.org/package=msgpack)
+[![Travis build status](http://travis-ci.org/crowding/msgpack-r.svg?branch=master)](https://travis-ci.org/crowding/msgpack-r)
+[![Code coverage](https://codecov.io/gh/crowding/msgpack-r/branch/master/graph/badge.svg)](https://codecov.io/gh/crowding/msgpack-r)
+
 `nse` is the missing API for non-standard evaluation and
 metaprogramming in R. `nse` is intended to reflect R the way R
 actually works.
@@ -15,13 +19,13 @@ install_github("crowding/nse")
 
 ### Why `nse` is needed
 
-Before R, there was S, and S had metaprogramming built in, using
-functions like `substitute`, `match.call`, `do.call`, `quote`,
-`alist`, `eval`, and so on. R was made to emulate those facilities.
-But S did not have lexical scoping or the notion of an environment,
-whereas R does. So R has been coping with a metaprogramming API that
-was not designed with R's rules in mind. It turns out the S interface
-is not sufficient to capture R behavior, with consequences such as:
+Before R, there was S, and S had some metaprogramming facilities,
+using functions like `substitute`, `match.call`, `do.call`, `quote`,
+`alist`, `eval`, and so on. R implemented that API. But S did not
+have lexical scoping or the notion of an environment, whereas R
+does. So R has been coping with a metaprogramming API that was not
+designed with R's rules in mind. It turns out the S interface is not
+sufficient to model R behavior, with consequences such as:
 
   * `match.call()` loses information about argument scopes, so normally
     occurring function calls often can't be captured in a reproducible
@@ -47,7 +51,7 @@ equivalents from `nse`, and may have fewer of these kinds of problems.
 ## Transitioning from base R to NSE
 
 * Instead of `quote`, use `quo`.
-* Instead of `match.call` or `sys.call`, use `get_call`, or `args(x, y, (...) )`
+* Instead of `match.call` or `sys.call`, use `get_call`, or `arg_list(x, y, (...) )`
 * Instead of `substitute(x)`, use `arg(x)` (or `arg_expr(x)`)
 * Instead of `substitute(list(...))[[2]]`, use `dots(...)`
 * Instead of `do.call`, use `do`.
@@ -81,9 +85,9 @@ capturing, constructing, and manipulating these objects.
 
 ### What `nse` doesn't do
 
-`nse` doesn't implement quasiquotation or hygeinic macros or DSLs or
-interactive debugging. But it is intended to be a solid foundation to
-build those kinds of facilities on!
+`nse` doesn't implement quasiquotation or hygeinic macros or code
+coverage or DSLs or interactive debugging. But it is intended to be a
+solid foundation to build those kinds of tools on!
 
 `nse` doesn't introduce any fancy syntax -- the only nonstandard
 evaluation in its own interface is name lookup and quoting, and
@@ -92,8 +96,8 @@ standard-evaluating equivalents are always also present.
 `nse` doesn't try and remake all of R's base library, just the parts
 about calls and lazy evaluation.
 
-`nse` has few external dependencies and should play well
-with base R or any other 'verse.
+`nse` has no install dependencies and should play well with base R or any
+other 'verse.
 
 ## Similar packages
 

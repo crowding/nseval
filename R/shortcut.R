@@ -1,14 +1,14 @@
 #' Get information about currently bound arguments.
 #'
-#' Most of these are shortcuts for accessing currently bound lazy
-#' arguments. For example, `arg_env(x)` is equivalent to
-#' [`env(arg(x))`], `is_forced(x, y)` is equivalent to [`forced(args(x,y))`],
-#' `dots_exprs(...)` is equivalent to [`exprs(dots(...))`], and so
+#' These are shortcut methods for querying current bindings.  For
+#' example, `arg_env(x)` is equivalent to `env(arg(x))`,
+#' `is_forced(x, y)` is equivalent to `forced(arg_list(x,y))`,
+#' `dots_exprs(...)` is equivalent to `exprs(dots(...))`, and so
 #' on. The shortcut forms, however, skip the construction of the
 #' intermediate [quotation] objects.
 #' @rdname shortcut
-#' @param sym For `arg_env`, etc, a bare name (not forced). For
-#'   the normally evaluating `arg_env_` and so on, [name].
+#' @param sym For `arg_env`, etc, a bare name (not forced). For the
+#'   normally evaluating `arg_env_` and so on, [name].
 #' @param env The environment to search in.
 #' @export
 arg_env <- function(sym,
@@ -119,7 +119,6 @@ is_missing <- function(...) {
 
 #' @rdname shortcut
 #' @param syms A character vector or list of symbols.
-#' @param envs An [environment] or list of environments.
 #' @param recursive Whether to recursively [unwrap] before testing for
 #'   missingness.
 #' @export
@@ -162,8 +161,6 @@ is_promise_ <- function(syms, envs)
     })
 }
 
-#' shortcut
-#'
 #' `is_default`  determines whether an argument is bound to the
 #' function's default value for that argument. It must be called
 #' before the arguments have been forced (afterwards it will return

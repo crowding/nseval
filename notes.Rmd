@@ -1,8 +1,6 @@
 In R, arguments have tags, as opposed to just lists.
 You need to be able to substitute into the tags of a call.
 
-
-
 Let's say that we wanted to have a statement "foreach" that worked
 like "for" but accumulated and returned the results in a list. So an
 example usage would look like:
@@ -23,7 +21,7 @@ defined in the environment enclosing the `for` statement.
 ```r
 vec <- i
 out <- vector(length(i), list)
-for (iter in seq(len(values)) {
+for (iter in seq(len(values))) {
   i <- vec[[iter]]
   out[[iter]] <- {
     sim(a)
@@ -36,7 +34,7 @@ So far so good. What happens when we want to nest two foreach loops?
 
 ```
 
-
+```
 
 
 

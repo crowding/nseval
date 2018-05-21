@@ -157,7 +157,7 @@ test_that("is_promise and is_forced and is_literal and is_missing", {
   }
 
   #force inlining literals
-  x <- cmpfun(x)
+  x <- compiler::cmpfun(x)
   x()
 })
 

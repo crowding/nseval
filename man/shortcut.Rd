@@ -52,8 +52,8 @@ is_default(...)
 is_default_(syms, envs = arg_env(syms))
 }
 \arguments{
-\item{sym}{For \code{arg_env}, etc, a bare name (not forced). For
-the normally evaluating \code{arg_env_} and so on, \link{name}.}
+\item{sym}{For \code{arg_env}, etc, a bare name (not forced). For the
+normally evaluating \code{arg_env_} and so on, \link{name}.}
 
 \item{env}{The environment to search in.}
 
@@ -66,8 +66,6 @@ the normally evaluating \code{arg_env_} and so on, \link{name}.}
 
 \item{recursive}{Whether to recursively \link{unwrap} before testing for
 missingness.}
-
-\item{envs}{An \link{environment} or list of environments.}
 }
 \value{
 \code{arg_expr} extracts an expression from a named argument.
@@ -90,10 +88,10 @@ code often omits creating a promise for literal arguments
 \code{is_default} returns a logical vector
 }
 \description{
-Most of these are shortcuts for accessing currently bound lazy
-arguments. For example, \code{arg_env(x)} is equivalent to
-\code{\link{env(arg(x))}}, \code{is_forced(x, y)} is equivalent to \code{\link{forced(args(x,y))}},
-\code{dots_exprs(...)} is equivalent to \code{\link{exprs(dots(...))}}, and so
+These are shortcut methods for querying current bindings.  For
+example, \code{arg_env(x)} is equivalent to \code{env(arg(x))},
+\code{is_forced(x, y)} is equivalent to \code{forced(arg_list(x,y))},
+\code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))}, and so
 on. The shortcut forms, however, skip the construction of the
 intermediate \link{quotation} objects.
 

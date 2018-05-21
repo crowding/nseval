@@ -2,14 +2,14 @@
 % Please edit documentation in R/force.R
 \name{forced}
 \alias{forced}
+\alias{forced.quotation}
+\alias{forced.default}
 \alias{forced_quo}
 \alias{forced_quo_}
 \alias{forced_dots}
 \alias{force_}
 \alias{force_.quotation}
 \alias{force_.dots}
-\alias{forced.quotation}
-\alias{forced.default}
 \alias{value}
 \alias{value.quotation}
 \alias{value.dots}
@@ -19,36 +19,36 @@
 \usage{
 forced(x)
 
+\method{forced}{quotation}(x, ...)
+
+\method{forced}{default}(x)
+
 forced_quo(x)
 
 forced_quo_(x)
 
 forced_dots(...)
 
-force_(q, ...)
+force_(x, ...)
 
-\method{force_}{quotation}(q, eval = base::eval)
+\method{force_}{quotation}(x, eval = base::eval, ...)
 
-\method{force_}{dots}(d, ...)
+\method{force_}{dots}(x, ...)
 
-\method{forced}{quotation}(x)
+value(x, ...)
 
-\method{forced}{default}(x)
+\method{value}{quotation}(x, mode = "any", ...)
 
-value(q, ...)
+\method{value}{dots}(x, ...)
 
-\method{value}{quotation}(q, mode = "any")
+values(x)
 
-\method{value}{dots}(d)
-
-values(p)
-
-\method{values}{dots}(d)
+\method{values}{dots}(x)
 }
 \arguments{
-\item{...}{any number of arguments.}
+\item{x}{A \link{quotation} or \link{dots} object.}
 
-\item{q}{a \link{quotation} or \link{dots} object.}
+\item{...}{any number of arguments; they will be quoted literally.}
 
 \item{eval}{Call something other than 'eval' to "evaluate" the expression.}
 
@@ -56,7 +56,7 @@ values(p)
 \link{locate}).}
 }
 \value{
-\code{forced(x)} returns a \link{logical} value.
+\code{forced(x)} returns a \link{logical}.
 
 \code{forced_quo} and \code{forced_quo_} return \href{quo}{quotation}
 objects.
@@ -73,8 +73,8 @@ Unforced quotations have an expression and an environment; forced
 quotations have an expression and a value. \code{forced} returns a
 logical or logical vector givenm a \link{quotation} or \link{dots}.
 
-\code{forced_quo(x)} constructs a forced quotation directly from its
-argument.  It is equivalent to \code{quo(x, force=TRUE)}.
+\code{forced_quo(x)} constructs a forced quotation that quotes its
+argument literally.  It is equivalent to \code{quo(x, force=TRUE)}.
 
 \code{forced_quo_(x)} makes a forced quotation from any data.
 Specifically it constructs a \link{quotation} with the same object in
@@ -82,7 +82,7 @@ both the \code{expr} and \code{value} slots, except if is a
 \href{is.language}{language} object in which case the value is wrapped
 in \code{quote()}.
 
-\code{forced_dots} and \code{forced_dots_} construct a \link{dots} object
+\code{forced_dots} and \code{forced_dots_} create \link{dots} objects
 containing forced quotations.
 
 \code{force_(x)} evaluates the contents of a quotation or dots object.
@@ -94,7 +94,7 @@ forcing it if necessary.
 \details{
 In normal R evaluation, function arguments are recorded as unforced
 \link{promise}s, which are converted into forced promises as
-well. Quotation objects therefore exist in the same two varieties.
+well. Quotation objects therefore also exist in two varieties.
 }
 \seealso{
 is_forced

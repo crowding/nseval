@@ -1,24 +1,25 @@
 Package: nse
 Type: Package
-Title: The Missing API For Non-Standard Evaluation in R.
+Title: The Missing API For Non-Standard Evaluation in R
 Version: 0.3
 Date: 2018-04-07
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: A cleaner API for metaprogramming in R. Facilities to
+Description: A clean API for metaprogramming in R. Facilities to
              capture, create and manipulate calls, lazy arguments
              (promises) and `...` lists.
 License: MIT + file LICENSE
 Depends:
-    compiler (>= 3.4)
 Suggests:
-    testthat (>= 0.2),
+    testthat (>= 2.0.0),
+    compiler (>= 3.4),
     roxygen2 (>= 2.2.2),
     knitr (>= 1.2),
     plyr (>= 1.8.1),
     ggplot2(>= 1.0.1),
     lazyeval(>= 0.2.0)
 Collate:
+    'arg.R'
     'caller.R'
     'quo.R'
     'dots.R'

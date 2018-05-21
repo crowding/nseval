@@ -3,7 +3,6 @@
 \name{format.dots}
 \alias{format.dots}
 \alias{format.quotation}
-\alias{format.oneline}
 \alias{print.dots}
 \alias{print.quotation}
 \title{Formatting methods for dots and quotations.}
@@ -13,8 +12,6 @@
 
 \method{format}{quotation}(x, compact = FALSE, show.environments = !compact,
   show.expressions = !compact, width = 30, ...)
-
-\method{format}{oneline}(x, max.width = 50, width = max.width, ...)
 
 \method{print}{dots}(x, ...)
 
@@ -32,11 +29,9 @@ quotations.}
 \item{show.expressions}{Whether to show expressions for forced
 quotations.}
 
-\item{width}{The width of line to produce.}
+\item{width}{the maximum length to use for each element.}
 
 \item{...}{Parameters passed to \link[base:format]{base::format}}
-
-\item{max.width}{The maximum width of line to produce.}
 }
 \description{
 \code{format.dots} constructs a string representation of a dots
@@ -45,8 +40,4 @@ forced quotation is shown as \code{expr := value}.
 
 \code{format.quotation} constructs a string representation of a
 quotation object.
-
-The \code{format} method for class \code{oneline} formats a sequence of
-objects to show one line each. It is somewhat similar to
-\link{format.AsIs} but tries harder with language objects.
 }

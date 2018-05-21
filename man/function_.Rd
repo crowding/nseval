@@ -5,9 +5,9 @@
 \alias{arglist}
 \title{Explicitly create closures.}
 \usage{
-function_(args, body, env = caller(environment()))
+function_(args, body, env = arg_env(args, environment()))
 
-arglist(names, rest = list(), fill = missing_value())
+arglist(names, fill = missing_value())
 }
 \arguments{
 \item{args}{The argument list. NULL is accepted to make a function
@@ -23,7 +23,7 @@ lists.}
 
 \item{names}{A character vector.}
 
-\item{fill}{The default expression to use.}
+\item{fill}{The expression (default missing)}
 }
 \value{
 A closure.
@@ -33,8 +33,8 @@ A closure.
 creates closures. A closure object has three components: the
 argument list the body expression, and the enclosing environment.
 
-\code{arglist} is a helper that produces argument templates given a
-character vector of names.
+\code{arglist} is a helper that produces a named list of
+\href{missing_value}{missings}\link{s} given a character vector of names.
 }
 \examples{
 f1 <- function(x, y = x) { x + y }
@@ -47,8 +47,8 @@ identical(f1, f2) # TRUE
 # `fn(x+y)` is equivalent to `function(x, y) x+y`
 fn <- function(exp) {
   exp_ <- arg(exp)
-  nn <- arglist(all.names(expr(exp)))
-  function_(arglist(nn), expr(exp_), env(exp_))
+  nn <- arglist(all.names(expr(exp_), functions=FALSE))
+  function_(nn, expr(exp_), env(exp_))
 }
 
 fn(x^2)

@@ -10,6 +10,7 @@
 #'   quotations.
 #' @param show.expressions Whether to show expressions for forced
 #'   quotations.
+#' @param width the maximum length to use for each element.
 #' @param ... Parameters passed to [base::format]
 #' @rdname format.quotation
 #' @export
@@ -17,7 +18,7 @@ format.dots <- function(x,
                         compact = FALSE,
                         show.environments = !compact,
                         show.expressions = !compact,
-                        width=30,
+                        width = 30,
                         ...) {
   contents <- mapply(
     x,
@@ -41,8 +42,6 @@ format.dots <- function(x,
 }
 
 
-#' (format.quo)
-#'
 #' `format.quotation` constructs a string representation of a
 #' quotation object.
 #' @rdname format.quotation
@@ -51,25 +50,24 @@ format.quotation <- function(x,
                              compact = FALSE,
                              show.environments = !compact,
                              show.expressions = !compact,
-                             width=30,
+                             width = 30,
                              ...) {
   chars = paste0("quo<< ",
                  format.quotation.inner(
-                   x, compact, show.environments, show.expressions, width=30),
+                   x, compact, show.environments, show.expressions, width = width),
                  " >>")
   format.default(chars, ...)
 }
 
-#' (format)
-#'
-#' The `format` method for class `oneline` formats a sequence of
-#' objects to show one line each. It is somewhat similar to
-#' [format.AsIs] but tries harder with language objects.
-#' @param width The width of line to produce.
-#' @param max.width The maximum width of line to produce.
-#' @rdname format.quotation
-#'
+#' The method `format.oneline` formats a vector or list so that each
+#' item fits on one line. It is similar to [format.AsIs] but tries
+#' harder with language objects. The "oneline" class is used by
+#' [as.data.frame.dots].
 #' @export
+#' @param ... Further arguments passed to [format].
+#' @param x A vector or list.
+#' @param max.width See [format].
+#' @param width See [format].
 format.oneline <- function(x, max.width=50, width=max.width, ...) {
   if ("oneline" %in% class(x)) {
     class(x) <- setdiff(class(x), "oneline")

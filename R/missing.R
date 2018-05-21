@@ -6,7 +6,7 @@
 #'
 #' The missing value occurs naturally in a quoted R expression that has an empty argument.
 #' ```
-#'     exp <- quote( x[1, ] )
+#'     exp <- quote( x\[1, \] )
 #'     identical(exp[[4]], missing_value()) #TRUE
 #'     is_missing(exp[[4]]) #also TRUE
 #' ```
@@ -64,7 +64,7 @@ missing_value <- function(n) {
 #' function with methods for [dots], [quotation]s and lists.
 #' @param x a value, [dots], or list.
 #' @param unwrap Whether to descend recursively through unevaluated
-#'   promises using [unwrap(x, TRUE)]
+#'   promises using `unwrap(x, TRUE)`
 #' @return `missing` returns a logical vector.
 #' @seealso missing is_missing
 #' @rdname missing_value
@@ -106,9 +106,9 @@ missing_.quotation <- function(x, unwrap=TRUE) {
   identical(expr(x), missing_value())
 }
 
-
 #' `list_missing` is similar to `list` but allows missing arguments.
 #' @rdname missing_value
+#' @param ... Arguments evaluated normally. except those which are missing.
 #' @return `list_missing` returns a list.
 #' @examples
 #' # How to do the trick of `[` where it can tell which arguments are

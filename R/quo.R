@@ -4,7 +4,7 @@
 #' and constructs a quotation.
 #'
 #' A quo (or quotation) `q <- quo( something )` has two parts: an
-#' expression [expr(q)] with an environment [env(q)]. (Like in
+#' expression `expr(q)` with an environment `env(q)`. (Like in
 #' writing, an 'expression' may simply be a set of words, but a
 #' 'quotation' comes bundled with a citation, to reference a context
 #' in which it was said.)
@@ -25,10 +25,12 @@
 #' @export
 #' @param expr An expression. For `quo` this is taken literally and
 #'   not evaluated. For `quo_` this is evaluated normally.
+#' @param env An [environment].
 #' @param force Immediately evaluate the expression and create a
 #'   "forced" quotation, i.e. one that stores an expression and value,
 #'   but no environment.
 #' @return `quo_` and `quo` return an object of class "quotation".
+#' @aliases quotation
 quo <- function(expr, env = arg_env_(quote(expr), environment()), force = FALSE) {
   quo_(arg_expr_(quote(expr), environment()), env = env, force = force)
 }
@@ -36,8 +38,6 @@ quo <- function(expr, env = arg_env_(quote(expr), environment()), force = FALSE)
 #' `quo_(expr, env)` is the normally evaluating version. It
 #' constructs a quotation given an expression and environment.
 #' @rdname quo
-#' @param expr An expression.
-#' @param env An environment.
 #' @export
 #' @useDynLib nse _quotation
 quo_ <- function(expr, env, force = FALSE) {
@@ -60,6 +60,7 @@ env.quotation <- function(q) {
 
 #' @rdname quo
 #' @export
+#' @param value An updated value.
 `env<-` <- function(q, value) {
   UseMethod("env<-")
 }
@@ -112,10 +113,6 @@ as.quo <- function(x) {
 
 #' @export
 #' @rdname quo
-as.quo.quotation <- identity
-
-#' @export
-#' @rdname quo
 as.quo.function <- function(x) {
   if (is.primitive(x)) stop("can't convert primitive to quotation")
   f <- formals(x)
@@ -140,18 +137,6 @@ as.quo.dots <- function(x) {
 
 #' @export
 #' @rdname quo
-as.quo.default <- function(x) {
-  if (mode(x) == "list") {
-    expr <- x$expr
-    env <- x$env
-  } else {
-    stop(paste0("can't convert ", class(x)[1] ," to a quo"))
-  }
-  quo_(expr, env)
-}
-
-#' @export
-#' @rdname quo
 as.quo.formula <- function(x) {
   expr <- x[[2]]
   env <- attr(x, ".Environment")
@@ -164,5 +149,14 @@ as.quo.lazy <- function(x) {
   quo_(x$expr, x$env)
 }
 
-
-
+#' @export
+#' @rdname quo
+as.quo.default <- function(x) {
+  if (mode(x) == "list") {
+    expr <- x$expr
+    env <- x$env
+  } else {
+    stop(paste0("can't convert ", class(x)[1] ," to a quo"))
+  }
+  quo_(expr, env)
+}

@@ -7,6 +7,7 @@
 \alias{locate_.quotation}
 \alias{locate_.character}
 \alias{locate_.(}
+\alias{locate_.dots}
 \alias{locate_.name}
 \title{Find the environment which defines a name.}
 \usage{
@@ -17,13 +18,15 @@ locate_(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 locate_.list(sym, env = arg_env_(quote(sym), environment()), mode = "any",
   ...)
 
-locate_.quotation(sym, env = (ignored), mode = "any", ...)
+locate_.quotation(sym, env = "ignored", mode = "any", ...)
 
 locate_.character(sym, env = arg_env_(quote(sym), environment()),
   mode = "any", ...)
 
 "locate_.("(sym, env = arg_env_(quote(sym), environment()), mode = "any",
   ...)
+
+locate_.dots(sym, env = "ignored", mode = "any", ...)
 
 locate_.name(sym, env = arg_env_(quote(sym), environment()), mode = "any",
   ifnotfound = stop("Binding ", deparse(sym), " not found"))
@@ -39,6 +42,8 @@ lowest enclosing environment which gives any definiton for \code{sym}.
 \code{"function"} searches for an environment which defines \code{sym} as a
 function. This may force lazy arguments in the process, in the
 same way as \link{get}.}
+
+\item{...}{Further arguments passed to methods.}
 
 \item{ifnotfound}{What is returned if the symbol is not found. By
 default an exception is raised.}
@@ -66,10 +71,13 @@ work OK. See note under \link{arg}.
 }
 \examples{
 # Here is how to implement R's `<<-` operator, using `locate_`:
-`<<-` <- function(lval, rval) {
- lval_ <- arg(lval_)
- rval_ <- arg(rval_)
+`\%<<-\%` <- function(lval, rval) {
+ lval_ <- arg(lval)
+ rval_ <- arg(rval)
  target.env <- locate_(expr(lval_), parent.env(env(lval_)))
+ #note that `<-` is a primitive which requires its lvalue and call
+ #head to come from teh same env
+ env(lval_) <- target.env
  do_(quo(`<-`, target.env), lval_, rval_)
 }
 
@@ -78,7 +86,7 @@ local({
   x <- "this one"
   local({
     x <- "not this one either"
-    x <<- "this works just like builtin <<-"
+    x \%<<-\% "this works like builtin <<-"
   })
   print(x)
 })

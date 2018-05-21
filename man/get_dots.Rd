@@ -34,8 +34,8 @@ is missing, it returns an empty dots list.
 \code{...} in a given environment.
 }
 \details{
-\code{get_dots()} is equivalent to \code{\link{dots(...)}} or
-\code{\link{arg_list( (...) )}}.
+\code{get_dots()} is equivalent to \code{dots(...)} or
+\code{arg_list( (...) )}.
 }
 \seealso{
 env2dots set_arg dots2env
