@@ -1,9 +1,9 @@
 nse
 ======
 
-[![CRAN version badge](http://www.r-pkg.org/badges/version/msgpack)](https://cran.r-project.org/package=msgpack)
-[![Travis build status](http://travis-ci.org/crowding/msgpack-r.svg?branch=master)](https://travis-ci.org/crowding/msgpack-r)
-[![Code coverage](https://codecov.io/gh/crowding/msgpack-r/branch/master/graph/badge.svg)](https://codecov.io/gh/crowding/msgpack-r)
+<!-- [![CRAN version badge](http://www.r-pkg.org/badges/version/msgpack)](https://cran.r-project.org/package=msgpack) -->
+[![Travis build status](http://travis-ci.org/crowding/nse.svg?branch=master)](https://travis-ci.org/crowding/nse)
+[![Code coverage](https://codecov.io/gh/crowding/nse/branch/master/graph/badge.svg)](https://codecov.io/gh/crowding/nse)
 
 `nse` is the missing API for non-standard evaluation and
 metaprogramming in R. `nse` is intended to reflect R the way R
