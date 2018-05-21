@@ -7,23 +7,6 @@
 /*   } */
 /* } */
 
-/* As above, with extra words about what thing is to be an expected type */
-void assert_type3(SEXP x, SEXPTYPE type, const char *what) {
-  if (TYPEOF(x) != type) {
-    error("Expected %s in %s, got %s",
-          type2char(type), what, type2char(TYPEOF(x)));
-  }
-}
-
-int recycle_length(int i, int j) {
-  if (MIN(i,j) == 0) return 0;
-  int n = MAX(i,j);
-  if ((n%i != 0) || (n%j != 0)) {
-    warning("Longer vector length is not a multiple of shorter vector length");
-  }
-  return n;
-}
-
 int is_language(SEXP x) {
   switch(TYPEOF(x)) {
   case LANGSXP:
@@ -59,7 +42,7 @@ SEXP new_forced_promise(SEXP expr, SEXP value) {
   if (is_language(value)) {
     SET_PRCODE(out, Rf_lang2(install("quote"), value));
   } else {
-    SET_PRCODE(out, value);
+    SET_PRCODE(out, expr);
   }
   SET_PRENV(out, R_NilValue);
   SET_PRVALUE(out, value);

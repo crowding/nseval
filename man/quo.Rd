@@ -14,13 +14,12 @@
 \alias{expr<-.quotation}
 \alias{is.quotation}
 \alias{as.quo}
-\alias{as.quo.quotation}
 \alias{as.quo.function}
 \alias{as.quo.quotation}
 \alias{as.quo.dots}
-\alias{as.quo.default}
 \alias{as.quo.formula}
 \alias{as.quo.lazy}
+\alias{as.quo.default}
 \title{Quotation objects.}
 \usage{
 quo(expr, env = arg_env_(quote(expr), environment()), force = FALSE)
@@ -47,19 +46,17 @@ is.quotation(x)
 
 as.quo(x)
 
-\method{as.quo}{quotation}(x)
-
 \method{as.quo}{function}(x)
 
 \method{as.quo}{quotation}(x)
 
 \method{as.quo}{dots}(x)
 
-\method{as.quo}{default}(x)
-
 \method{as.quo}{formula}(x)
 
 \method{as.quo}{lazy}(x)
+
+\method{as.quo}{default}(x)
 }
 \arguments{
 \item{expr}{An expression. For \code{quo} this is taken literally and

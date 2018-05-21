@@ -14,10 +14,7 @@ SEXP _quotation(SEXP envir, SEXP expr, SEXP value) {
   
   if (envir == R_NilValue) {
     /* already-forced promise. Record a PROMSXP in the body. */
-    prom = PROTECT(allocSExp(PROMSXP));
-    SET_PRENV(prom, R_NilValue);
-    SET_PRCODE(prom, expr);
-    SET_PRVALUE(prom, value);
+    prom = PROTECT(new_forced_promise(expr, value));
     SET_CLOENV(out, R_EmptyEnv);
     SET_BODY(out, prom);
     UNPROTECT(1);
@@ -96,27 +93,19 @@ SEXP _quotation_to_promsxp(SEXP clos) {
     /* In the case of forced promises we return the same promsxp. */
     return BODY(clos);
   } else {
-    out = PROTECT(allocSExp(PROMSXP));
-    SET_PRVALUE(out, R_UnboundValue);
-    SET_PRCODE(out, BODY(clos));
-    SET_PRENV(out, CLOENV(clos));
-    UNPROTECT(1);
+    return new_promise(BODY(clos), CLOENV(clos)); 
   }
-  return out;
 }
 
 SEXP forced_promise(SEXP in) {
-  SEXP out = PROTECT(allocSExp(PROMSXP));
   if (is_language(in)) {
-    SET_PRCODE(out, Rf_lang2(install("quote"), in));
+    SEXP q = PROTECT(Rf_lang2(install("quote"), in));
+    SEXP out =  new_forced_promise(q, in);
+    UNPROTECT(1);
+    return out;
   } else {
-    SET_PRCODE(out, in);
+    return new_forced_promise(in, in);
   }
-  SET_PRENV(out, R_EmptyEnv);
-  SET_PRVALUE(out, in);
-    
-  UNPROTECT(1);
-  return out;
 }
 
 /* If not a promise, wrap in a promise. */
