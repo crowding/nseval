@@ -89,27 +89,6 @@ print.quotation <- function(x, ...) {
   invisible(x)
 }
 
-# adapted from plyr::quickdf
-df <- function(...) {
-  list <- list(...)
-  rows <- unique(unlist(lapply(list, NROW)))
-  stopifnot(length(rows) == 1)
-  names(list) <- make_names(list, "X")
-  class(list) <- "data.frame"
-  attr(list, "row.names") <- c(NA_integer_, -rows)
-  list
-}
-
-make_names <- function (x, prefix = "X"){
-  nm <- names(x)
-  if (is.null(nm)) {
-    nm <- rep.int("", length(x))
-  }
-  n <- sum(nm == "", na.rm = TRUE)
-  nm[nm == ""] <- paste(prefix, seq_len(n), sep = "")
-  nm
-}
-
 one_line <- function(x, f, max.width=50, width=max.width, ...) {
   if (!(is.numeric(x) || is.character(x) || is.list(x))) {
     x <- list(x)

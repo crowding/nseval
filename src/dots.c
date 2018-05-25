@@ -4,27 +4,6 @@
 int _dots_length(SEXP dots);
 SEXP emptypromise();
 
-/* Allocate blank list of dotsxps and promises */
-SEXP allocate_dots(int length) {
-  if (length <= 0) return R_NilValue;
-  SEXP dots = PROTECT(allocList(length));
-  SEXP promises = PROTECT(allocList(length));
-  SEXP d = dots; SEXP p = promises; SEXP next = CDR(p);
-  for (int i = 0;
-       i < length;
-       d = CDR(d), p = next, next = CDR(next), i++) {
-    SET_TYPEOF(d, DOTSXP);
-    SET_TYPEOF(p, PROMSXP);
-    SET_PRENV(p, R_EmptyEnv);
-    SET_PRVALUE(p, R_UnboundValue);
-    SET_PRCODE(p, R_MissingArg);
-    SET_PRSEEN(p, 0);
-    SETCAR(d, p);
-  }
-  UNPROTECT(2);
-  return dots;
-}
-
 SEXP _get_dots(SEXP env, SEXP inherit) {
   assert_type(env, ENVSXP);
   SEXP vl;
@@ -205,57 +184,6 @@ SEXP _dots_envs(SEXP dots) {
   return(envs);
 }
 
-/* Convert a DOTSXP into a list of raw promise objects. */
-SEXP _dotslist_to_list(SEXP x) {
-  int i;
-  SEXP output, names;
-  int len = length(x);
-
-  PROTECT(output = allocVector(VECSXP, len));
-  PROTECT(names = allocVector(STRSXP, len));
-  if (len > 0) {
-    assert_type(x, DOTSXP);
-  }
-  for (i = 0; i < len; x=CDR(x), i++) {
-    if (CAR(x) == R_MissingArg) {
-      SET_VECTOR_ELT(output, i, emptypromise());
-    } else {
-      SET_VECTOR_ELT(output, i, CAR(x));
-    }
-    SET_STRING_ELT(names, i, isNull(TAG(x)) ? R_BlankString : PRINTNAME(TAG(x)));
-  }
-  if (len > 0) {
-  setAttrib(output, R_NamesSymbol, names);
-  }
-
-  UNPROTECT(2);
-  return output;
-}
-
-/* Convert a list of promise objects into a DOTSXP. */
-SEXP _list_to_dotslist(SEXP list) {
-  assert_type(list, VECSXP);
-  int len = length(list);
-  int i;
-  SEXP output, names;
-  names = getAttrib(list, R_NamesSymbol);
-  if (len > 0) {
-    output = PROTECT(allocList(len));
-    SEXP output_iter = output;
-    for (i = 0; i < len; i++, output_iter=CDR(output_iter)) {
-      SET_TYPEOF(output_iter, DOTSXP);
-      if ((names != R_NilValue) && (STRING_ELT(names, i) != R_BlankString)) {
-        SET_TAG(output_iter, install(CHAR(STRING_ELT(names, i)) ));
-      }
-      SETCAR(output_iter, VECTOR_ELT(list, i));
-    }
-  } else {
-    output = PROTECT(allocVector(VECSXP, 0));
-  }
-  UNPROTECT(1);
-  return output;
-}
-
 SEXP _flist_to_dotsxp(SEXP flist) {
   assert_type(flist, VECSXP);
   int len = LENGTH(flist);
@@ -385,23 +313,6 @@ int is_list_type(SEXPTYPE t) {
 
 int is_list_like(SEXP in) {
   return is_list_type(TYPEOF(in));
-}
-
-SEXP concat(SEXP first, SEXP second) {
-  SEXP e;
-  if (second == R_NilValue) {
-    return first;
-  } else if (first == R_NilValue) {
-    return second;
-  } else {
-    SEXP newfirst = PROTECT(duplicate(first));
-    SEXP tail = newfirst;
-    while (CDR(tail) != R_NilValue) tail = CDR(tail);
-    INCREMENT_REFCNT(second);
-    SETCDR(tail, second);
-    UNPROTECT(1);
-    return newfirst;
-  }
 }
 
 /* given pointers to head and tail SEXPs, appends an new object.  Will
