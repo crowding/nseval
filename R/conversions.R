@@ -13,7 +13,7 @@
 #' @export
 #' @useDynLib nse _dots_unpack
 as.data.frame.dots <- function(x, row.names = NULL, ...) {
-  x <- .Call(`_dots_unpack`, x)
+  x <- .Call("_dots_unpack", x)
   class(x$envir) <- "oneline"
   class(x$expr) <- "oneline"
   class(x$value) <- "oneline"
@@ -89,7 +89,7 @@ env2dots <- function(env,
                      include_missing = TRUE,
                      expand_dots = TRUE)
 {
-  x <- .Call(`_env_to_dots`, env, names, include_missing, expand_dots)
+  x <- .Call("_env_to_dots", env, names, include_missing, expand_dots)
 }
 
 
@@ -145,13 +145,13 @@ dots2env <- function(x,
     if (append) {
       x <- c(get_dots(env), x)
     }
-    picked <- .Call(`_flist_to_dotsxp`, picked)
-    extras <- .Call(`_flist_to_dotsxp`, x)
-    .Call(`_dots_to_env`, picked, env, extras)
+    picked <- .Call("_flist_to_dotsxp", picked)
+    extras <- .Call("_flist_to_dotsxp", x)
+    .Call("_dots_to_env", picked, env, extras)
   } else {
     picked <- x[names]
-    picked <- .Call(`_flist_to_dotsxp`, x)
-    .Call(`_dots_to_env`, picked, env, NULL)
+    picked <- .Call("_flist_to_dotsxp", x)
+    .Call("_dots_to_env", picked, env, NULL)
   }
 }
 

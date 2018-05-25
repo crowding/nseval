@@ -22,7 +22,7 @@ arg_env <- function(sym,
 #' @useDynLib nse _arg_env
 arg_env_ <- function(sym,
                      env = arg_env_(quote(sym), environment())) {
-  .Call(`_arg_env`, env, as.name(sym), TRUE)
+  .Call("_arg_env", env, as.name(sym), TRUE)
 }
 
 #' @rdname shortcut
@@ -40,7 +40,7 @@ arg_expr <- function(sym,
 #' @useDynLib nse _arg_expr
 arg_expr_ <- function(sym,
                       env=arg_env_(quote(sym), environment())) {
-  .Call(`_arg_expr`, env, as.name(sym), TRUE)
+  .Call("_arg_expr", env, as.name(sym), TRUE)
 }
 
 #' @export
@@ -78,7 +78,7 @@ is_forced_ <- function(syms, envs) {
     syms,
     if(is.list(envs)) envs else list(envs),
     FUN=function(sym, env) {
-      .Call(`_is_forced`, env, as.name(sym), TRUE)
+      .Call("_is_forced", env, as.name(sym), TRUE)
     })
 }
 
@@ -103,7 +103,7 @@ is_literal_ <- function(syms, envs) {
     syms,
     if (is.list(envs)) envs else list(envs),
     FUN=function(sym, env) {
-      .Call(`_is_literal`, env, as.name(sym), TRUE)
+      .Call("_is_literal", env, as.name(sym), TRUE)
     })
 }
 
@@ -131,7 +131,7 @@ is_missing_ <- function(syms, envs, recursive=TRUE) {
     syms,
     if (is.list(envs)) envs else list(envs),
     FUN=function(sym, env) {
-      .Call(`_is_missing`, env, as.name(sym), unwrap)
+      .Call("_is_missing", env, as.name(sym), unwrap)
     })
 }
 
@@ -157,7 +157,7 @@ is_promise_ <- function(syms, envs)
     syms,
     if (is.list(envs)) envs else list(envs),
     FUN=function(sym, env) {
-      .Call(`_is_promise`, env, as.name(sym), TRUE)
+      .Call("_is_promise", env, as.name(sym), TRUE)
     })
 }
 

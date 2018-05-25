@@ -158,8 +158,8 @@ c.quotation <- c.dots
 #' @useDynLib nse _get_dots
 #' @useDynLib nse _dotsxp_to_flist
 get_dots <- function(env = caller(environment()), inherits=FALSE) {
-  dts <- .Call(`_get_dots`, env, inherits)
-  .Call(`_dotsxp_to_flist`, dts)
+  dts <- .Call("_get_dots", env, inherits)
+  .Call("_dotsxp_to_flist", dts)
 }
 
 #' `set_dots` takes a [dots] list and uses it to create a binding for
@@ -178,6 +178,6 @@ set_dots <- function(env, d, append=FALSE) {
   if (append) {
     d = c(get_dots(env), d);
   }
-  .Call(`_set_dots`, .Call(`_flist_to_dotsxp`, d), env)
+  .Call("_set_dots", .Call("_flist_to_dotsxp", d), env)
   invisible(env)
 }

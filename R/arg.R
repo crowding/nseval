@@ -33,7 +33,7 @@ arg <- function(sym,
 #' @export
 #' @useDynLib nse _arg
 arg_ <- function(sym, env = arg_env(sym, environment())) {
-  .Call(`_arg`, env, as.name(sym), TRUE)
+  .Call("_arg", env, as.name(sym), TRUE)
 }
 
 
@@ -78,8 +78,8 @@ arg_list_ <- function(syms, envs) {
   if (!is.list(envs)) {
     envs <- rep(list(envs), length(syms))
   }
-  dts <- .Call(`_arg_dots`, envs, syms, names(syms), TRUE)
-  .Call(`_dotsxp_to_flist`, dts)
+  dts <- .Call("_arg_dots", envs, syms, names(syms), TRUE)
+  .Call("_dotsxp_to_flist", dts)
 }
 
 
@@ -109,9 +109,9 @@ arg_list_ <- function(syms, envs) {
   switch(mode(dstname),
          name = assign(as.character(dstname),
                        envir=env(dst),
-                       .Call(`_quotation_to_promsxp`, src)),
+                       .Call("_quotation_to_promsxp", src)),
          character = assign(dstname,
                             envir=env(dst),
-                            .Call(`_quotation_to_promsxp`, src)),
+                            .Call("_quotation_to_promsxp", src)),
          call = stop("Subassignment with set_arg not supported"),
          stop("Don't know how to assign to a ", typeof(expr(dst))))}

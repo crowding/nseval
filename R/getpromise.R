@@ -137,7 +137,7 @@ locate_.name <- function(sym,
                          env = arg_env_(quote(sym), environment()),
                          mode = "any",
                          ifnotfound = stop("Binding ", deparse(sym), " not found")) {
-  .Call(`_locate`,
+  .Call("_locate",
         sym,
         env,
         switch(mode,

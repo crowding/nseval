@@ -27,7 +27,7 @@ forced.dots <- function(x) {
 #' @useDynLib nse _forced_quotation
 #' @rdname forced
 forced.quotation <- function(x, ...) {
-  .Call(`_forced_quotation`, x)
+  .Call("_forced_quotation", x)
 }
 
 #' @export
@@ -53,7 +53,7 @@ forced_quo <- function(x) {
 #' @return `forced_quo` and `forced_quo_` return [quotation](quo)
 #'   objects.
 forced_quo_ <- function(x) {
-  .Call(`_quotation_literal`, x)
+  .Call("_quotation_literal", x)
 }
 
 
@@ -74,7 +74,7 @@ forced_dots <- function(...) {
 #' @export
 forced_dots_ <- function(values) {
   structure(lapply(as.list(values),
-                   function(x) .Call(`_quotation_literal`, x)),
+                   function(x) .Call("_quotation_literal", x)),
             class="dots")
 }
 

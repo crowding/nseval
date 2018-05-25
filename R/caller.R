@@ -151,7 +151,7 @@ do_ <- function(...) {
 }
 
 do__ <- function(d) {
-  .Call(`_do`, d)
+  .Call("_do", d)
 }
 
 #' Get information about currently executing calls.
