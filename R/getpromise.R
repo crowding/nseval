@@ -146,11 +146,11 @@ locate_.name <- function(sym,
         ) %||% ifnotfound
 }
 
-#' Peel back layers of variable names from quotations.
+#' Unwrap variable references.
 #'
-#' When an un[forced] [quotation]'s expression is a bare variable
-#' name, `unwrap` follows the variable reference returns a
-#' quotation. When the quotation is forced or has a nontrivial
+#' Given an un[forced] [quotation] whose expression is a bare variable
+#' name, `unwrap` follows the variable reference, and returns a
+#' quotation. When the argument is forced or has a nontrivial
 #' expression `unwrap` has no effect.
 #'
 #' The syntax `locate( (...) )` is available for locating `...`.

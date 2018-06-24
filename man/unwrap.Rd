@@ -3,7 +3,7 @@
 \name{unwrap}
 \alias{unwrap}
 \alias{unwrap.dots}
-\title{Peel back layers of variable names from quotations.}
+\title{Unwrap variable references.}
 \usage{
 unwrap(x, recursive = FALSE)
 
@@ -22,9 +22,9 @@ The \link{quotation} method returns a \link{quotation}.
 The \link{dots} method returns a dots object with each quotation unwrapped.
 }
 \description{
-When an un\link{forced} \link{quotation}'s expression is a bare variable
-name, \code{unwrap} follows the variable reference returns a
-quotation. When the quotation is forced or has a nontrivial
+Given an un\link{forced} \link{quotation} whose expression is a bare variable
+name, \code{unwrap} follows the variable reference, and returns a
+quotation. When the argument is forced or has a nontrivial
 expression \code{unwrap} has no effect.
 }
 \details{
