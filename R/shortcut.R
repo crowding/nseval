@@ -131,7 +131,7 @@ is_missing_ <- function(syms, envs, recursive=TRUE) {
     syms,
     if (is.list(envs)) envs else list(envs),
     FUN=function(sym, env) {
-      .Call("_is_missing", env, as.name(sym), unwrap)
+      .Call("_is_missing", env, as.name(sym), FALSE, recursive)
     })
 }
 

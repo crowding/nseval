@@ -25,7 +25,7 @@ extern SEXP _forced_quotation(SEXP);
 extern SEXP _get_dots(SEXP, SEXP);
 extern SEXP _is_forced(SEXP, SEXP, SEXP);
 extern SEXP _is_literal(SEXP, SEXP, SEXP);
-extern SEXP _is_missing(SEXP, SEXP, SEXP);
+extern SEXP _is_missing(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _is_promise(SEXP, SEXP, SEXP);
 extern SEXP _locate(SEXP, SEXP, SEXP);
 extern SEXP _quotation(SEXP, SEXP, SEXP);
@@ -52,7 +52,7 @@ static const R_CallMethodDef CallEntries[] = {
   {"_get_dots",             (DL_FUNC) &_get_dots,             2},
   {"_is_forced",            (DL_FUNC) &_is_forced,            3},
   {"_is_literal",           (DL_FUNC) &_is_literal,           3},
-  {"_is_missing",           (DL_FUNC) &_is_missing,           3},
+  {"_is_missing",           (DL_FUNC) &_is_missing,           4},
   {"_is_promise",           (DL_FUNC) &_is_promise,           3},
   {"_locate",               (DL_FUNC) &_locate,               3},
   {"_quotation",            (DL_FUNC) &_quotation,            3},

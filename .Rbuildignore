@@ -1,0 +1,6 @@
+^task\.org$
+^.*\.Rproj$
+^\.Rproj\.user$
+^TAGS$
+^\.travis\.yml$
+vignettes/draft
