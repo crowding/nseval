@@ -11,7 +11,7 @@ expect_throws_if_isnt <- function (object, expected, ...,
   expected <- list(val = force(expected),
                    lab = as.character(expected.label %||% arg_expr(expected)))
   if (inherits(act$val, "try-error")) {
-    expect(TRUE)
+    expect(TRUE, "An error was thrown")
   } else {
     expect(all.equal(act$val, expected$val),
            sprintf("%s not equal to %v", act$label, expected$label))
