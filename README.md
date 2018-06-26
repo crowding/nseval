@@ -1,31 +1,89 @@
-nse
+NSEval
 ======
 
-<!-- [![CRAN version badge](http://www.r-pkg.org/badges/version/msgpack)](https://cran.r-project.org/package=msgpack) -->
-[![Travis build status](http://travis-ci.org/crowding/nse.svg?branch=master)](https://travis-ci.org/crowding/nse)
-[![Code coverage](https://codecov.io/gh/crowding/nse/branch/master/graph/badge.svg)](https://codecov.io/gh/crowding/nse)
+[![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)
+[![Travis build status](http://travis-ci.org/crowding/nse.svg?branch=master)](https://travis-ci.org/crowding/nseval)
+[![Code coverage](https://codecov.io/gh/crowding/nse/branch/master/graph/badge.svg)](https://codecov.io/gh/crowding/nseval)
 
-`nse` is the missing API for non-standard evaluation and
-metaprogramming in R. `nse` is intended to reflect R the way R
-actually works.
+`nseval` is the missing API for non-standard evaluation and
+metaprogramming in R.
+
+### Who NSEval is for
+
+`nseval` might be for you if:
+
+* You've been befuddled by trying to get your desired results using
+  functions like `substitute`, `eval`, `parent.frame()`, `do.call`,
+  `match.call`, and other cases of [non-standard evauation](http://adv-r.had.co.nz/Computing-on-the-language.html);
+* You're been befuddled by trying to interface with other people's
+  code that uses the above functions, and need a way to work around
+  them;
+* You want to better understand what "goes on" "under the hood" when R
+  is running.
 
 ## Installation
 
 ```
 install.packages("devtools")
 library(devtools)
-install_github("crowding/nse")
+install_github("crowding/nseval")
 ```
+
+### What `nseval` does
+
+`nseval` introduces two S3 classes: `quotation`, and `dots`, which
+mirror R's promises and `...`, respectively. Unlike their
+counterparts, these are ordinary data objects, and can be assigned to
+variables and be manipulated without triggering evaluation.
+
+* A `quotation` combines an R expression with an environment.  There
+  are also `forced` quotations, which pair an expression with a value.
+* A `dots` is a named list of quotations.
+
+There is a set of consistently-named accessors and constructors for
+capturing, constructing, and manipulating these objects.
+
+## Quick intro / transitioning from base R to NSEval
+
+* Instead of `quote`, use:
+  * `quo`. This captures the environment along with the text of its argument.
+  * Similarly, `dots()` captures multiple arguments, analagously to `alist`.
+* Instead of `substitute(x)`, use:
+  * `arg(x)`, which captures the argument's environment along with its text.
+* Instead of `substitute(list(...))[[2]]`, or `substitute(...())`, use:
+    * `dots(...)`, to capture `...` unevaluated, including original environments, or
+    * `arg_list(x, y, (...))`, to include other arguments as well.
+* Instead of `match.call`, use:
+    * `get_call`, which preserves the environment attached to each argument.
+* Instead of `do.call`, use
+  * `do`, which allows different arguments to be passed from
+    different environments.
+* Instead of `parent.frame`, use:
+  * `arg_env`, which gives the environment _attached to an argument_, which
+    is what you actually want most the time, or
+  * `caller`, which returns the calling environment, like
+    `parent.frame` often does, but avoids the latter's difficulties
+    with lazy evaluation and closures; `caller` would rather throw an error
+    than return an incorrect result.
 
 ### Why `nse` is needed
 
 Before R, there was S, and S had some metaprogramming facilities,
-using functions like `substitute`, `match.call`, `do.call`, `quote`,
-`alist`, `eval`, and so on. R implemented that API. But S did not
-have lexical scoping or the notion of an environment, whereas R
-does. So R has been coping with a metaprogramming API that was not
-designed with R's rules in mind. It turns out the S interface is not
-sufficient to model R behavior, with consequences such as:
+exposed by functions like `parent.frame`, `substitute`, `match.call`,
+`do.call`, `quote`, `alist`, `eval`, and so on. R duplicated that
+API. But S did not have lexical scoping, closures, or the notion of an
+environment, whereas R has all those things.
+
+In S, lazily evaluated arguments could be evaluated simply by stepping
+one step up in the call stack and evaluating them in that context.
+This is not the case with R, because environments can come from
+different sources via `...`, drop off the stack, and then be
+re-activated via closures (and these situations happen frequently
+enough in everyday code).
+
+So R has been coping with a metaprogramming API that was not designed
+with R's capabilities in mind. Because the S interface is not
+sufficient to model R behavior, we end up with consequences such as:
 
   * `match.call()` loses information about argument scopes, so normally
     occurring function calls often can't be captured in a reproducible
@@ -46,65 +104,41 @@ compose, etc.
 
 The good news is that you can simply replace most uses of
 `match.call`, `parent.frame`, `do.call` and such with their
-equivalents from `nse`, and may have fewer of these kinds of problems.
+equivalents from `nseval`, and may then have fewer of these kinds of
+problems.
 
-## Transitioning from base R to NSE
+### What `nseval` doesn't do
 
-* Instead of `quote`, use `quo`.
-* Instead of `match.call` or `sys.call`, use `get_call`, or `arg_list(x, y, (...) )`
-* Instead of `substitute(x)`, use `arg(x)` (or `arg_expr(x)`)
-* Instead of `substitute(list(...))[[2]]`, use `dots(...)`
-* Instead of `do.call`, use `do`.
-* Instead of `parent.frame`, use `arg_env` or `caller`.
-
-### Who NSE is for
-
-`nse` might be for you if:
-
-* You've been befuddled by trying to use the above functions;
-* You're been befuddled by other people's code that uses the above
-  functions and need to work around it;
-* You want to understand better what "goes on" "under the hood" when R
-  is running.
-
-### What `nse` does
-
-`nse` introduces two S3 classes: `quotation`, and `dots`, which mirror
-R's promises and `...`, respectively. Unlike their counterparts, these
-are ordinary data objects, and can be manipulated as such.
-
-* A `quotation` combines an R expression with an environment.  There
-  are also `forced` quotations, which pair an expression with a value.
-* A `dots` is a named list of quotations.
-
-There is a set of consistently-named accessors and constructors for
-capturing, constructing, and manipulating these objects.
-
-`nse` also has a function `do` which is an enhanced `do.call`, and
-`get_call` which is an improved `match.call`.
-
-### What `nse` doesn't do
-
-`nse` doesn't implement quasiquotation or hygeinic macros or code
+`nseval` doesn't implement quasiquotation or hygeinic macros or code
 coverage or DSLs or interactive debugging. But it is intended to be a
-solid foundation to build those kinds of tools on!
+solid foundation to build those kinds of tools on! Watch this space.
 
-`nse` doesn't introduce any fancy syntax -- the only nonstandard
+`nseval` doesn't introduce any fancy syntax -- the only nonstandard
 evaluation in its own interface is name lookup and quoting, and
 standard-evaluating equivalents are always also present.
 
-`nse` doesn't try and remake all of R's base library, just the parts
+`nseval` doesn't try and remake all of R's base library, just the parts
 about calls and lazy evaluation.
 
-`nse` has no install dependencies and should play well with base R or any
+`nseval` has no install dependencies and should play well with base R or any
 other 'verse.
 
 ## Similar packages
 
-Some other packages have been written with similar capabilities:
+Some other packages have tread similar ground:
 
 * [rlang](https://github.com/r-lib/rlang)
 * [lazyeval](https://github.com/hadley/lazyeval)
 * [pryr](https://github.com/hadley/pryr)
 * [vadr](https://github.com/crowding/vadr), which this package is
-  extracted and rewritten from.
+  carved off and rewritten from.
+
+## Further reading
+
+It turns out that R's implementation of lazy evaluation via "promise"
+objects amount to a recreation of
+[fexprs](https://en.wikipedia.org/wiki/Fexpr). On the topic of how to
+work with fexprs, particularly in combination with lexical scope and
+environments, John Shutt's 2010
+[PhD thesis](https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf)
+has been helpful.

@@ -19,7 +19,7 @@ arg_env <- function(sym,
 
 #' @rdname shortcut
 #' @export
-#' @useDynLib nse _arg_env
+#' @useDynLib nseval _arg_env
 arg_env_ <- function(sym,
                      env = arg_env_(quote(sym), environment())) {
   .Call("_arg_env", env, as.name(sym), TRUE)
@@ -27,7 +27,7 @@ arg_env_ <- function(sym,
 
 #' @rdname shortcut
 #' @export
-#' @useDynLib nse _arg_expr
+#' @useDynLib nseval _arg_expr
 #' @return `arg_expr` extracts an expression from a named argument.
 arg_expr <- function(sym,
                      env=arg_env_(quote(sym), environment())) {
@@ -37,7 +37,7 @@ arg_expr <- function(sym,
 
 #' @rdname shortcut
 #' @export
-#' @useDynLib nse _arg_expr
+#' @useDynLib nseval _arg_expr
 arg_expr_ <- function(sym,
                       env=arg_env_(quote(sym), environment())) {
   .Call("_arg_expr", env, as.name(sym), TRUE)
@@ -45,16 +45,16 @@ arg_expr_ <- function(sym,
 
 #' @export
 #' @rdname shortcut
-#' @useDynLib nse _dots_envs
-#' @useDynLib nse _get_dots
+#' @useDynLib nseval _dots_envs
+#' @useDynLib nseval _get_dots
 dots_envs <- function(...) {
   .Call("_dots_envs", .Call("_get_dots", environment(), FALSE))
 }
 
 #' @export
 #' @rdname shortcut
-#' @useDynLib nse _dots_exprs
-#' @useDynLib nse _get_dots
+#' @useDynLib nseval _dots_exprs
+#' @useDynLib nseval _get_dots
 #' @return `dots_exprs(...)` is equivalent to `exprs(dots(...))` which
 #'   is nearly equivalent to `alist(...)`.
 dots_exprs <- function(...) {
@@ -70,7 +70,7 @@ is_forced <- function(...) {
 
 #' @rdname shortcut
 #' @export
-#' @useDynLib nse _is_forced
+#' @useDynLib nseval _is_forced
 is_forced_ <- function(syms, envs) {
   if (is.null(names(syms)))
     names(syms) <- as.character(syms)
@@ -95,7 +95,7 @@ is_literal <- function(...) {
 #' @rdname shortcut
 #' @export
 #' @param envs An environment or list of environments.
-#' @useDynLib nse _is_literal
+#' @useDynLib nseval _is_literal
 is_literal_ <- function(syms, envs) {
   if (is.null(names(syms)))
     names(syms) <- as.character(syms)
@@ -122,7 +122,7 @@ is_missing <- function(...) {
 #' @param recursive Whether to recursively [unwrap] before testing for
 #'   missingness.
 #' @export
-#' @useDynLib nse _is_missing
+#' @useDynLib nseval _is_missing
 is_missing_ <- function(syms, envs, recursive=TRUE) {
   if (is.null(names(syms)))
     names(syms) <- as.character(syms)
@@ -148,7 +148,7 @@ is_promise <- function(...) {
 
 #' @rdname shortcut
 #' @export
-#' @useDynLib nse _is_promise
+#' @useDynLib nseval _is_promise
 is_promise_ <- function(syms, envs)
 {
   if (is.null(names(syms)))

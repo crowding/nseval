@@ -131,7 +131,7 @@ locate_.dots <- function(sym,
 #' @rdname locate
 #' @param ifnotfound What is returned if the symbol is not found. By
 #'   default an exception is raised.
-#' @useDynLib nse _locate
+#' @useDynLib nseval _locate
 #' @export
 locate_.name <- function(sym,
                          env = arg_env_(quote(sym), environment()),

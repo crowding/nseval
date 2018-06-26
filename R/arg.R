@@ -31,7 +31,7 @@ arg <- function(sym,
 #' `arg(x, e)` is equivalent to `arg_(quote(x), e)`.
 #' @rdname arg
 #' @export
-#' @useDynLib nse _arg
+#' @useDynLib nseval _arg
 arg_ <- function(sym, env = arg_env(sym, environment())) {
   .Call("_arg", env, as.name(sym), TRUE)
 }
@@ -57,8 +57,8 @@ arg_ <- function(sym, env = arg_env(sym, environment())) {
 #' @seealso dots get_dots unwrap
 #' @rdname arg
 #' @export
-#' @useDynLib nse _arg_dots
-#' @useDynLib nse _dotsxp_to_flist
+#' @useDynLib nseval _arg_dots
+#' @useDynLib nseval _dotsxp_to_flist
 arg_list <- function(...) {
   d <- dots(...)
   arg_list_(exprs(d), envs(d))
@@ -72,8 +72,8 @@ arg_list <- function(...) {
 #' @param envs An environment, or a list of environments, to look for
 #'   the bindings in.
 #' @export
-#' @useDynLib nse _arg_dots
-#' @useDynLib nse _dotsxp_to_flist
+#' @useDynLib nseval _arg_dots
+#' @useDynLib nseval _dotsxp_to_flist
 arg_list_ <- function(syms, envs) {
   if (!is.list(envs)) {
     envs <- rep(list(envs), length(syms))
@@ -97,7 +97,7 @@ arg_list_ <- function(syms, envs) {
 
 #' @export
 #' @rdname arg
-#' @useDynLib nse _quotation_to_promsxp
+#' @useDynLib nseval _quotation_to_promsxp
 `set_arg_` <- function(dst, src) {
   dst <- as.quo(dst)
   dstname <- expr(dst)

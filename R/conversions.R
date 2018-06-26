@@ -11,7 +11,7 @@
 #' @param row.names If not given, uses `make.unique(x$name)`
 #' @rdname dots
 #' @export
-#' @useDynLib nse _dots_unpack
+#' @useDynLib nseval _dots_unpack
 as.data.frame.dots <- function(x, row.names = NULL, ...) {
   x <- .Call("_dots_unpack", x)
   class(x$envir) <- "oneline"
@@ -83,7 +83,7 @@ as.dots.lazy_dots <- function(x)
 #' @param expand_dots Whether to include the contents of `...`.
 #' @return `env5 A \link{dots} object.
 #' @export
-#' @useDynLib nse _env_to_dots
+#' @useDynLib nseval _env_to_dots
 env2dots <- function(env,
                      names = ls(envir = env, all.names = TRUE),
                      include_missing = TRUE,
@@ -124,8 +124,8 @@ env2dots <- function(env,
 #' @aliases as.environment.dots
 #' @seealso env2dots
 #' @export
-#' @useDynLib nse _flist_to_dotsxp
-#' @useDynLib nse _dots_to_env
+#' @useDynLib nseval _flist_to_dotsxp
+#' @useDynLib nseval _dots_to_env
 dots2env <- function(x,
                      env = new.env(hash = hash, parent = parent, size = size),
                      names = NULL,

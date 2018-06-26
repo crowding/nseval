@@ -1,4 +1,4 @@
 library(testthat)
-library(nse)
+library(nseval)
 
-test_check("nse")
+test_check("nseval")

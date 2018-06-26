@@ -24,7 +24,7 @@ forced.dots <- function(x) {
 }
 
 #' @export
-#' @useDynLib nse _forced_quotation
+#' @useDynLib nseval _forced_quotation
 #' @rdname forced
 forced.quotation <- function(x, ...) {
   .Call("_forced_quotation", x)
@@ -63,7 +63,7 @@ forced_quo_ <- function(x) {
 #' @rdname forced
 #' @param ... any number of arguments; they will be quoted literally.
 #' @return `forced_dots` and `forced_dots_` return [dots] objects.
-#' @useDynLib nse _quotation_literal
+#' @useDynLib nseval _quotation_literal
 forced_dots <- function(...) {
   list(...)
   get_dots(environment())

@@ -39,7 +39,7 @@ quo <- function(expr, env = arg_env_(quote(expr), environment()), force = FALSE)
 #' constructs a quotation given an expression and environment.
 #' @rdname quo
 #' @export
-#' @useDynLib nse _quotation
+#' @useDynLib nseval _quotation
 quo_ <- function(expr, env, force = FALSE) {
   if(force) {
     .Call("_quotation", NULL, expr, eval(expr, env));

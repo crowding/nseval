@@ -143,7 +143,7 @@ do <- function(...) {
 }
 
 #' @rdname do
-#' @useDynLib nse _do
+#' @useDynLib nseval _do
 #' @export
 do_ <- function(...) {
   d <- c.dots(...)

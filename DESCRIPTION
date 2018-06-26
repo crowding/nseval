@@ -1,13 +1,13 @@
-Package: nse
+Package: nseval
 Type: Package
 Title: The Missing API For Non-Standard Evaluation in R
-Version: 0.3
+Version: 0.4
 Date: 2018-04-07
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: A clean API for metaprogramming in R. Facilities to
-             capture, create and manipulate calls, lazy arguments
-             (promises) and `...` lists.
+             capture, create, and manipulate calls, lazy arguments
+             (promises), and `...` lists.
 License: MIT + file LICENSE
 Depends:
 Suggests:

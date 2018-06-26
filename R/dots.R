@@ -155,8 +155,8 @@ c.quotation <- c.dots
 #'   is missing, it returns an empty dots list.
 #' @seealso env2dots set_arg dots2env
 #' @export
-#' @useDynLib nse _get_dots
-#' @useDynLib nse _dotsxp_to_flist
+#' @useDynLib nseval _get_dots
+#' @useDynLib nseval _dotsxp_to_flist
 get_dots <- function(env = caller(environment()), inherits=FALSE) {
   dts <- .Call("_get_dots", env, inherits)
   .Call("_dotsxp_to_flist", dts)
@@ -170,8 +170,8 @@ get_dots <- function(env = caller(environment()), inherits=FALSE) {
 #'   replaced.
 #' @rdname get_dots
 #' @return `set_dots` returns the updated environment, invisibly.
-#' @useDynLib nse _set_dots
-#' @useDynLib nse _flist_to_dotsxp
+#' @useDynLib nseval _set_dots
+#' @useDynLib nseval _flist_to_dotsxp
 #' @export
 set_dots <- function(env, d, append=FALSE) {
   d <- as.dots(d)
