@@ -1,28 +1,16 @@
 #' Forcing and forcedness of arguments and quotations.
 #'
-#' There are two kinds of [quotations](quo): forced and unforced.
+#' There are two kinds of [quotation]s: forced and unforced.
 #' Unforced quotations have an expression and an environment; forced
-#' quotations have an expression and a value. `forced` returns a
-#' logical or logical vector givenm a [quotation] or [dots].
-#'
-#' In normal R evaluation, function arguments are recorded as unforced
-#' [promise]s, which are converted into forced promises as
-#' well. Quotation objects therefore also exist in two varieties.
+#' quotations have an expression and a value.
 #' @export
 #' @rdname forced
 #' @param x A [quotation] or [dots] object.
 #' @return `forced(x)` returns a [logical].
-#' @seealso is_forced
+#' @seealso [is_forced]
 forced <- function(x) UseMethod("forced")
 
-#' The `forced` method on [dots] tests whether each element of a dots
-#' list is forced, returning a named logical vector.
-#' @export
-#' @rdname dots
-forced.dots <- function(x) {
-  lapply(x, forced)
-}
-
+#' `forced(q)` tests whether a [quotation] is forced.
 #' @export
 #' @useDynLib nseval _forced_quotation
 #' @rdname forced
@@ -30,13 +18,20 @@ forced.quotation <- function(x, ...) {
   .Call("_forced_quotation", x)
 }
 
+#' `forced(d)` on a [dots] object tests whether each element
+#' is forced, and returns a logical vector.
+#' @export
+#' @rdname forced
+forced.dots <- function(x) {
+  lapply(x, forced)
+}
+
 #' @export
 #' @rdname forced
 forced.default <- function(x) forced(as.quo(x))
 
-#' `forced_quo(x)` constructs a forced quotation that quotes its
-#' argument literally.  It is equivalent to `quo(x,
-#' force=TRUE)`.
+#' `forced_quo(x)` forces its argument and then captures it.
+#' argument literally.
 #' @rdname forced
 #' @export
 forced_quo <- function(x) {
@@ -57,8 +52,7 @@ forced_quo_ <- function(x) {
 }
 
 
-#' `forced_dots` and `forced_dots_` create [dots] objects
-#'   containing forced quotations.
+#' `forced_dots(...)` forces its arguments and emits a `dots` object.
 #' @export
 #' @rdname forced
 #' @param ... any number of arguments; they will be quoted literally.
@@ -69,6 +63,8 @@ forced_dots <- function(...) {
   get_dots(environment())
 }
 
+#' `forced_dots_(values)` create from dots object from any data.
+#'
 #' @param values A list; each element will be used as data.
 #' @rdname dots
 #' @export
@@ -78,18 +74,18 @@ forced_dots_ <- function(values) {
             class="dots")
 }
 
-#' `force_(x)` evaluates the contents of a quotation or dots object.
-#' if they are not already forced, and returns a new forced object.
+#' `force_(x)` converts an unforced quotation or dots object into a
+#' forced one, by evaluating it.
 #' @export
 #' @rdname forced
-#' @seealso force
+#' @seealso [force]
 force_ <- function(x, ...) {
   UseMethod("force_")
 }
 
 #' @export
 #' @rdname forced
-#' @param eval Call something other than 'eval' to "evaluate" the expression.
+#' @param eval Which evaluation function to use.
 force_.quotation <- function(x, eval=base::eval, ...) {
   if (forced(x)) {
     q
@@ -107,7 +103,7 @@ force_.dots <- function(x, ...) {
 #' `value` or `values` returns the value of a quotation or dots,
 #'   forcing it if necessary.
 #' @rdname forced
-#' @return `value` returns the result of forcing the quotation.
+#' @return `value(x)` returns the result of forcing the quotation.
 #' @export
 value <- function(x, ...) {
   UseMethod("value")

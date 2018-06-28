@@ -42,7 +42,7 @@ should return that environment.
 \code{do} is intended to be a replacement for base function \link{do.call}.
 }
 \note{
-\href{is.primitive}{primitive} functions (e.g. \code{\link{<-}}, \code{\link{for}})
+Special builtins, such as ( \code{\link{<-}}, or \code{\link{for}})
 may require that they are called from the same environment as
 their args.
 }

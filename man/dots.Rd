@@ -16,9 +16,8 @@
 \alias{c.dots}
 \alias{c.quotation}
 \alias{as.data.frame.dots}
-\alias{forced.dots}
 \alias{forced_dots_}
-\title{Capture a number of unevaluated arguments as an object.}
+\title{Dots objects: lists of quotations.}
 \usage{
 dots(...)
 
@@ -49,8 +48,6 @@ envs(d) <- value
 \method{c}{quotation}(...)
 
 \method{as.data.frame}{dots}(x, row.names = NULL, ...)
-
-\method{forced}{dots}(x)
 
 forced_dots_(values)
 }
@@ -86,23 +83,19 @@ given lists of expresions and environments.
 \code{as.data.frame.dots} returns a data frame.
 }
 \description{
-A dots object represents a named list of \link{quotation}s. It mirrors R's
-special variable \code{...}. Unlike \code{...}, a \code{dots} is:
-\itemize{
-\item immutable (evaluating does not change it),
-\item first-class (you can give it any name, not just \code{...}),
-\item data (The R interpreter treates it as literal data rather than
-triggering argument splicing).
-}
+\code{d <- dots(a = one, b = two)} captures each of its arguments,
+unevaluated, in a dots object (a named list of \link{quotation}s).
 
-\code{exprs(d)} extracts a list of expressions.
+\code{exprs(d)} extracts a list of expressions from a dots object.
 
 The mutator \code{exprs(d) <- value} returns a new dots object with the new
 expressions.
 
-\code{envs(d)} extracts a list of environments from a \link{dots}
-object. \code{envs(d) <- value} returns a dots object containing new
-quotations with updated environments.
+\code{envs(d)} extracts a list of environments from a dots
+object.
+
+\code{envs(d) <- value} replaces the environments with the new
+value and returns an updated dots object.
 
 \code{as.data.frame.dots} transforms the contents of a \link{dots} object
 into a data frame with one row per \link{quotation}, with columns:
@@ -113,22 +106,22 @@ into a data frame with one row per \link{quotation}, with columns:
 \item \code{value}: NULL or a value if forced.
 }
 
-The \code{forced} method on \link{dots} tests whether each element of a dots
-list is forced, returning a named logical vector.
+\code{forced_dots_(values)} create from dots object from any data.
 }
 \details{
-\code{d <- dots(...)} captures the contents of \code{...} without triggering
-evaluation, and returns a list of class \code{"dots"}, each element of
-which is a \code{[quotation]}. This improves on
-\code{substitute(list(...))[[2]]} by capturing the context of each
-expression along with the expressions.
+Objects of class "dots" mirror R's special variable \code{...}.
+Unlike \code{...}, a \code{dots} is:
+\itemize{
+\item immutable (evaluating does not change it),
+\item first-class (you can give it any name, not just \code{...}),
+\item data (The R interpreter treates it as literal data rather
+than triggering argument splicing).
+}
 
-\code{d <- dots(foo, quux=bar+baz)} captures all of the given arguments
-in a dots object, like \code{[alist]}, but also captures the
-environment of each argument (The present environment in this case).
-
-[[2]: R:[2
-[alist]: R:alist
+\code{d <- dots(...)} can be used to capture the contents of \code{...}
+without triggering evaluation. This improves on \code{substitute(...())}
+by capturing the environment of each component along with the
+expressions.
 }
 \note{
 The columns have a class \code{"oneline"} for better printing.

@@ -7,7 +7,7 @@
 \alias{arg_list_}
 \alias{set_arg}
 \alias{set_arg_}
-\title{Convert bound variables to quotations and back.}
+\title{Capture lazy variables as quotations.}
 \usage{
 arg(sym, env = arg_env_(quote(sym), environment()))
 
@@ -49,40 +49,40 @@ quotation, like a formula).}
 
 \code{args} returns a \link{dots} object.
 
-\code{arg_list} returns a \code{[dots]} object.
+\code{arg_list} returns a \link{dots} object.
 }
 \description{
-\code{arg(x)} looks in the calling environment for the binding \code{x}, taken
-literally, and returns it as a \link{quotation}.
+\code{arg(x)} looks in the calling environment for the binding \code{x},
+taken literally, and returns it as a \link{quotation}. \code{arg(x)} is
+equivalent to \code{unwrap(quo(x))}.
 
-\code{arg_} is the normally evaluating version;
+\code{arg_} evaluates the first element normally;
 \code{arg(x, e)} is equivalent to \code{arg_(quote(x), e)}.
 
-If any of the requested variables are not bound, an error will be raised.
+\code{arg_list} looks up multiple variables, and returns a \link{dots}
+object.  \code{arg_list(x, y)} is equivalent to \code{unwrap(dots(x=x, y=y))}. If any of the requested variables are not bound, an error
+will be raised.
 
 \code{arg_list_} is a normally evaluating version of \code{arg_list};
-\code{arg_list(x, y)} is equivalent to \code{arg_list_(alist(x, y), environment())}.
+\code{arg_list(x, y)} is equivalent to
+\code{arg_list_(alist(x, y), environment())}.
 
 \code{set_arg} and set_arg_ create bindings from quotations. They
 replace base function \link{delayedAssign}.
 }
-\details{
-Generally, \code{arg(x)} is equivalent to \code{[unwrap](quo(x))} for
-variable names x.
-}
 \note{
-If you use a a literal character value, as in \code{arg_("x", environment())}, you MUST also give the environment parameter.The
-reason is that the R will discard scope information about code
-literals, depending on optinization settings; so when \code{arg_("x") is called in compiled code, the default value for}env` will be
+If you use a a literal character value, as in \code{arg_("x", environment())}, you MUST also give the environment
+parameter. The reason is that R will discard scope information
+about code literals in byte-compiled code; so when \code{arg_("x")} is
+called in compiled code, the default value for \code{env} will be
 found to be \code{\link[=emptyenv]{emptyenv()}}.
 
-Beware of writing \code{arg_list(a, b, ...)} which probably doesn't do
-what you want. This is because R unwraps the symbol \code{...}
-occurring in argument lists before invoking \code{arg_list}, so this ends
-up double-unwrapping \code{...}. For capturing \code{...} alongside named
-arguments you can use the syntax \code{arg_list(x, y, (...))} (which is
-equivalent to \code{c(arg_list(x, y), dots(...))}). You can also use
-\code{[get_call()]} to extract all function inputs.
+Beware of writing \code{arg_list(a, b, ...)} which probably
+doesn't do what you want. This is because R unwraps \code{...} before
+invoking \code{arg_list}, so this ends up double-unwrapping \code{...}. To
+capture \code{...} alongside named arguments you can use the syntax
+\code{arg_list(x, y, (...))} (which is equivalent to \code{c(arg_list(x, y), dots(...))}). You can also use \code{\link[=get_call]{get_call()}} to extract all
+function inputs to an active function.
 }
 \seealso{
 dots get_dots unwrap

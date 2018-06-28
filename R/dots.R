@@ -1,21 +1,19 @@
-#' Capture a number of unevaluated arguments as an object.
+#' Dots objects: lists of quotations.
 #'
-#' A dots object represents a named list of [quotation]s. It mirrors R's
-#' special variable `...`. Unlike `...`, a `dots` is:
+#' `d <- dots(a = one, b = two)` captures each of its arguments,
+#' unevaluated, in a dots object (a named list of [quotation]s).
+#'
+#' Objects of class "dots" mirror R's special variable `...`.
+#' Unlike `...`, a `dots` is:
 #' * immutable (evaluating does not change it),
 #' * first-class (you can give it any name, not just `...`),
-#' * data (The R interpreter treates it as literal data rather than
-#'   triggering argument splicing).
+#' * data (The R interpreter treates it as literal data rather
+#' than triggering argument splicing).
 #'
-#' `d <- dots(...)` captures the contents of `...` without triggering
-#' evaluation, and returns a list of class `"dots"`, each element of
-#' which is a `[quotation]`. This improves on
-#' `substitute(list(...))[[2]]` by capturing the context of each
-#' expression along with the expressions.
-#'
-#' `d <- dots(foo, quux=bar+baz)` captures all of the given arguments
-#' in a dots object, like `[alist]`, but also captures the
-#' environment of each argument (The present environment in this case).
+#' `d <- dots(...)` can be used to capture the contents of `...`
+#' without triggering evaluation. This improves on `substitute(...())`
+#' by capturing the environment of each component along with the
+#' expressions.
 #'
 #' @param ... Any number of arguments.
 #' @return A list with class 'dots', each element of which is a [quotation].
@@ -50,7 +48,7 @@ dots_ <- function(exprs, envs) {
 }
 
 
-#' `exprs(d)` extracts a list of expressions.
+#' `exprs(d)` extracts a list of expressions from a dots object.
 #' @param d A [dots] object.
 #' @return `exprs` returns a named list of expressions.
 #' @rdname dots
@@ -78,9 +76,8 @@ exprs.dots <- function(d) {
                    expr = value, env = envs(d)), class="dots")
 }
 
-#' `envs(d)` extracts a list of environments from a [dots]
-#'   object. `envs(d) <- value` returns a dots object containing new
-#'   quotations with updated environments.
+#' `envs(d)` extracts a list of environments from a dots
+#'   object.
 #' @rdname dots
 #' @export
 envs <- function(d) {
@@ -94,6 +91,8 @@ envs.dots <- function(d) {
   lapply(d, environment)
 }
 
+#' `envs(d) <- value` replaces the environments with the new
+#' value and returns an updated dots object.
 #' @rdname dots
 #' @param value A replacement value.
 #' @rdname dots

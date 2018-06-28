@@ -19,12 +19,12 @@ its enclosing environments.}
 \item{expand_dots}{Whether to include the contents of \code{...}.}
 }
 \value{
-`env5 A \link{dots} object.
+A \link{dots} object.
 }
 \description{
 \code{env2dots} copies all bindings in the environment (but not those
 from its parents) into a new \link{dots} object. Bindings that are
 promises will be captured without forcing. Bindings that are not
 promises will be rendered as \link{forced} quotations. The output will
-not be in any particular order.
+not be in any guaranteed order.
 }

@@ -33,64 +33,57 @@ promises using \code{unwrap(x, TRUE)}}
 \item{...}{Arguments evaluated normally. except those which are missing.}
 }
 \value{
-The symbol with empty name, or a list of such.
+\code{missing_value} returns the symbol with empty name, or a
+list of such.
 
-\code{missing} returns a logical vector.
+\code{missing_} returns a logical vector.
 
 \code{list_missing} returns a list.
 }
 \description{
-The missing value is what R uses to represent a missing
-argument. It is distinct from either NULL or NA. \code{missing_value()}
-returns this object.
+\code{missing_value()} returns R's missing object; what R uses to
+represent a missing argument. It is distinct from either \link{NULL} or
+\link{NA}.
 
-\code{missing_} checks for missingness in R data. It is a generic
+\code{missing_} compares expressions with the missing value. It is a generic
 function with methods for \link{dots}, \link{quotation}s and lists.
 
 \code{missing_} on a list compares each element of the list to the
 missing value, and returns a logical vector.
 
-For \code{[dots]} and \code{[quo]} objects, \code{missing_} checks whether the
+\code{missing_} on \link{dots} and \link{quotation} objects checks whether the
 expressions are identical to the missing value.
 
 \code{list_missing} is similar to \code{list} but allows missing arguments.
 }
 \details{
-The missing value occurs naturally in a quoted R expression that has an empty argument.\preformatted{    exp <- quote( x\[1, \] )
-    identical(exp[[4]], missing_value()) #TRUE
-    is_missing(exp[[4]]) #also TRUE
+The missing value occurs naturally in a quoted R expression that has an empty argument:
+\preformatted{  exp <- quote( x[1, ] )
+  identical(exp[[4]], missing_value()) #TRUE
+  is_missing(exp[[4]]) #also TRUE
 }
-
-So we can use [missing_value] to help construct expressions:\preformatted{    substitute(f[x, y], list(x = 1, y=missing_value()))
+So we can use \code{missing_value()} to help construct expressions:
+\preformatted{  substitute(f[x, y], list(x = 1, y=missing_value()))
 }
-
 When such an expression is evaluated and starts a function call,
-the missing value winds up in the promise expression.\preformatted{    f <- function(x) arg_expr(x)
-    identical(f(), missing_value()) # TRUE
+the missing value winds up in the promise expression.
+\preformatted{  f <- function(x) arg_expr(x)
+  identical(f(), missing_value()) # TRUE
 }
-
 During "normal evaluation", finding a missing value in a
-variable raises an error.\preformatted{    m <- missing_value()
-    list(m) # raises error
+variable raises an error.
+\preformatted{  m <- missing_value()
+  list(m) # raises error
 }
-
-This means that it's sometimes tricky to work with missings:\preformatted{    exp <- quote( x[1, ] )
-    cols <- x[[4]]
-    x <- list(missing_value(), 2, 3)     # this is ok, but...
-    a <- missing_value(); b <- 2; c <- 3 # this stores missing in "cols",
-    x <- list(a, b, c)                   # throws an error: "a" missing
+This means that it's sometimes tricky to work with missings:
+\preformatted{  exp <- quote( x[1, ] )
+  cols <- x[[4]]
+  x <- list(missing_value(), 2, 3)     # this is ok, but...
+  a <- missing_value(); b <- 2; c <- 3 # this stores missing in "cols",
+  x <- list(a, b, c)                   # throws an error: "a" missingrt
 }
-
 Generally, keep your missing values wrapped up in lists or quotations,
 instead of assigning them to variables directly.
-
-[1, ]: R:1,%20%5C
-[[4]: R:[4
-[[4]: R:[4
-[missing_value]: R:missing_value
-[x, y]: R:x,%20y
-[1, ]: R:1,%20
-[[4]: R:[4
 }
 \examples{
 # These expressions are equivalent:

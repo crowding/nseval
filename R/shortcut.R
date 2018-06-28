@@ -4,7 +4,7 @@
 #' example, `arg_env(x)` is equivalent to `env(arg(x))`,
 #' `is_forced(x, y)` is equivalent to `forced(arg_list(x,y))`,
 #' `dots_exprs(...)` is equivalent to `exprs(dots(...))`, and so
-#' on. The shortcut forms, however, skip the construction of the
+#' on. The shortcut forms skip the construction of the
 #' intermediate [quotation] objects.
 #' @rdname shortcut
 #' @param sym For `arg_env`, etc, a bare name (not forced). For the
@@ -55,8 +55,8 @@ dots_envs <- function(...) {
 #' @rdname shortcut
 #' @useDynLib nseval _dots_exprs
 #' @useDynLib nseval _get_dots
-#' @return `dots_exprs(...)` is equivalent to `exprs(dots(...))` which
-#'   is nearly equivalent to `alist(...)`.
+#' @return `dots_exprs(...)` is equivalent to `exprs(dots(...))` (which
+#'   is nearly equivalent to `alist(...)`.)
 dots_exprs <- function(...) {
   .Call("_dots_exprs", .Call("_get_dots", environment(), FALSE))
 }
@@ -165,7 +165,7 @@ is_promise_ <- function(syms, envs)
 #' function's default value for that argument. It must be called
 #' before the arguments have been forced (afterwards it will return
 #' FALSE).
-#' @return `is_default` returns a logical vector
+#' @return `is_default` returns a logical vector.
 #' @rdname shortcut
 #' @export
 is_default <- function(...) {

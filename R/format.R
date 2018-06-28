@@ -10,9 +10,8 @@
 #'   quotations.
 #' @param show.expressions Whether to show expressions for forced
 #'   quotations.
-#' @param width the maximum length to use for each element.
-#' @param ... Parameters passed to [base::format]
-#' @rdname format.quotation
+#' @param width See [base::format].
+#' @rdname format
 #' @export
 format.dots <- function(x,
                         compact = FALSE,
@@ -44,7 +43,7 @@ format.dots <- function(x,
 
 #' `format.quotation` constructs a string representation of a
 #' quotation object.
-#' @rdname format.quotation
+#' @rdname format
 #' @export
 format.quotation <- function(x,
                              compact = FALSE,
@@ -59,15 +58,14 @@ format.quotation <- function(x,
   format.default(chars, ...)
 }
 
-#' The method `format.oneline` formats a vector or list so that each
-#' item fits on one line. It is similar to [format.AsIs] but tries
+#' `format.oneline` formats a vector or list so that each item is
+#' displayed on one line. It is similar to [format.AsIs] but tries
 #' harder with language objects. The "oneline" class is used by
 #' [as.data.frame.dots].
 #' @export
-#' @param ... Further arguments passed to [format].
-#' @param x A vector or list.
-#' @param max.width See [format].
-#' @param width See [format].
+#' @rdname format
+#' @param max.width See [base::format].
+#' @param ... Further parameters passed along to [base::format].
 format.oneline <- function(x, max.width=50, width=max.width, ...) {
   if ("oneline" %in% class(x)) {
     class(x) <- setdiff(class(x), "oneline")
@@ -76,14 +74,14 @@ format.oneline <- function(x, max.width=50, width=max.width, ...) {
 }
 
 #' @export
-#' @rdname format.quotation
+#' @rdname format
 print.dots <- function(x, ...) {
   cat(format(x, ...), "\n")
   invisible(x)
 }
 
 #' @export
-#' @rdname format.quotation
+#' @rdname format
 print.quotation <- function(x, ...) {
   cat(format(x, ...), "\n")
   invisible(x)

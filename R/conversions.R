@@ -25,10 +25,7 @@ as.data.frame.dots <- function(x, row.names = NULL, ...) {
 #'
 #' `as.dots` is a generic function for converting data into [dots].
 #' @param x a vector or list.
-#' @return An object of class \code{\dots}. For \code{as.dots}, the
-#'   list items are treated as data values, and create already-forced
-#'   promises. For \code{as.dots.exprs}, values are used as the
-#'   expressions of new unforced promises.
+#' @return An object of class \code{\dots}.
 #' @export
 #' @rdname as.dots
 as.dots <- function(x) {
@@ -73,7 +70,7 @@ as.dots.lazy_dots <- function(x)
 #' from its parents) into a new [dots] object. Bindings that are
 #' promises will be captured without forcing. Bindings that are not
 #' promises will be rendered as [forced] quotations. The output will
-#' not be in any particular order.
+#' not be in any guaranteed order.
 #'
 #' @param env An environment.
 #' @param names Which names to extract from the environment. By
@@ -81,7 +78,7 @@ as.dots.lazy_dots <- function(x)
 #'   its enclosing environments.
 #' @param include_missing Whether to include missing bindings.
 #' @param expand_dots Whether to include the contents of `...`.
-#' @return `env5 A \link{dots} object.
+#' @return A \link{dots} object.
 #' @export
 #' @useDynLib nseval _env_to_dots
 env2dots <- function(env,
@@ -183,14 +180,14 @@ goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 #' creates closures. A closure object has three components: the
 #' argument list the body expression, and the enclosing environment.
 #'
-#' @param args The argument list. NULL is accepted to make a function
-#'   with no arguments. Arguments are specified as a named list; the
-#'   list names become the argument names, and the list values become
-#'   the default expressions. A value of [missing_value()] indicates
-#'   no default. [alist] and [arglist] are useful for making argument
-#'   lists.
-#' @param body An expression.
-#' @param env An environment.
+#' @param args The argument list of the new function. NULL is accepted
+#'   to make a function with no arguments. Arguments are specified as
+#'   a named list; the list names become the argument names, and the
+#'   list values become the default expressions. A value of
+#'   [missing_value()] indicates no default. [alist] and [arglist] are
+#'   useful for making argument lists.
+#' @param body An expression for the body of the function.
+#' @param env The enclosing environment of the new function.
 #' @return A closure.
 #' @seealso environment formals body
 #' @export
@@ -218,7 +215,7 @@ function_ <- function(args, body, env = arg_env(args, environment())) {
 }
 
 #' `arglist` is a helper that produces a named list of
-#' [missings](missing_value)[s] given a character vector of names.
+#' [missing_value]s given a character vector of names.
 #' @rdname function_
 #' @param names A character vector.
 #' @param fill The expression (default missing)
@@ -234,8 +231,9 @@ arglist <- function(names, fill = missing_value()) {
 #' @export
 #' @rdname compat
 #' @seealso as.dots
-#' @param x A [lazyeval::lazy_dots] object.
-#' @param env See [[lazyeval::as.lazy_dots]]
+#' @param x a [dots] object.
+#' @param env See [lazyeval::as.lazy_dots].
+#' @return `as.lazy_dots` returns a [lazyeval::lazy_dots] object.
 as.lazy_dots <- function(x, env) {
   UseMethod("as.lazy_dots")
 }

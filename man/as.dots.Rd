@@ -28,10 +28,7 @@ as.dots(x)
 \item{x}{a vector or list.}
 }
 \value{
-An object of class \code{\dots}. For \code{as.dots}, the
-list items are treated as data values, and create already-forced
-promises. For \code{as.dots.exprs}, values are used as the
-expressions of new unforced promises.
+An object of class \code{\dots}.
 }
 \description{
 \code{as.dots} is a generic function for converting data into \link{dots}.

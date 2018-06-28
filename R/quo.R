@@ -1,9 +1,7 @@
 #' Quotation objects.
 #'
 #' `quo` captures its argument literally, that is, without evaluating,
-#' and constructs a quotation.
-#'
-#' A quo (or quotation) `q <- quo( something )` has two parts: an
+#' and constructs a quotation. A quotation has two parts: an
 #' expression `expr(q)` with an environment `env(q)`. (Like in
 #' writing, an 'expression' may simply be a set of words, but a
 #' 'quotation' comes bundled with a citation, to reference a context
@@ -27,7 +25,7 @@
 #'   not evaluated. For `quo_` this is evaluated normally.
 #' @param env An [environment].
 #' @param force Immediately evaluate the expression and create a
-#'   "forced" quotation, i.e. one that stores an expression and value,
+#'   [forced] quotation, i.e. one that stores an expression and value,
 #'   but no environment.
 #' @return `quo_` and `quo` return an object of class "quotation".
 #' @aliases quotation

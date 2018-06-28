@@ -1,20 +1,22 @@
 #' Find the caller of a given environment.
 #'
 #' Given an environment that is currently on the stack, `caller`
-#' determines the calling environment, that is
+#' determines the calling environment.
 #'
 #' For example, in the code:
 #'
-#'       X <- environment()
-#'       F <- function() {
-#'         Y <- environment()
-#'         caller(Y)
-#'       }
-#'       F()
+#' ```
+#' X <- environment()
+#' F <- function() {
+#'   Y <- environment()
+#'   caller(Y)
+#' }
+#' F()
+#' ```
 #'
-#' the environment called "Y" was created by calling F(), and that
-#' call occurs in the environment called "X". In this case X is the
-#' calling environment of Y, so `F()` returns the same environment
+#' the environment called `Y` was created by calling `F()`, and that
+#' call occurs in the environment called `X`. In this case `X` is the
+#' calling environment of `Y`, so `F()` returns the same environment
 #' as `X()`.
 #'
 #' `caller` is intended as a replacement for [parent.frame], which
@@ -124,7 +126,7 @@ caller <- function(env = caller(environment()),
 #'
 #' `do` is intended to be a replacement for base function [do.call].
 #'
-#' @note [primitive](is.primitive) functions (e.g. [`<-`], [`for`])
+#' @note Special builtins, such as ( [`<-`], or [`for`])
 #'   may require that they are called from the same environment as
 #'   their args.
 #' @seealso get_call do.call match.call
@@ -156,22 +158,22 @@ do__ <- function(d) {
 
 #' Get information about currently executing calls.
 #'
-#' `get_call(env)`, given an environment, returns the function call
-#' and its arguments, as a [dots] object which can be passed to [`do()`]
-#' in order to replicate a call.
+#' `get_call(env)`, given an environment associated with a currently
+#' executing call, returns the function call and its arguments, as a
+#' [dots] object. To replicate a call, the [dots] object returned can
+#' be passed to [do].
 #'
 #' `get_call` is meant to replace [`match.call`] and [`sys.call`];
 #' its advantage is that it captures the environments bound to
 #' arguments in addition to their written form.
 #'
 #' @return `get_call` returns a [dots] object, the first element of
-#'   which represents the function name and [calling
-#'   environment](caller).
+#'   which represents the function name and [caller] environment.
 #' @seealso do dots caller
 #' @export
 #' @param env An environment belonging to a currently executing
-#'   function call. By default, the [caller] (so `get_call()` is
-#'   equivalent to `get_call(environment())`.)
+#'   function call. By default, the [caller] of get_call itself
+#'   (so `get_call()` is equivalent to `get_call(environment())`.)
 #' @param ifnotfound What to return if the call is not found. By
 #'   default an error is thrown.
 #' @examples
@@ -210,8 +212,6 @@ get_call <- function(env = caller(environment()),
          env2dots(env, argnames));
 }
 
-#' (get_call)
-#'
 #' `get_function(env)` finds the function object associated with a
 #' currently executing call.
 #'

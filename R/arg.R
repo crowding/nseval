@@ -1,12 +1,10 @@
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-#' Convert bound variables to quotations and back.
+#' Capture lazy variables as quotations.
 #'
-#' `arg(x)` looks in the calling environment for the binding `x`, taken
-#' literally, and returns it as a [quotation].
-#'
-#' Generally, `arg(x)` is equivalent to `[unwrap](quo(x))` for
-#' variable names x.
+#' `arg(x)` looks in the calling environment for the binding `x`,
+#' taken literally, and returns it as a [quotation]. `arg(x)` is
+#' equivalent to `unwrap(quo(x))`.
 #'
 #' @param sym The name to look up. For `arg` this is a literal name,
 #'   not evaluated. For `arg_` this should evaluate to a symbol or
@@ -15,10 +13,10 @@
 #'   from which `sym` was passed.
 #' @return `arg` returns a [quotation] object.
 #' @note If you use a a literal character value, as in `arg_("x",
-#'   environment())`, you MUST also give the environment parameter.The
-#'   reason is that the R will discard scope information about code
-#'   literals, depending on optinization settings; so when `arg_("x")
-#'   is called in compiled code, the default value for `env` will be
+#'   environment())`, you MUST also give the environment
+#'   parameter. The reason is that R will discard scope information
+#'   about code literals in byte-compiled code; so when `arg_("x")` is
+#'   called in compiled code, the default value for `env` will be
 #'   found to be [emptyenv()].
 #' @export
 arg <- function(sym,
@@ -27,7 +25,7 @@ arg <- function(sym,
   arg_(sym_, env)
 }
 
-#' `arg_` is the normally evaluating version;
+#' `arg_` evaluates the first element normally;
 #' `arg(x, e)` is equivalent to `arg_(quote(x), e)`.
 #' @rdname arg
 #' @export
@@ -37,23 +35,23 @@ arg_ <- function(sym, env = arg_env(sym, environment())) {
 }
 
 
-#' `arg_list` looks up multiple variables, and returns a [dots] object.
-#' `arg_list(x, y)` is equivalent to [`unwrap(dots(x=x, y=y))`].
-#'
-#' If any of the requested variables are not bound, an error will be raised.
+#' `arg_list` looks up multiple variables, and returns a [dots]
+#' object.  `arg_list(x, y)` is equivalent to `unwrap(dots(x=x,
+#' y=y))`. If any of the requested variables are not bound, an error
+#' will be raised.
 #'
 #' @param ... Bare names (not forced). Arguments may be named; these
 #'   names determine the names on the output list. If argument names
 #'   are not given, the input is used as output names
 #' @return `args` returns a [dots] object.
-#' @note Beware of writing `arg_list(a, b, ...)` which probably doesn't do
-#'   what you want. This is because R unwraps the symbol `...`
-#'   occurring in argument lists before invoking `arg_list`, so this ends
-#'   up double-unwrapping `...`. For capturing `...` alongside named
-#'   arguments you can use the syntax `arg_list(x, y, (...))` (which is
-#'   equivalent to `c(arg_list(x, y), dots(...))`). You can also use
-#'   `[get_call()]` to extract all function inputs.
-#' @return `arg_list` returns a `[dots]` object.
+#' @note Beware of writing `arg_list(a, b, ...)` which probably
+#'   doesn't do what you want. This is because R unwraps `...` before
+#'   invoking `arg_list`, so this ends up double-unwrapping `...`. To
+#'   capture `...` alongside named arguments you can use the syntax
+#'   `arg_list(x, y, (...))` (which is equivalent to `c(arg_list(x,
+#'   y), dots(...))`). You can also use [`get_call()`] to extract all
+#'   function inputs to an active function.
+#' @return `arg_list` returns a [dots] object.
 #' @seealso dots get_dots unwrap
 #' @rdname arg
 #' @export
@@ -66,7 +64,8 @@ arg_list <- function(...) {
 
 
 #' `arg_list_` is a normally evaluating version of `arg_list`;
-#' `arg_list(x, y)` is equivalent to `arg_list_(alist(x, y), environment())`.
+#' `arg_list(x, y)` is equivalent to
+#' `arg_list_(alist(x, y), environment())`.
 #' @rdname arg
 #' @param syms A character vector or list of names.
 #' @param envs An environment, or a list of environments, to look for

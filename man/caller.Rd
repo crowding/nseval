@@ -21,21 +21,20 @@ environment cannot be determined, \code{ifnotfound} is returned.
 }
 \description{
 Given an environment that is currently on the stack, \code{caller}
-determines the calling environment, that is
+determines the calling environment.
 }
 \details{
-For example, in the code:
-
-X <- environment()
+For example, in the code:\preformatted{X <- environment()
 F <- function() {
-Y <- environment()
-caller(Y)
+  Y <- environment()
+  caller(Y)
 }
 F()
+}
 
-the environment called "Y" was created by calling F(), and that
-call occurs in the environment called "X". In this case X is the
-calling environment of Y, so \code{F()} returns the same environment
+the environment called \code{Y} was created by calling \code{F()}, and that
+call occurs in the environment called \code{X}. In this case \code{X} is the
+calling environment of \code{Y}, so \code{F()} returns the same environment
 as \code{X()}.
 
 \code{caller} is intended as a replacement for \link{parent.frame}, which

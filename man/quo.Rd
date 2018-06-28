@@ -65,7 +65,7 @@ not evaluated. For \code{quo_} this is evaluated normally.}
 \item{env}{An \link{environment}.}
 
 \item{force}{Immediately evaluate the expression and create a
-"forced" quotation, i.e. one that stores an expression and value,
+\link{forced} quotation, i.e. one that stores an expression and value,
 but no environment.}
 
 \item{q}{A quotation object.}
@@ -81,7 +81,11 @@ but no environment.}
 }
 \description{
 \code{quo} captures its argument literally, that is, without evaluating,
-and constructs a quotation.
+and constructs a quotation. A quotation has two parts: an
+expression \code{expr(q)} with an environment \code{env(q)}. (Like in
+writing, an 'expression' may simply be a set of words, but a
+'quotation' comes bundled with a citation, to reference a context
+in which it was said.)
 
 \code{quo_(expr, env)} is the normally evaluating version. It
 constructs a quotation given an expression and environment.
@@ -90,12 +94,6 @@ constructs a quotation given an expression and environment.
 formulas, and single-element \link{dots} can be converted this way.
 }
 \details{
-A quo (or quotation) \code{q <- quo( something )} has two parts: an
-expression \code{expr(q)} with an environment \code{env(q)}. (Like in
-writing, an 'expression' may simply be a set of words, but a
-'quotation' comes bundled with a citation, to reference a context
-in which it was said.)
-
 A quo is parallel to a 'promise' which is the data structure R uses
 to hold lazily evaluated arguments. A quo is different from a
 promise because it is an immutable data object.

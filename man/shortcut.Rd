@@ -70,8 +70,8 @@ missingness.}
 \value{
 \code{arg_expr} extracts an expression from a named argument.
 
-\code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))} which
-is nearly equivalent to \code{alist(...)}.
+\code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))} (which
+is nearly equivalent to \code{alist(...)}.)
 
 \code{is_literal(x)} returns TRUE if \code{x} could be a source
 literal. Specifically this tests whether it is X is bound to a
@@ -85,14 +85,14 @@ multiple arguments.
 a promise. Not all arguments are bound to promises; byte-compiled
 code often omits creating a promise for literal arguments
 
-\code{is_default} returns a logical vector
+\code{is_default} returns a logical vector.
 }
 \description{
 These are shortcut methods for querying current bindings.  For
 example, \code{arg_env(x)} is equivalent to \code{env(arg(x))},
 \code{is_forced(x, y)} is equivalent to \code{forced(arg_list(x,y))},
 \code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))}, and so
-on. The shortcut forms, however, skip the construction of the
+on. The shortcut forms skip the construction of the
 intermediate \link{quotation} objects.
 
 \code{is_default}  determines whether an argument is bound to the

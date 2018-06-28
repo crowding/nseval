@@ -10,16 +10,16 @@ function_(args, body, env = arg_env(args, environment()))
 arglist(names, fill = missing_value())
 }
 \arguments{
-\item{args}{The argument list. NULL is accepted to make a function
-with no arguments. Arguments are specified as a named list; the
-list names become the argument names, and the list values become
-the default expressions. A value of \code{\link[=missing_value]{missing_value()}} indicates
-no default. \link{alist} and \link{arglist} are useful for making argument
-lists.}
+\item{args}{The argument list of the new function. NULL is accepted
+to make a function with no arguments. Arguments are specified as
+a named list; the list names become the argument names, and the
+list values become the default expressions. A value of
+\code{\link[=missing_value]{missing_value()}} indicates no default. \link{alist} and \link{arglist} are
+useful for making argument lists.}
 
-\item{body}{An expression.}
+\item{body}{An expression for the body of the function.}
 
-\item{env}{An environment.}
+\item{env}{The enclosing environment of the new function.}
 
 \item{names}{A character vector.}
 
@@ -34,7 +34,7 @@ creates closures. A closure object has three components: the
 argument list the body expression, and the enclosing environment.
 
 \code{arglist} is a helper that produces a named list of
-\href{missing_value}{missings}\link{s} given a character vector of names.
+\link{missing_value}s given a character vector of names.
 }
 \examples{
 f1 <- function(x, y = x) { x + y }
