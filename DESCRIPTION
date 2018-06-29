@@ -1,8 +1,8 @@
 Package: nseval
 Type: Package
-Title: The Missing API For Non-Standard Evaluation in R
+Title: The Missing API for Non-Standard Evaluation in R
 Version: 0.4
-Date: 2018-04-07
+Date: 2018-06-28
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: A clean API for metaprogramming in R. Facilities to

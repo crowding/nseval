@@ -129,6 +129,7 @@ SEXP do_findPromise(SEXP name, SEXP envir) {
 
 int unwrappable(SEXP prom) {
   while(TYPEOF(PREXPR(prom)) == PROMSXP) {
+    Rprintf("!");
     prom = PREXPR(prom);
   }
   return (TYPEOF(PREXPR(prom)) == SYMSXP
@@ -137,7 +138,12 @@ int unwrappable(SEXP prom) {
 }
 
 SEXP unwrap_promise(SEXP prom, int recursive) {
+  int x = 0;
   while(unwrappable(prom)) {
+    while(TYPEOF(PREXPR(prom)) == PROMSXP) {
+      Rprintf("!");
+      prom = PREXPR(prom);
+    }
     SEXP name = PREXPR(prom);
     SEXP env = PRENV(prom);
     SEXP binding = x_findVar(name, env);
@@ -148,13 +154,15 @@ SEXP unwrap_promise(SEXP prom, int recursive) {
     /*         binding, */
     /*         type2char(TYPEOF(binding))); */
     if (binding == R_MissingArg) {
-      return emptypromise();
+      prom = emptypromise();
+      break;
     } else if (binding == R_UnboundValue) {
       break;
-    } else if (TYPEOF(binding) == PROMSXP) {
-      prom = binding;
+    } else if (TYPEOF(binding) != PROMSXP) {
+      /* bail out if we have reached a nonpromise */
+      break;
     } else {
-      return binding;
+      prom = binding;
     }
     if (!recursive) {
       break;
@@ -191,6 +199,7 @@ const char* get_enum_string(GET_ENUM type) {
   case PROMISE: return "promise";
   case IS_LITERAL: return "is literal";
   case IS_MISSING: return "is missing";
+  default: return "???";
   }
 }
 
@@ -204,6 +213,7 @@ const char* test_enum_string(TEST_ENUM type) {
   switch(type) {
   case IS_PROMISE: return "is promise";
   case IS_FORCED: return "is forced";
+  default: return "???";
   }
 }
 
@@ -232,15 +242,15 @@ SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn) {
       return ScalarLogical(FALSE);
     }
   case IS_MISSING:
-    // unwrap.....
     {
-      SEXP unwrapped = unwrap_promise(prom, TRUE);
-      if (PREXPR(prom) == R_MissingArg) {
+      // note we have already unwrapped, back in arg_get
+      if (PREXPR(prom) == R_MissingArg) { // should be the missing!
         return ScalarLogical(TRUE);
       } else {
         return ScalarLogical(FALSE);
       }
     }
+  default: error("Unknown get_enum type");
   }
 }
 
@@ -255,6 +265,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
   case IS_LITERAL:
   case IS_MISSING:
     warn = 0; /* don't warn for true/false checks */
+  default: error("Unknown get_enum type");
   }
 
   switch(TYPEOF(expr)) {
@@ -283,6 +294,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
       }
     case IS_MISSING: 
       return ScalarLogical(FALSE);
+    default: error("unknown request");
     }
   case SYMSXP:                  /* can't fake an environment we don't have
                                    if the expr is not literal */
@@ -464,6 +476,7 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
       return ScalarLogical(FALSE);
     case IS_MISSING:
       return ScalarLogical(FALSE);
+    default: error("Unknown request");
     }
   }
 }
@@ -529,6 +542,7 @@ SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
         /*         CHAR(PRINTNAME(name))); */
         return ScalarLogical(TRUE);
       }
+    default: error("Unknown request");
     }
   case SYMSXP:
     switch(query) {
@@ -538,6 +552,7 @@ SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
       /* missings are unforced by definition (and because compiler
          optimizes missing promsxps into missings */
       return ScalarLogical(binding != R_MissingArg);
+    default: error("Unknown request");
     }
   default: 
     switch(query) {
@@ -545,6 +560,7 @@ SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
       return ScalarLogical(FALSE);
     case IS_FORCED:
       return ScalarLogical(TRUE);
+    default: error("Unknown request");
     }
   }
 }
@@ -569,7 +585,6 @@ SEXP _arg_dots(SEXP envirs, SEXP syms, SEXP tags, SEXP warn) {
   if (LENGTH(envirs) != LENGTH(syms)) {
     error("Inputs to arg_dots have different lengths");
   }
-  int warni = asLogical(warn);
 
   int len = LENGTH(syms);
   if (len == 0) {

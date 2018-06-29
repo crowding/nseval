@@ -244,15 +244,31 @@ test_that("get args by character", {
 })
 
 
-test_that("missing_ unwraps", {
+test_that("is_missing_ unwraps naturally created promise chains", {
   f <- function(a, b, c, d, e) {
-    is_missing_(c("a", "b", "c", "d", "e"), environment())
+    print(as.data.frame(env2dots()))
+    x <- is_missing_(c("a", "b", "c", "d", "e"), environment())
+    y <- missing_(arg_list(a, b, c, d, e))
+    x %is% y
+    x
   }
-  g <- function(a, b, c, d, e) f(a, b, c, d, e)
+  g <- function(...) f(...)
+  h <- function(A, B, C, D, E) g(A, B, C, D, E)
   x <- 10
   y <- missing_value()
   f( , 10, x, y, (y)) %is% c(a=TRUE, b=FALSE, c=FALSE, d=TRUE, e=FALSE);
   g( , 10, x, y, (y)) %is% c(a=TRUE, b=FALSE, c=FALSE, d=TRUE, e=FALSE);
+  h( , 10, x, y, (y)) %is% c(a=TRUE, b=FALSE, c=FALSE, d=TRUE, e=FALSE);
+})
+
+test_that("is_missing_ unwraps explicitly created promise chains?", {
+  a <- 1
+  b <- missing_value()
+  e0 <- dots2env(dots(w=b, x=a, y="no", z=))
+  e1 <- dots2env(dots_(alist(a=w, b=x, c=y, d=z), e0))
+  target <- c(a = TRUE, b = FALSE, c = FALSE, d = TRUE)
+  is_missing_(c("a", "b", "c", "d"), e1) %is% target
+  missing_(arg_list_(c("a", "b", "c", "d"), e1)) %is% target
 })
 
 test_that("R_MissingValue bound directly", {
@@ -469,7 +485,7 @@ test_that("unwrap quotation", {
     f(400, function(x) unwrap(quo(x), TRUE))
   }
   ff <- compiler::cmpfun(ff)
-  ff() %is% forced_quo_(400)
+  expr(ff()) %is% quote(r)
 })
 
 test_that("is_default", {

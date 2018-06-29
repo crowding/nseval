@@ -1,7 +1,6 @@
 #include "vadr.h"
 #include <Rinternals.h>
 #include <setjmp.h>
-#include <Rinterface.h>
 #include <R_ext/Boolean.h>
 
 int nullish(SEXP dots) {        /* R_NilValue but also list() */

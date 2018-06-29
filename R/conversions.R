@@ -81,12 +81,12 @@ as.dots.lazy_dots <- function(x)
 #' @return A \link{dots} object.
 #' @export
 #' @useDynLib nseval _env_to_dots
-env2dots <- function(env,
+env2dots <- function(env = caller(environment()),
                      names = ls(envir = env, all.names = TRUE),
                      include_missing = TRUE,
                      expand_dots = TRUE)
 {
-  x <- .Call("_env_to_dots", env, names, include_missing, expand_dots)
+  .Call("_env_to_dots", env, names, include_missing, expand_dots)
 }
 
 

@@ -9,10 +9,10 @@
 \title{Formatting methods for dots and quotations.}
 \usage{
 \method{format}{dots}(x, compact = FALSE, show.environments = !compact,
-  show.expressions = !compact, width = 30, ...)
+  show.expressions = !compact, width = 36, ...)
 
 \method{format}{quotation}(x, compact = FALSE, show.environments = !compact,
-  show.expressions = !compact, width = 30, ...)
+  show.expressions = !compact, width = 36, ...)
 
 \method{format}{oneline}(x, max.width = 50, width = max.width, ...)
 

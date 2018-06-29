@@ -88,7 +88,6 @@ SEXP empty_closure() {
 
 SEXP _quotation_to_promsxp(SEXP clos) {
   assert_type(clos, CLOSXP);
-  SEXP out;
   if (forced_quotation(clos)) {
     /* In the case of forced promises we return the same promsxp. */
     return BODY(clos);

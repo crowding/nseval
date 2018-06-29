@@ -17,7 +17,7 @@ format.dots <- function(x,
                         compact = FALSE,
                         show.environments = !compact,
                         show.expressions = !compact,
-                        width = 30,
+                        width = 36,
                         ...) {
   contents <- mapply(
     x,
@@ -49,7 +49,7 @@ format.quotation <- function(x,
                              compact = FALSE,
                              show.environments = !compact,
                              show.expressions = !compact,
-                             width = 30,
+                             width = 36,
                              ...) {
   chars = paste0("quo<< ",
                  format.quotation.inner(
@@ -119,7 +119,7 @@ format.quotation.inner <- function(x,
                                    compact = FALSE,
                                    show.environments = !compact,
                                    show.expressions = !compact,
-                                   width=30) {
+                                   width=36) {
 
   doformat <- function(x) {
     if (is.language(x)) {
