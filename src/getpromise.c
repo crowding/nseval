@@ -129,45 +129,70 @@ SEXP do_findPromise(SEXP name, SEXP envir) {
 
 int unwrappable(SEXP prom) {
   while(TYPEOF(PREXPR(prom)) == PROMSXP) {
-    Rprintf("!");
     prom = PREXPR(prom);
   }
-  return (TYPEOF(PREXPR(prom)) == SYMSXP
-          && PRENV(prom) != R_NilValue
-          && PRENV(prom) != R_EmptyEnv);
+  int unwrappable =  (   TYPEOF(PREXPR(prom)) == SYMSXP
+                      && PRENV(prom) != R_NilValue 
+                      && PRENV(prom) != R_EmptyEnv);
+  return unwrappable;
+}
+
+SEXP unwrap_step(SEXP prom) {
+  // attmpt to unwrap, returning another promise if one is found.
+  // If no other promise is found return R_UnboundValue.
+  while(TYPEOF(PREXPR(prom)) == PROMSXP) {
+    prom = PREXPR(prom);
+  }
+  SEXP name = PREXPR(prom);
+  SEXP env = PRENV(prom);
+  SEXP binding = x_findVar(name, env);
+  /* Rprintf("env(%p) is %p where %s -> %p which is a %s\n", */
+  /*         prom, */
+  /*         env, */
+  /*         CHAR(PRINTNAME(name)), */
+  /*         binding, */
+  /*         type2char(TYPEOF(binding))); */
+  if (binding == R_MissingArg) {
+    return emptypromise();
+  } else if (TYPEOF(binding) != PROMSXP) {
+    return R_UnboundValue;
+  } else {
+    return binding; // possibly R_UnboundValue
+  }
 }
 
 SEXP unwrap_promise(SEXP prom, int recursive) {
   int x = 0;
-  while(unwrappable(prom)) {
-    while(TYPEOF(PREXPR(prom)) == PROMSXP) {
-      Rprintf("!");
-      prom = PREXPR(prom);
-    }
-    SEXP name = PREXPR(prom);
-    SEXP env = PRENV(prom);
-    SEXP binding = x_findVar(name, env);
-    /* Rprintf("env(%p) is %p where %s -> %p which is a %s\n", */
-    /*         prom, */
-    /*         env, */
-    /*         CHAR(PRINTNAME(name)), */
-    /*         binding, */
-    /*         type2char(TYPEOF(binding))); */
-    if (binding == R_MissingArg) {
-      prom = emptypromise();
-      break;
-    } else if (binding == R_UnboundValue) {
-      break;
-    } else if (TYPEOF(binding) != PROMSXP) {
-      /* bail out if we have reached a nonpromise */
+  SEXP tortoise = prom;
+  SEXP next;
+  
+  while(TRUE) {
+
+    if (!unwrappable(prom)) return prom;    
+    next = unwrap_step(prom);
+
+    if (next == R_UnboundValue) {
       break;
     } else {
-      prom = binding;
+      prom = next;
     }
-    if (!recursive) {
+
+    if (!recursive) break;
+    
+    if (!unwrappable(prom)) return prom;
+    next = unwrap_step(prom);
+
+    if (next == R_UnboundValue) {
       break;
-    };
+    } else {
+      prom = next;
+    }
+
+    if (tortoise == prom) error("Circular promise chain!");
+    tortoise = unwrap_step(tortoise);
+    if (tortoise == prom) error("Circular promise chain!");
   }
+
   return prom;
 }
 
@@ -250,7 +275,7 @@ SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn) {
         return ScalarLogical(FALSE);
       }
     }
-  default: error("Unknown get_enum type");
+  default: error("Unknown get_enum type?");
   }
 }
 
@@ -258,6 +283,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
   SEXP expr = PREXPR(prom);
 
   switch(request){
+  default: error("Unknown get_enum type!");
   case EXPR:
   case ENV:
   case PROMISE:
@@ -265,7 +291,6 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
   case IS_LITERAL:
   case IS_MISSING:
     warn = 0; /* don't warn for true/false checks */
-  default: error("Unknown get_enum type");
   }
 
   switch(TYPEOF(expr)) {
@@ -273,6 +298,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
   case STRSXP:
   case REALSXP:
     switch (request) {
+    default: error("unknown request");
     case EXPR:
       return expr;
     case ENV:
@@ -294,7 +320,6 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
       }
     case IS_MISSING: 
       return ScalarLogical(FALSE);
-    default: error("unknown request");
     }
   case SYMSXP:                  /* can't fake an environment we don't have
                                    if the expr is not literal */
@@ -457,6 +482,7 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
     }
   default:
     switch(request) {
+    default: error("Unknown request");
     case ENV:
       if(warn) warning("`%s` not a promise, contains a %s.",
                        CHAR(PRINTNAME(sym)),
@@ -476,7 +502,6 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
       return ScalarLogical(FALSE);
     case IS_MISSING:
       return ScalarLogical(FALSE);
-    default: error("Unknown request");
     }
   }
 }

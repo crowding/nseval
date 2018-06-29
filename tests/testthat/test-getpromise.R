@@ -125,6 +125,7 @@ test_that("is_promise and is_forced and is_literal and is_missing", {
 
   both <- function(data, cmp) {
     ccll <- match.call()
+    force(data)
     withCallingHandlers({
       expect_equal(data[[1]], cmp)
       expect_equal(data[[2]], cmp)
@@ -174,6 +175,15 @@ test_that("get dotslists of args direct", {
   names(d) %is% c("", "b")
   exprs(d) %is% alist(one.arg, b=two.arg)
   expect_identical(envs(d), list(environment(), b=environment()))
+})
+
+test_that("circular unwrap detection", {
+  f <- function(a = b, b = c, c = a) {
+    missing(a)
+    is_missing(a)
+  }
+  f(c=1) %is% c(a = FALSE)
+  expect_error(f())
 })
 
 test_that("args mirrors arg names by default", {
@@ -246,7 +256,6 @@ test_that("get args by character", {
 
 test_that("is_missing_ unwraps naturally created promise chains", {
   f <- function(a, b, c, d, e) {
-    print(as.data.frame(env2dots()))
     x <- is_missing_(c("a", "b", "c", "d", "e"), environment())
     y <- missing_(arg_list(a, b, c, d, e))
     x %is% y
