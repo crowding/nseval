@@ -196,6 +196,10 @@ test_that("dots_exprs", {
   x %is% 4
 })
 
+test_that("dots names", {
+  names(dots(a=b, b=c, d)) %is% c("a", "b", "")
+})
+
 test_that("expression mutator", local({
   #Problem here that is a function of optimization level.
   #Not sure that I can do anything about it.

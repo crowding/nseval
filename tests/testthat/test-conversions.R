@@ -267,6 +267,12 @@ test_that("convert singleton dots to quotation", {
   expect_error(as.quo(dots(a+b, c+d)))
 })
 
+test_that("convert list to quotation", {
+  x <- as.quo(list(expr=quote(x), env=baseenv()))
+  expr(x) %is% quote(x)
+  identical(env(x), baseenv())
+})
+
 test_that("quotation to binding", {
   x <- quo(a+b)
   e <- new.env()
@@ -284,4 +290,11 @@ test_that("quotation to binding", {
 
   set_arg_( quo("...", e <- new.env()), x) %throws% "set_dots"
   set_arg_( quo((...), f <- new.env()), x) %throws% "set_dots"
+})
+
+test_that("setting with a string", {
+  set_arg_(quo("x", environment()), quo(y+1))
+
+  y <- runif(1)
+  x %is% (y+1)
 })

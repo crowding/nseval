@@ -162,6 +162,83 @@ test_that("is_promise and is_forced and is_literal and is_missing", {
   x()
 })
 
+test_that("unfound var", {
+  expect_error(is_forced(dd5), "not found")
+})
+
+test_that("arg_get from promises", {
+  set_arg(x, quo(4, environment()))
+  is_promise(x) %is% c(x = TRUE)
+  is_literal(x) %is% c(x = TRUE)
+  is_forced(x) %is% c(x = FALSE)
+
+  set_arg(x, quo_(c("a", "a"), environment()))
+  is_promise(x) %is% c(x = TRUE)
+  is_literal(x) %is% c(x = FALSE)
+  is_forced(x) %is% c(x = FALSE)
+
+  set_arg(x, forced_quo_(c("a", "a")))
+  is_promise(x) %is% c(x = TRUE)
+  is_literal(x) %is% c(x = FALSE)
+  is_forced(x) %is% c(x = TRUE)
+
+  set_arg(x, forced_quo_(c("a")))
+  is_promise(x) %is% c(x = TRUE)
+  is_literal(x) %is% c(x = TRUE)
+  is_forced(x) %is% c(x = TRUE)
+
+  # FIXME: since this doesn't arise normally, perhaps set_arg should
+  # translate missing promises back to pure missings (also forced
+  # literals, etc.)
+  set_arg(x, forced_quo_(missing_value()))
+  is_promise(x) %is% c(x = TRUE)
+  is_literal(x) %is% c(x = FALSE) #this doesn't arise normally?
+  is_missing(x) %is% c(x = TRUE)
+  arg_expr(x) %is% quote(quote())
+
+  a <- 5
+  set_arg(x, force_(quo(a)))
+  arg_expr(x) %is% quote(a)
+  is_promise(x) %is% c(x = TRUE)
+  is_literal(x) %is% c(x = FALSE)
+  is_forced(x) %is% c(x = TRUE)
+  is_missing(x) %is% c(x = FALSE)
+  expect_warning(arg_env(x) %is% emptyenv(), "forced")
+
+  set_arg(x, forced_quo_(identity))
+  identical(arg_expr(x), identity)
+  is_promise(x) %is% c(x = TRUE)
+  is_literal(x) %is% c(x = FALSE)
+  is_forced(x) %is% c(x = TRUE)
+  is_missing(x) %is% c(x = FALSE)
+
+  xx <- arg(x)
+  forced(xx) %is% TRUE
+
+  x <- quote(x)
+  expect_warning(arg(x), "promise")
+  set_arg(x, forced_quo_(c(3, 4)))
+  expect_warning(arg_env(x), "forced")
+  is_missing(x) %is% c(x = FALSE)
+
+  x <- list(x)
+  expect_warning(arg(x), "promise")
+  expect_warning(arg(x), "promise")
+  expect_warning(arg(x), "promise")
+
+  dots2env(dots(a, b))
+})
+
+
+test_that("get_arg when var has a non-promise expression", {
+  x <- quote(y)
+  expect_warning(expect_identical(arg_env(x), emptyenv()), "promise")
+  expect_warning(expect_identical(arg_expr(x), quote(quote(y))), "promise")
+  is_literal(x) %is% c(x = FALSE)
+  is_forced(x) %is% c(x = TRUE)
+  is_missing(x) %is% c(x = FALSE)
+})
+
 test_that("empty arguments return missing value and empty environment", {
   f1 <- function(x) arg_env(x)
   f2 <- function(x) arg_expr(x)
@@ -286,6 +363,9 @@ test_that("R_MissingValue bound directly", {
   expect_true(missing_( (function(x) arg_expr(x))() ))
   expect_true(missing_( (function(x) arg_list(x))() ))
   expect_true(is_literal(x))
+
+  set_arg(x, forced_quo(missing_value()))
+  is_forced(x) %is% c(x = FALSE)
 })
 
 test_that("missing_ matches R behavior with unwrapping", {

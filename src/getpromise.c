@@ -19,10 +19,6 @@ static int ddVal(SEXP symbol)
   }
 }
 
-SEXP _locate_all(SEXP sym, SEXP env, SEXP function) {
-  return R_NilValue;
-}
-
 SEXP _locate(SEXP sym, SEXP env, SEXP function) {
   assert_type(sym, SYMSXP);
   assert_type(env, ENVSXP);
@@ -45,9 +41,6 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
           SEXP callForce = PROTECT(list2(force, sym));
           R_forceAndCall(callForce, 1, env);
           UNPROTECT(1);
-          if (PRVALUE(x) == R_UnboundValue) {
-            error("forcing failed???");
-          }
           x = PRVALUE(x);
         }
       }
@@ -114,19 +107,6 @@ SEXP do_findBinding(SEXP sym, SEXP envir) {
   return binding;
 }
 
-
-SEXP do_findPromise(SEXP name, SEXP envir) {
-  SEXP binding = do_findBinding(name, envir);
-  if (binding == R_MissingArg) {
-    binding = emptypromise();
-  }
-  if (TYPEOF(binding) != PROMSXP) {
-    error("Variable `%s` was not bound to a promise",
-          CHAR(PRINTNAME(name)));
-  }
-  return binding;
-}
-
 int unwrappable(SEXP prom) {
   while(TYPEOF(PREXPR(prom)) == PROMSXP) {
     prom = PREXPR(prom);
@@ -162,7 +142,6 @@ SEXP unwrap_step(SEXP prom) {
 }
 
 SEXP unwrap_promise(SEXP prom, int recursive) {
-  int x = 0;
   SEXP tortoise = prom;
   SEXP next;
   
@@ -199,12 +178,8 @@ SEXP unwrap_promise(SEXP prom, int recursive) {
 SEXP _unwrap_quotation(SEXP q, SEXP recursive) {
   SEXP pr = PROTECT(_quotation_to_promsxp(q));
   pr = PROTECT(unwrap_promise(pr, asLogical(recursive)));
-  if (TYPEOF(pr) == PROMSXP) {
-    q = promsxp_to_quotation(pr);
-  } else {
-    q = _quotation_literal(pr);
-  }
-  UNPROTECT(2);
+  q = PROTECT(promsxp_to_quotation(pr));
+  UNPROTECT(3);
   return q;
 }
 
@@ -247,6 +222,7 @@ SEXP arg_get(SEXP, SEXP, GET_ENUM, int, int);
 SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn) {
   SEXP expr = PREXPR(prom);
   switch(request) {
+  default:
   case EXPR:
     return PREXPR(prom);
   case ENV:
@@ -275,7 +251,6 @@ SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn) {
         return ScalarLogical(FALSE);
       }
     }
-  default: error("Unknown get_enum type?");
   }
 }
 
@@ -283,7 +258,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
   SEXP expr = PREXPR(prom);
 
   switch(request){
-  default: error("Unknown get_enum type!");
+  default:
   case EXPR:
   case ENV:
   case PROMISE:
@@ -298,7 +273,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
   case STRSXP:
   case REALSXP:
     switch (request) {
-    default: error("unknown request");
+    default:
     case EXPR:
       return expr;
     case ENV:
@@ -336,7 +311,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
       /* the missing is a kind of literal */
       return ScalarLogical(expr == R_MissingArg);
     case IS_MISSING:
-      /* Forced, so no need to unwrap */
+      /* Forced, so no unwrapping can be done */
       if (PREXPR(prom) == R_MissingArg) {
         return ScalarLogical(TRUE);
       } else if (PRVALUE(prom) == R_MissingArg) {
@@ -364,6 +339,7 @@ SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn
     }
   default:
     switch(request) {
+    default:
     case ENV:
       if(warn) warning("Argument `%s` already forced, %s found instead of expression?",
                        CHAR(PRINTNAME(sym)), type2char(TYPEOF(expr)));
@@ -388,8 +364,8 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
   case INTSXP:                  /* plausible code literals */
   case STRSXP:
   case REALSXP:
-
     switch(request) {
+    default:
     case EXPR: 
       if (LENGTH(value) > 1 || ATTRIB(value) != R_NilValue) {
         if(warn) warning("`%s` not a promise, bound to non-scalar %s instead.",
@@ -412,6 +388,7 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
             CHAR(PRINTNAME(sym)));
     } else if (value == R_MissingArg) {
       switch (request) {
+      default:
       case EXPR:
         return R_MissingArg;
       case ENV:
@@ -424,45 +401,18 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
       case IS_MISSING:
         return ScalarLogical(TRUE);
       }
-    } else { /* a non missing symbol */
-      if(warn) warning("`%s` not a promise, contains symbol `%s`",
-                       CHAR(PRINTNAME(sym)),
-                       CHAR(PRINTNAME(value)));
-      switch(request) {
-      case ENV:
-        if(warn) warning("`%s` not a promise, contains symbol `%s`",
-                         CHAR(PRINTNAME(sym)),
-                         CHAR(PRINTNAME(value)));
-        return R_EmptyEnv;
-      case EXPR:
-        if(warn) warning("`%s` not a promise, contains symbol `%s`",
-                         CHAR(PRINTNAME(sym)),
-                         CHAR(PRINTNAME(value)));
-        /* we are now making up `quote(x)` as a plausible way of
-           having got the symbol `x`. However since we also return
-           EmptyEnv this should produce an error if the user attempts
-           to re-call. */
-        return Rf_lang2(install("quote"), value);
-      case PROMISE:
-        if(warn) warning("`%s` not a promise, contains symbol `%s`",
-                         CHAR(PRINTNAME(sym)),
-                         CHAR(PRINTNAME(value)));
-        expr = PROTECT(Rf_lang2(install("quote"), value));
-        prom = new_forced_promise(expr, value);
-        UNPROTECT(1);
-        return prom;
-      case IS_LITERAL:
-        return ScalarLogical(FALSE);
-      case IS_MISSING:
-        return ScalarLogical(FALSE);        
-      }
-    }
+    } /* else fall through */
   case LANGSXP:
     switch(request) {
+    default:
     case EXPR:
       if(warn) warning("`%s` not a promise, contains a %s.",
                        CHAR(PRINTNAME(sym)),
                        type2char(TYPEOF(value)));
+      /* we are now making up `quote(x)` as a plausible way of
+         having got an expression `x`. However since we also return
+         EmptyEnv this should produce an error if the user attempts
+         to re-call. */
       return Rf_lang2(install("quote"), value);
     case ENV:
       if(warn) warning("`%s` not a promise, contains a %s.",
@@ -477,12 +427,14 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
       prom = new_forced_promise(expr, value);
       UNPROTECT(1);
       return prom;
-    case IS_LITERAL: return ScalarLogical(FALSE);
-    case IS_MISSING: return ScalarLogical(FALSE);
+    case IS_LITERAL:
+      return ScalarLogical(FALSE);
+    case IS_MISSING:
+      return ScalarLogical(FALSE);
     }
   default:
     switch(request) {
-    default: error("Unknown request");
+    default:
     case ENV:
       if(warn) warning("`%s` not a promise, contains a %s.",
                        CHAR(PRINTNAME(sym)),
@@ -510,7 +462,7 @@ SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn, int recursive) {
   assert_type(envir, ENVSXP);
   assert_type(name, SYMSXP);
   if (name == R_DotsSymbol) {
-    error("Unsupported use of ... in arg_* (use `args( (...) )`)");    
+    error("Unsupported use of ... in arg_* (use `arg_list( (...) )` or get_dots())");    
   }
   /* Rprintf("Getting %s of binding `%s` in env `%p`\n", */
   /*         get_enum_string(type), CHAR(PRINTNAME(name)), envir); */
@@ -547,45 +499,36 @@ SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
   switch(TYPEOF(binding)) {
   case PROMSXP:
     switch (query) {
+    default:
     case IS_PROMISE: 
       return ScalarLogical(TRUE);
-    case IS_FORCED: 
-      if (PRENV(binding) == NULL) {
-        /* Rprintf("Argument %s env is null\n", */
-        /*         CHAR(PRINTNAME(name))); */
-        return ScalarLogical(TRUE);
-      } else if (PRVALUE(binding) == R_UnboundValue) {
-        /* Rprintf("Argument %s value slot is unbound\n", */
-        /*         CHAR(PRINTNAME(name))); */
-        return ScalarLogical(FALSE);
-      } else if (PRVALUE(binding) == R_MissingArg) {
-        /* Rprintf("Argument %s value slot is missing\n", */
-        /*         CHAR(PRINTNAME(name))); */
+    case IS_FORCED:
+      if ( PRVALUE(binding) == R_UnboundValue
+           || PRVALUE(binding) == R_MissingArg
+           || PRENV(binding) == NULL) {
         return ScalarLogical(FALSE);
       } else {
-        /* Rprintf("Argument %s none of the above\n", */
-        /*         CHAR(PRINTNAME(name))); */
         return ScalarLogical(TRUE);
       }
-    default: error("Unknown request");
     }
   case SYMSXP:
     switch(query) {
+    default:
     case IS_PROMISE:
       return ScalarLogical(FALSE);
     case IS_FORCED:
       /* missings are unforced by definition (and because compiler
          optimizes missing promsxps into missings */
       return ScalarLogical(binding != R_MissingArg);
-    default: error("Unknown request");
+
     }
   default: 
     switch(query) {
+    default:
     case IS_PROMISE:
       return ScalarLogical(FALSE);
     case IS_FORCED:
       return ScalarLogical(TRUE);
-    default: error("Unknown request");
     }
   }
 }

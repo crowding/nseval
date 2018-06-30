@@ -1,4 +1,4 @@
-context("Promises")
+context("Quotations")
 
 `%is%` <- expect_equal
 
@@ -19,14 +19,17 @@ test_that("can force quotation, and make forced quotations, and forced", {
   forced(q) %is% FALSE
   value(q) %is% 2
   value(q) %is% 3 #re-runs
-  x %is% 3
+  q <- force_(q)
+  value(q) %is% 4
+  value(q) %is% 4
+  x %is% 4
   fq <- quo(x <- x + 1, force = TRUE)
   forced(fq) %is% TRUE
-  x %is% 4
+  x %is% 5
   expr(fq) %is% quote(x <- x + 1)
-  env(fq) %is% emptyenv()
-  value(fq) %is% 4 #forced at quo creation
-  value(fq) %is% 4 #not re-forced
+  identical(env(fq), emptyenv())
+  value(fq) %is% 5 #forced at quo creation
+  value(fq) %is% 5 #not re-forced
 })
 
 test_that("can force dots", {
@@ -78,10 +81,12 @@ test_that("Can force quo with alternate eval", {
   value(x) %is% 5
 })
 
+
 test_that("forced quos", {
   forced(forced_quo(6)) %is% TRUE
   expr(forced_quo(6)) %is% 6
   env(forced_quo(6)) %is% emptyenv()
+  forced(quo(x)) %is% FALSE
 
   value(forced_quo(2+5)) %is% 7
   forced(forced_quo(2+5)) %is% TRUE
@@ -99,4 +104,17 @@ test_that("forced quos", {
   x <- 3
   do(list, forced_quo_(quote(x))) %is% alist(x)
   do(list, forced_quo_(quote(x+y))) %is% alist(x+y)
+
+})
+
+test_that("Mutate quos", {
+  e <- local({x<-y<-2; environment()})
+  x <- y <- 3
+  q <- quo(x+y)
+  expr(q) <- quote(x*x)
+  value(q) %is% 9
+  env(q) <- e
+  value(q) %is% 4
+  expect_true(is.quotation(q))
+  expect_false(is.quotation(quote(x)))
 })

@@ -263,8 +263,10 @@ SEXP promisish_to_closxp(SEXP x) {
     out = PROTECT(empty_closure());
     protections++;
   } else {
-    LOG("converting nonpromise (a %s, %p) to quotation",
-        type2char(TYPEOF(x)), x);
+    // this doesn't seem to happen, aside from missings. Not to say it
+    // can't.
+    warning("nonpromise (a %s, %p) found in ... list",
+            type2char(TYPEOF(x)), x);
     if (is_language(x)) {
       SEXP quote = PROTECT(Rf_lang2(install("quote"), x));
       protections++;
