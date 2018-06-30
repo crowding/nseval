@@ -35,7 +35,6 @@ Rlibs
 cache
 figure
 *.html
-*.md
 eachplots
 descriptions
 collections

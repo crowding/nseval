@@ -25,10 +25,17 @@
     assert2(COND, "Assertion failed: " #COND);    \
   }
 
-#define assert2(COND, FMT, ...) {                                \
+#define assert2(COND, MSG) {                                    \
+  if (!(COND)) {                                                \
+  error("%s: %s @%s:%d\n",                                    \
+        __func__, MSG, __FILE__, __LINE__);                   \
+  }                                                           \
+}
+
+#define assertn(COND, FMT, ...) {                                \
     if (!(COND)) {                                               \
-      Rprintf("%s: " FMT " @%s:%d\n",                            \
-              __func__, ##__VA_ARGS__, __FILE__, __LINE__);      \
+      error("%s: " FMT " @%s:%d\n",                            \
+            __func__, ##__VA_ARGS__, __FILE__, __LINE__);        \
     }                                                            \
   }
 

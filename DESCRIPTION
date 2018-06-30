@@ -8,7 +8,7 @@ Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: A clean API for metaprogramming in R. Facilities to
              capture, create, and manipulate calls, lazy arguments
              (promises), and `...` lists.
-License: MIT + file LICENSE
+License: GPL (>= 2.0)
 Depends:
 Suggests:
     testthat (>= 2.0.0),
