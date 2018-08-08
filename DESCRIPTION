@@ -1,13 +1,12 @@
 Package: nseval
 Type: Package
-Title: The Missing API for Non-Standard Evaluation in R
+Title: A Clean API for Lazy and Non-Standard Evaluation
 Version: 0.4
-Date: 2018-06-28
+Date: 2018-08-01
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: A clean API for metaprogramming in R. Facilities to
-             capture, create, and manipulate calls, lazy arguments
-             (promises), and `...` lists.
+Description: Facilities to capture, inspect, manipulate, and create
+             lazy values (promises), "..." lists, and active calls.
 License: GPL (>= 2.0)
 Depends:
 Suggests:
@@ -30,6 +29,5 @@ Collate:
     'force.R'
     'shortcut.R'
     'missing.R'
-VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 Roxygen: list(markdown=TRUE)
