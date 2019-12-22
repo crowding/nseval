@@ -67,12 +67,14 @@ caller <- function(env = caller(environment()),
   ##          calls = oneline(as.list(sys.calls()))),
   ##       max.width=80)
 
-  where <- which_frame(env, ifnotfound)
+  where <- which_frame(env, return(ifnotfound)) #return...
 
   if (is.primitive(sys.function(where))) {
     if (is_default(ifnotfound)) {
       stop("caller: calling function is a primitive, which has no environment")
-    } else ifnotfound
+    } else {
+      return(ifnotfound)
+    }
   }
 
   whichparent <- sys.parents()[where]

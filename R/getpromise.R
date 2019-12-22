@@ -19,7 +19,7 @@
 #'  rval_ <- arg(rval)
 #'  target.env <- locate_(expr(lval_), parent.env(env(lval_)))
 #'  #note that `<-` is a primitive which requires its lvalue and call
-#'  #head to come from teh same env
+#'  #head to come from the same env
 #'  env(lval_) <- target.env
 #'  do_(quo(`<-`, target.env), lval_, rval_)
 #' }
@@ -200,5 +200,6 @@ unwrap.quotation <- function(x, recursive=FALSE) {
 #' @rdname unwrap
 #' @return The [dots] method returns a dots object with each quotation unwrapped.
 unwrap.dots <- function(x, recursive=FALSE) {
-  structure(lapply(x, function(x) .Call("_unwrap_quotation", x, recursive)), class="dots")
+  structure(lapply(x, function(x) .Call("_unwrap_quotation", x, recursive)),
+            class="dots")
 }

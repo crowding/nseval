@@ -227,3 +227,11 @@ test_that("get_call and get_function", {
               h)
   c %is% cmp
 })
+
+test_that("ifnotfound", {
+  f <- function(x) {
+    function(y) caller()
+  }
+
+  caller(environment(f), NULL) %is% NULL
+})

@@ -82,9 +82,10 @@ is_forced_ <- function(syms, envs) {
     })
 }
 
-#' @return `is_literal(x)` returns TRUE if `x` could be a source
-#'   literal. Specifically this tests whether it is X is bound to a
-#'   singleton vector or a [missing_value].
+#' @return `is_literal(x)` returns TRUE if an argument `x` could be a
+#'   source literal. Specifically it tests whether `x` is bound to a
+#'   singleton vector or a [missing_value]. This check happens without
+#'   forcing `x`.
 #' @rdname shortcut
 #' @export
 is_literal <- function(...) {
@@ -109,9 +110,11 @@ is_literal_ <- function(syms, envs) {
 
 
 #' @rdname shortcut
-#' @return `is_missing(...)` checks whether a variable is missing,
+#' @export
+#' @return `is_missing(...)` checks whether an argument is missing,
 #'   without forcing. It is similar to [missing] but can take
-#'   multiple arguments.
+#'   multiple arguments, and can be called in more situations, such as
+#'   from a nested inner function.
 is_missing <- function(...) {
   d <- dots(...)
   is_missing_(exprs(d), envs(d))
@@ -123,6 +126,11 @@ is_missing <- function(...) {
 #'   missingness.
 #' @export
 #' @useDynLib nseval _is_missing
+#' @return `is_missing_(syms, envs)` is a normally evouating version
+#'   of is_missing.  `syms` should be a symbol, character vector or
+#'   list of such. `envs` should be an environment, or list of
+#'   environments. Vector recycling rules apply, so you can call with
+#'   a vector of names and one env, or vice versa.
 is_missing_ <- function(syms, envs, recursive=TRUE) {
   if (is.null(names(syms)))
     names(syms) <- as.character(syms)
@@ -137,7 +145,7 @@ is_missing_ <- function(syms, envs, recursive=TRUE) {
 
 #' @return `is_promise` returns TRUE if the given variable is bound to
 #'   a promise. Not all arguments are bound to promises; byte-compiled
-#'   code often omits creating a promise for literal arguments
+#'   code often omits creating a promise for literal or missing arguments.
 #' @rdname shortcut
 #' @export
 #' @param ... Bare variable names (for `is_*_`) or expressions (for

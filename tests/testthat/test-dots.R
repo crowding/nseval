@@ -404,6 +404,29 @@ test_that("arg_list gets (...)",
   expect_error(g("...", foo, bar, baz), "\\.\\.\\.")
 })
 
+test_that("do(), missingness, error handlingon primitive fns with missing args", {
+
+  # Established behavior:
+  list(,)
+  # -> Error in list(, ) : argument 1 is empty
+  do.call("list", args=list(missing_value(), missing_value()))
+  # -> Error in .Primitive("list")(, ) : argument 1 is empty
+
+  #but:
+  do(list, quo(), quo())
+  # -> Error in do__(d) (from caller.R #156) : object '' not found
+
+  # Non-primitive function gets a different misbehavior:
+  nonprimitive <- function(...) list(...)
+  nonprimitive(,)
+  do.call("nonprimitive", args=list(missing_value(), missing_value()))
+  # -> Error in nonprimitive(, ) : argument is missing, with no default
+  x <- "???"
+  x <- do(nonprimitive, quo(), quo())
+  # -> should throw but silently exits to top without returning a value.
+  x # -> "???"
+})
+
 test_that("dots() on empty arguments", {
   x <- dots(, b=z)
   expect_identical(exprs(x), list(missing_value(), b=quote(z)))

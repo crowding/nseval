@@ -24,6 +24,7 @@ SEXP do_(SEXP dots) {
   assert_type(fun, PROMSXP);
   int has_args;
   if (nullish(dots)) {
+    LOG("Nullish");
     has_args = 0;
   } else {
     assert_type(dots, DOTSXP);
