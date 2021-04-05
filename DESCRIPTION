@@ -1,13 +1,14 @@
 Package: nseval
 Type: Package
-Title: A Clean API for Lazy and Non-Standard Evaluation
+Title: Tools to manupulate Lazy/Non-standard Evaluation
 Version: 0.4.2
-Date: 2018-08-01
+Date: 2021-04-02
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
-Description: Facilities to capture, inspect, manipulate, and create
+Description: Functions to capture, inspect, manipulate, and create
              lazy values (promises), "..." lists, and active calls.
 License: GPL (>= 2.0)
+Encoding: UTF-8
 Depends:
 Suggests:
     testthat (>= 2.0.0),

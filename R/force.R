@@ -131,9 +131,9 @@ value.dots <- function(x, ...) {
   do(list, x)
 }
 
-##' @export
-##' @rdname forced
-#value.default <- function(f) value(as.quo(f))
+# #' @export
+# #' @rdname forced
+# value.default <- function(f) value(as.quo(f))
 
 #' @rdname forced
 #' @return `values` returns a list.

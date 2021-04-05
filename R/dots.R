@@ -95,7 +95,6 @@ envs.dots <- function(d) {
 #' value and returns an updated dots object.
 #' @rdname dots
 #' @param value A replacement value.
-#' @rdname dots
 #' @export
 `envs<-` <- function(d, value) {
   UseMethod("envs<-")
