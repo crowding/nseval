@@ -65,28 +65,31 @@ SEXP do_(SEXP dots) {
 
       SET_TAG(copyTo, TAG(copyFrom));
       SEXP thing = CAR(copyFrom);
-      assert_type(thing, PROMSXP);
-
-      if (PRVALUE(thing) != R_UnboundValue) {
-        if (PREXPR(thing) == PRVALUE(thing)
-            && !is_language(PREXPR(thing))) {
-          SETCAR(copyTo, PRVALUE(thing));
-          LOG("copied 1 forced argument literally (a %s)\n",
-              type2char(TYPEOF(CAR(copyTo))));
-        } else {
-          SETCAR(copyTo, thing);
-          LOG("copied 1 forced argument directly (a %s)\n",
-              type2char(TYPEOF(CAR(copyTo))));
-        }
-      } else/* if (PRVALUE(thing) == R_UnboundValue) */ {
-        if (callenv == PRENV(thing)) {
-          /* strip the promise so that it can work with R primitives */
-          SETCAR(copyTo, PREXPR(thing));
-          LOG("copied 1 argument unwrapped (a %s)\n", type2char(TYPEOF(CAR(copyTo))));
-        } else {
-          SETCAR(copyTo, thing);
-          LOG("copied 1 unforced argument directly (a %s)\n",
-              type2char(TYPEOF(CAR(copyTo))));
+      if (thing == R_MissingArg) {
+        SETCAR(copyTo, thing);
+      } else {
+        assert_type(thing, PROMSXP);
+        if (PRVALUE(thing) != R_UnboundValue) {
+          if (PREXPR(thing) == PRVALUE(thing)
+              && !is_language(PREXPR(thing))) {
+            SETCAR(copyTo, PRVALUE(thing));
+            LOG("copied 1 forced argument literally (a %s)\n",
+                type2char(TYPEOF(CAR(copyTo))));
+          } else {
+            SETCAR(copyTo, thing);
+            LOG("copied 1 forced argument directly (a %s)\n",
+                type2char(TYPEOF(CAR(copyTo))));
+          }
+        } else/* if (PRVALUE(thing) == R_UnboundValue) */ {
+          if (callenv == PRENV(thing)) {
+            /* strip the promise so that it can work with R primitives */
+            SETCAR(copyTo, PREXPR(thing));
+            LOG("copied 1 argument unwrapped (a %s)\n", type2char(TYPEOF(CAR(copyTo))));
+          } else {
+            SETCAR(copyTo, thing);
+            LOG("copied 1 unforced argument directly (a %s)\n",
+                type2char(TYPEOF(CAR(copyTo))));
+          }
         }
       }
     }

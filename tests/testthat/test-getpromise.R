@@ -500,7 +500,29 @@ test_that("locate var", {
   x()
 })
 
-test_that("Locate var that is attached", {})
+test_that("Locate var that is attached", {
+  envz <- NULL
+  envy <- NULL
+  yyy <- function() {
+    yyy <- 1
+    envy <<- environment()
+    zzz <- function() {
+      zzz <- function() NULL
+      envz <<- environment()
+    }
+    zzz()
+  }
+  yyy()
+
+  expect_false(exists("zzz"))
+  on.exit(detach("envz"), add=TRUE)
+  attach(envz)
+  # attach actually makes a new environment with just the imported symbols.
+  expect_true(exists("zzz", envir=globalenv()))
+  expect_false(exists("yyy", mode="numeric", envir=globalenv()))
+  expect_true(exists("yyy", envir=envz, mode="numeric"))
+  expect_identical(locate(zzz, env=globalenv())$z, envz$z)
+})
 
 test_that("locate list", {
   xe <- environment()

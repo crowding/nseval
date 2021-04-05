@@ -404,27 +404,33 @@ test_that("arg_list gets (...)",
   expect_error(g("...", foo, bar, baz), "\\.\\.\\.")
 })
 
-test_that("do(), missingness, error handling on primitive fns with missing args", {
+catch <- function(expr) tryCatch({expr; stop("no error")}, error=function(x) x)
+
+test_that("do(), missingness, primitive fns with missing args", {
 
   # Established behavior:
-  list(,)
+  error1 <- catch(list(,))
   # -> Error in list(, ) : argument 1 is empty
-  do.call("list", args=list(missing_value(), missing_value()))
-  # -> Error in .Primitive("list")(, ) : argument 1 is empty
+  error2 <- catch(
+    do.call("list", args=list(missing_value(), missing_value())))
+  expect_equal(error1, error2)
 
-  #but:
-  do(list, quo(), quo())
+  error3 <- catch(do(list, quo(), quo()))
+  expect_equal(error1, error3)
+
+  error4 <- catch(do(list,
+                     quo_(missing_value(), NULL),
+                     quo_(missing_value(), NULL)))
+  expect_equal(error1, error4)
   # -> Error in do__(d) (from caller.R #156) : object '' not found
 
   # Non-primitive function gets a different misbehavior:
   nonprimitive <- function(...) list(...)
-  nonprimitive(,)
-  do.call("nonprimitive", args=list(missing_value(), missing_value()))
-  # -> Error in nonprimitive(, ) : argument is missing, with no default
-  x <- "???"
-  x <- do(nonprimitive, quo(), quo())
-  # -> should throw but silently exits to top without returning a value.
-  x # -> "???"
+  error1 <- catch(nonprimitive(,))
+  error2 <- catch(do.call("nonprimitive", args=list(missing_value(), missing_value())))
+  expect_equal(error1, error2)
+  error3 <- catch(do(nonprimitive, quo(), quo()))
+  expect_equal(error1, error3)
 })
 
 test_that("dots() on empty arguments", {
