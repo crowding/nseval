@@ -158,3 +158,19 @@ as.quo.default <- function(x) {
   }
   quo_(expr, env)
 }
+
+ifnot <- function(a, why) if (!isTRUE(a)) why else a
+`%&&%` <- function(a, b) if (!isTRUE(a)) a else b
+
+#' @export
+all.equal.quotation <- function(target, current, ...) {
+  ifnot(is(current, "quotation"), "current is not a quotation") %&&%
+    ifnot(all.equal(expr(target), expr(current), ...),
+                    "target, current have different expressions") %&&%
+    ifnot(forced(target) == forced(current), "only one is forced") %&&%
+    if (forced(target))
+         ifnot(all.equal(value(target), value(current), ...),
+               "target, current have different values")
+         else ifnot(identical(env(target), env(current)),
+                    "target, current have different environments")
+}

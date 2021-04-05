@@ -85,28 +85,6 @@ given lists of expresions and environments.
 \description{
 \code{d <- dots(a = one, b = two)} captures each of its arguments,
 unevaluated, in a dots object (a named list of \link{quotation}s).
-
-\code{exprs(d)} extracts a list of expressions from a dots object.
-
-The mutator \code{exprs(d) <- value} returns a new dots object with the new
-expressions.
-
-\code{envs(d)} extracts a list of environments from a dots
-object.
-
-\code{envs(d) <- value} replaces the environments with the new
-value and returns an updated dots object.
-
-\code{as.data.frame.dots} transforms the contents of a \link{dots} object
-into a data frame with one row per \link{quotation}, with columns:
-\itemize{
-\item \code{name}: a character,
-\item \code{expr}: an expression,
-\item \code{env}: an \link{environment} object or NULL if \link{forced},
-\item \code{value}: NULL or a value if forced.
-}
-
-\code{forced_dots_(values)} create from dots object from any data.
 }
 \details{
 Objects of class "dots" mirror R's special variable \code{...}.

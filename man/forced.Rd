@@ -74,28 +74,6 @@ objects.
 There are two kinds of \link{quotation}s: forced and unforced.
 Unforced quotations have an expression and an environment; forced
 quotations have an expression and a value.
-
-\code{forced(q)} tests whether a \link{quotation} is forced.
-
-\code{forced(d)} on a \link{dots} object tests whether each element
-is forced, and returns a logical vector.
-
-\code{forced_quo(x)} forces its argument and then captures it.
-argument literally.
-
-\code{forced_quo_(x)} makes a forced quotation from any data.
-Specifically it constructs a \link{quotation} with the same object in
-both the \code{expr} and \code{value} slots, except if is a
-\href{is.language}{language} object in which case the value is wrapped
-in \code{quote()}.
-
-\code{forced_dots(...)} forces its arguments and emits a \code{dots} object.
-
-\code{force_(x)} converts an unforced quotation or dots object into a
-forced one, by evaluating it.
-
-\code{value} or \code{values} returns the value of a quotation or dots,
-forcing it if necessary.
 }
 \seealso{
 \link{is_forced}

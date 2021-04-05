@@ -12,7 +12,7 @@ as.lazy_dots(x, env)
 \arguments{
 \item{x}{a \link{dots} object.}
 
-\item{env}{See \link[lazyeval:as.lazy_dots]{lazyeval::as.lazy_dots}.}
+\item{env}{See \link[lazyeval:as.lazy]{lazyeval::as.lazy_dots}.}
 }
 \value{
 \code{as.lazy_dots} returns a \link[lazyeval:lazy_dots]{lazyeval::lazy_dots} object.

@@ -32,9 +32,6 @@ A closure.
 \code{function_} is a normally-evaluating version of \code{\link{function}}, which
 creates closures. A closure object has three components: the
 argument list the body expression, and the enclosing environment.
-
-\code{arglist} is a helper that produces a named list of
-\link{missing_value}s given a character vector of names.
 }
 \examples{
 f1 <- function(x, y = x) { x + y }

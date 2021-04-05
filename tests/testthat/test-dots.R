@@ -404,7 +404,7 @@ test_that("arg_list gets (...)",
   expect_error(g("...", foo, bar, baz), "\\.\\.\\.")
 })
 
-test_that("do(), missingness, error handlingon primitive fns with missing args", {
+test_that("do(), missingness, error handling on primitive fns with missing args", {
 
   # Established behavior:
   list(,)

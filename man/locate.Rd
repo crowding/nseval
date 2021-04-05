@@ -15,21 +15,27 @@ locate(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 
 locate_(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 
-locate_.list(sym, env = arg_env_(quote(sym), environment()), mode = "any",
-  ...)
+locate_.list(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 
 locate_.quotation(sym, env = "ignored", mode = "any", ...)
 
-locate_.character(sym, env = arg_env_(quote(sym), environment()),
-  mode = "any", ...)
+locate_.character(
+  sym,
+  env = arg_env_(quote(sym), environment()),
+  mode = "any",
+  ...
+)
 
-"locate_.("(sym, env = arg_env_(quote(sym), environment()), mode = "any",
-  ...)
+`locate_.(`(sym, env = arg_env_(quote(sym), environment()), mode = "any", ...)
 
 locate_.dots(sym, env = "ignored", mode = "any", ...)
 
-locate_.name(sym, env = arg_env_(quote(sym), environment()), mode = "any",
-  ifnotfound = stop("Binding ", deparse(sym), " not found"))
+locate_.name(
+  sym,
+  env = arg_env_(quote(sym), environment()),
+  mode = "any",
+  ifnotfound = stop("Binding ", deparse(sym), " not found")
+)
 }
 \arguments{
 \item{sym}{A name. For \code{locate} the argument is used literally. For
@@ -54,14 +60,6 @@ An environment object which defines \code{sym}, if one is found.
 \description{
 \code{locate} starts at a given environment, and searches enclosing
 environments for a name. It returns the first which defines \code{sym}.
-
-\code{locate_} is the normally evaluating method; \code{locate(x)} is
-equivalent to \code{locate_(quo(x))} or \code{locate_(quote(x), environment())}.
-
-If \code{sym} is a list (of \link{name}s) or a \link{dots} object, \code{locate_(sym)}
-returns a list.
-
-When \code{sym} is a \link{quotation} or \link{dots}, any \code{env} argument is ignored.
 }
 \note{
 If you use a literal character argument, as in \code{locate("x", environment())}, you must also provide the environment argument
@@ -76,7 +74,7 @@ work OK. See note under \link{arg}.
  rval_ <- arg(rval)
  target.env <- locate_(expr(lval_), parent.env(env(lval_)))
  #note that `<-` is a primitive which requires its lvalue and call
- #head to come from teh same env
+ #head to come from the same env
  env(lval_) <- target.env
  do_(quo(`<-`, target.env), lval_, rval_)
 }

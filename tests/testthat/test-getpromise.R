@@ -500,6 +500,7 @@ test_that("locate var", {
   x()
 })
 
+test_that("Locate var that is attached", {})
 
 test_that("locate list", {
   xe <- environment()

@@ -57,8 +57,8 @@ normally evaluating \code{arg_env_} and so on, \link{name}.}
 
 \item{env}{The environment to search in.}
 
-\item{...}{Bare variable names (for \code{is_*_}) or expressions (for
-\code{dots_*}). Not forced.}
+\item{...}{Bare variable names (for \verb{is_*_}) or expressions (for
+\verb{dots_*}). Not forced.}
 
 \item{syms}{A character vector or list of symbols.}
 
@@ -73,17 +73,25 @@ missingness.}
 \code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))} (which
 is nearly equivalent to \code{alist(...)}.)
 
-\code{is_literal(x)} returns TRUE if \code{x} could be a source
-literal. Specifically this tests whether it is X is bound to a
-singleton vector or a \link{missing_value}.
+\code{is_literal(x)} returns TRUE if an argument \code{x} could be a
+source literal. Specifically it tests whether \code{x} is bound to a
+singleton vector or a \link{missing_value}. This check happens without
+forcing \code{x}.
 
-\code{is_missing(...)} checks whether a variable is missing,
+\code{is_missing(...)} checks whether an argument is missing,
 without forcing. It is similar to \link{missing} but can take
-multiple arguments.
+multiple arguments, and can be called in more situations, such as
+from a nested inner function.
+
+\code{is_missing_(syms, envs)} is a normally evouating version
+of is_missing.  \code{syms} should be a symbol, character vector or
+list of such. \code{envs} should be an environment, or list of
+environments. Vector recycling rules apply, so you can call with
+a vector of names and one env, or vice versa.
 
 \code{is_promise} returns TRUE if the given variable is bound to
 a promise. Not all arguments are bound to promises; byte-compiled
-code often omits creating a promise for literal arguments
+code often omits creating a promise for literal or missing arguments.
 
 \code{is_default} returns a logical vector.
 }
@@ -94,9 +102,4 @@ example, \code{arg_env(x)} is equivalent to \code{env(arg(x))},
 \code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))}, and so
 on. The shortcut forms skip the construction of the
 intermediate \link{quotation} objects.
-
-\code{is_default}  determines whether an argument is bound to the
-function's default value for that argument. It must be called
-before the arguments have been forced (afterwards it will return
-FALSE).
 }

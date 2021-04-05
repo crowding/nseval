@@ -1,7 +1,7 @@
 Package: nseval
 Type: Package
 Title: A Clean API for Lazy and Non-Standard Evaluation
-Version: 0.4.1
+Version: 0.4.2
 Date: 2018-08-01
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
@@ -29,5 +29,5 @@ Collate:
     'force.R'
     'shortcut.R'
     'missing.R'
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Roxygen: list(markdown=TRUE)

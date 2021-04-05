@@ -3,12 +3,18 @@
 \name{dots2env}
 \alias{dots2env}
 \alias{as.environment.dots}
-\alias{as.environment.dots}
 \title{Make or update an environment with bindings from a dots list.}
 \usage{
-dots2env(x, env = new.env(hash = hash, parent = parent, size = size),
-  names = NULL, use_dots = TRUE, append = TRUE, hash = (length(dots) >
-  100), size = max(29L, length(dots)), parent = emptyenv())
+dots2env(
+  x,
+  env = new.env(hash = hash, parent = parent, size = size),
+  names = NULL,
+  use_dots = TRUE,
+  append = TRUE,
+  hash = (length(dots) > 100),
+  size = max(29L, length(dots)),
+  parent = emptyenv()
+)
 
 \method{as.environment}{dots}(x)
 }

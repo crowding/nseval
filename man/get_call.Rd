@@ -5,11 +5,15 @@
 \alias{get_function}
 \title{Get information about currently executing calls.}
 \usage{
-get_call(env = caller(environment()),
-  ifnotfound = stop("get_call: environment not found on stack"))
+get_call(
+  env = caller(environment()),
+  ifnotfound = stop("get_call: environment not found on stack")
+)
 
-get_function(env = caller(environment()),
-  ifnotfound = stop("get_function: environment not found on stack"))
+get_function(
+  env = caller(environment()),
+  ifnotfound = stop("get_function: environment not found on stack")
+)
 }
 \arguments{
 \item{env}{An environment belonging to a currently executing

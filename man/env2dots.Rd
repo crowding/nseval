@@ -4,8 +4,12 @@
 \alias{env2dots}
 \title{Copy bindings from an environment into a dots object, or vice versa.}
 \usage{
-env2dots(env = caller(environment()), names = ls(envir = env, all.names =
-  TRUE), include_missing = TRUE, expand_dots = TRUE)
+env2dots(
+  env = caller(environment()),
+  names = ls(envir = env, all.names = TRUE),
+  include_missing = TRUE,
+  expand_dots = TRUE
+)
 }
 \arguments{
 \item{env}{An environment.}

@@ -4,8 +4,10 @@
 \alias{caller}
 \title{Find the caller of a given environment.}
 \usage{
-caller(env = caller(environment()),
-  ifnotfound = stop("caller: environment not found on stack"))
+caller(
+  env = caller(environment()),
+  ifnotfound = stop("caller: environment not found on stack")
+)
 }
 \arguments{
 \item{env}{The environment whose caller to find. The default is
@@ -25,10 +27,10 @@ determines the calling environment.
 }
 \details{
 For example, in the code:\preformatted{X <- environment()
-F <- function() {
+F <- function() \{
   Y <- environment()
   caller(Y)
-}
+\}
 F()
 }
 

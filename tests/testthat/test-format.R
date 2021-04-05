@@ -68,3 +68,28 @@ test_that("oneline", {
 
   expect_true(all(formats != "?FORMAT?"))
 })
+
+expect_different <- function(a,b) expect_false(isTRUE(all.equal(a, b)))
+
+test_that("all.equal", {
+  env1 <- NULL
+  env2 <- NULL
+  hello <- function(x) x
+  world <- 5
+  there <- 5
+  expect_different(quo(hello), function() hello) # diff. class
+  q1 <- local({ env1 <<- environment(); quo(hello(world)) })
+  q2 <- local({ env2 <<- environment(); quo(hello(world)) })
+  qa <- quo(hello(world), env=env1)
+  expect_equal(q1, qa)
+  expect_different(q1, q2) # diff. env
+  q1f <- force_(q1)
+  expect_different(q1, q1f) #only one is forced
+  q2f <- force_(q2)
+  expect_equal(q1f, q2f) # now same env
+  q3f <- quo(hello(there), force=TRUE)
+  expect_different(q1f, q3f) # diff. expressions
+  world <- 4
+  q4f <- quo(hello(world), force=TRUE)
+  expect_different(q1f, q4f) # diff. values
+})

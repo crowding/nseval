@@ -14,7 +14,7 @@ set_dots(env, d, append = FALSE)
 
 \item{inherits}{Whether to pull '...' from enclosing environments.}
 
-\item{d}{a \code{[dots]} object.}
+\item{d}{a \verb{[dots]} object.}
 
 \item{append}{if TRUE, the values should be appended to the
 existing binding. If false, existing binding for "..." will be
@@ -29,9 +29,6 @@ is missing, it returns an empty dots list.
 \description{
 \code{get_dots()} unpacks \code{...} from a given environment and returns a
 \link{dots} object.
-
-\code{set_dots} takes a \link{dots} list and uses it to create a binding for
-\code{...} in a given environment.
 }
 \details{
 \code{get_dots()} is equivalent to \code{dots(...)} or

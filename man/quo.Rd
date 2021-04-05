@@ -46,7 +46,7 @@ is.quotation(x)
 
 as.quo(x)
 
-\method{as.quo}{function}(x)
+\method{as.quo}{`function`}(x)
 
 \method{as.quo}{quotation}(x)
 
@@ -86,12 +86,6 @@ expression \code{expr(q)} with an environment \code{env(q)}. (Like in
 writing, an 'expression' may simply be a set of words, but a
 'quotation' comes bundled with a citation, to reference a context
 in which it was said.)
-
-\code{quo_(expr, env)} is the normally evaluating version. It
-constructs a quotation given an expression and environment.
-
-\code{as.quo(x)} converts an object into a quotation. Closures,
-formulas, and single-element \link{dots} can be converted this way.
 }
 \details{
 A quo is parallel to a 'promise' which is the data structure R uses
