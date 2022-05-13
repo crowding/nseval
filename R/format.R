@@ -33,9 +33,9 @@ format.dots <- function(x,
         collapse="")
     })
 
-  chars <- paste0("dots<< ",
+  chars <- paste0("c.dots( ",
                   paste0(contents, collapse=", "),
-                  " >>")
+                  " )")
 
   format.default(chars, ...)
 }
@@ -51,10 +51,8 @@ format.quotation <- function(x,
                              show.expressions = !compact,
                              width = 36,
                              ...) {
-  chars = paste0("quo<< ",
-                 format.quotation.inner(
-                   x, compact, show.environments, show.expressions, width = width),
-                 " >>")
+  chars <- format.quotation.inner(
+    x, compact, show.environments, show.expressions, width = width)
   format.default(chars, ...)
 }
 
@@ -137,18 +135,22 @@ format.quotation.inner <- function(x,
   }
   contents <- paste0(c(
     if(forced(x)) {
+      c("forced_quo(",
       if (is.language(expr(x))) {
         if (show.expressions) {
-          c(dodeparse(expr(x)), " := ", doformat(value(x)))
+          c(dodeparse(expr(x)), ", val=", doformat(value(x)))
         } else {
-          doformat(value(x))
+          c("val=", doformat(value(x)))
         }
       } else {
-        doformat(value(x))
-      }
+        c("val=", doformat(value(x)))
+      },
+      ")")
     } else {
-      c(if (show.environments) c(doformat(env(x)), " ? ") else "? ",
-        dodeparse(expr(x)))
+      c("quo(",
+        dodeparse(expr(x)),
+        if (show.environments) c(", ", doformat(env(x))),
+        ")")
     }
   ), collapse="")
 }

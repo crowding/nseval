@@ -298,3 +298,23 @@ test_that("setting with a string", {
   y <- runif(1)
   x %is% (y+1)
 })
+
+if(FALSE) {
+  # not bothering with this yet...
+  test_that("setting ..N (ddvals)", {
+    f <- function(...) {
+      set_arg(..2, forced_quo_("four"))
+      list(...)
+    }
+    f(1, 4, 2) %is% list(1, "four", 2)
+    side <- list()
+    s <- function(x) side <<- c(side, list(x))
+    f(s(1), s(4), s(2)) %is% list(1, "four", 2)
+    s %is% list(1, 2)
+    f("one") %is% list(1, "four")
+    expect_error(f(), "\\(missing\\|empty\\)")
+    g <- function(...) {
+      set_arg_(quo_(..2), "four")
+    }
+  })
+}

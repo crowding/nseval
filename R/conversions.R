@@ -178,7 +178,7 @@ goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 #'
 #' `function_` is a normally-evaluating version of [`function`], which
 #' creates closures. A closure object has three components: the
-#' argument list the body expression, and the enclosing environment.
+#' argument list, the body expression, and the enclosing environment.
 #'
 #' @param args The argument list of the new function. NULL is accepted
 #'   to make a function with no arguments. Arguments are specified as
@@ -214,9 +214,9 @@ function_ <- function(args, body, env = arg_env(args, environment())) {
   f
 }
 
-#' `arglist` is a helper that produces a named list of
-#' [missing_value]s given a character vector of names.
 #' @rdname function_
+#' `arglist()` is a helper that produces a named list of
+#' [missing_value]s given a character vector of names.
 #' @param names A character vector.
 #' @param fill The expression (default missing)
 #' @export

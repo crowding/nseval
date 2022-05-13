@@ -41,11 +41,11 @@ as \code{X()}.
 
 \code{caller} is intended as a replacement for \link{parent.frame}, which
 returns the next environment up the calling stack -- which is
-sometimes the same value, but differs in some cases such as when
-lazy evaluation re-activates an environment. \code{parent.frame()} can
-return different things depending on the order in which arguments
-are evaluated, and without warning. \code{caller} will by default throw
-an error if the caller cannot be determined.
+sometimes the same value, but differs in some situations, such as
+when lazy evaluation re-activates an environment. \code{parent.frame()}
+can return different things depending on the order in which
+arguments are evaluated, without warning. \code{caller} will by default
+throw an error if the caller cannot be determined.
 
 In addition, \code{caller} tries to do the right thing when the
 environment was instantiated by means of \code{do.call}, \link{eval} or

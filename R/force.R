@@ -30,8 +30,8 @@ forced.dots <- function(x) {
 #' @rdname forced
 forced.default <- function(x) forced(as.quo(x))
 
-#' `forced_quo(x)` forces its argument and then captures it.
-#' argument literally.
+#' `forced_quo(x)` captures the expression in its argument, then
+#' forces it, returning a [quotation](quo) with the expression and value.
 #' @rdname forced
 #' @export
 forced_quo <- function(x) {
@@ -39,16 +39,16 @@ forced_quo <- function(x) {
   arg(x)
 }
 
-#' `forced_quo_(x)` makes a forced quotation from any data.
-#' Specifically it constructs a [quotation] with the same object in
+#' `forced_quo_(val)` makes a forced quotation given a value.
+#' Specifically it constructs a [quotation](quo) with the same object in
 #' both the `expr` and `value` slots, except if is a
-#' [language](is.language) object in which case the value is wrapped
+#' [language](is.language) object in which case the `expr` slot is wrapped
 #' in `quote()`.
 #' @rdname forced
 #' @return `forced_quo` and `forced_quo_` return [quotation](quo)
 #'   objects.
-forced_quo_ <- function(x) {
-  .Call("_quotation_literal", x)
+forced_quo_ <- function(val) {
+  .Call("_quotation_literal", val)
 }
 
 

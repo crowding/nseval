@@ -32,23 +32,23 @@ test_that("format dots and quotations", {
   d <- dots_some_forced(4, a=x+2, b+1, c=3+3, "5")
 
   format(d) %is%
-    paste0("dots<< 4, a = x + 2 := 4, ", e, " ? b + 1, c = ", e, " ? 3 + 3, ", e, " ? \"5\" >>")
+    paste0("c.dots( forced_quo(val=4), a = forced_quo(x + 2, val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
   format(d, show.environments=FALSE) %is%
-    paste0("dots<< 4, a = x + 2 := 4, ? b + 1, c = ? 3 + 3, ? \"5\" >>")
+    paste0("c.dots( forced_quo(val=4), a = forced_quo(x + 2, val=4), quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
   format(d, show.expressions=FALSE) %is%
-    paste0("dots<< 4, a = 4, ", e, " ? b + 1, c = ", e, " ? 3 + 3, ", e, " ? \"5\" >>")
-  format(d, compact=TRUE) %is%
-    paste0("dots<< 4, a = 4, ? b + 1, c = ? 3 + 3, ? \"5\" >>")
+    paste0("c.dots( forced_quo(val=4), a = forced_quo(val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
+  ## format(d, compact=TRUE) %is%
+  ##   paste0("dots<< 4, a = 4, ? b + 1, c = ? 3 + 3, ? \"5\" >>")
 
-  format(d[[1]]) %is% "quo<< 4 >>"
-  format(d[[2]]) %is% "quo<< x + 2 := 4 >>"
-  format(d[[3]]) %is% paste0("quo<< ", e, " ? b + 1 >>")
-  format(d[[4]]) %is% paste0("quo<< ", e, " ? 3 + 3 >>")
-  format(d[[5]]) %is% paste0("quo<< ", e, " ? \"5\" >>")
+  format(d[[1]]) %is% "forced_quo(val=4)"
+  format(d[[2]]) %is% "forced_quo(x + 2, val=4)"
+  format(d[[3]]) %is% paste0("quo(b + 1, ", e, ")")
+  format(d[[4]]) %is% paste0("quo(3 + 3, ", e, ")")
+  format(d[[5]]) %is% paste0("quo(\"5\", ", e, ")")
 
-  format(quo_(quote(f), globalenv())) %is% "quo<< <environment: R_GlobalEnv> ? f >>"
-  format(dots_(list(quote(f)), globalenv())) %is% "dots<< <environment: R_GlobalEnv> ? f >>"
-  format(dots(a, b, c)) %is% paste0("dots<< ", e, " ? a, ", e, " ? b, ", e, " ? c >>")
+  format(quo_(quote(f), globalenv())) %is% "quo(f, <environment: R_GlobalEnv>)"
+  format(dots_(list(quote(f)), globalenv())) %is% "c.dots( quo(f, <environment: R_GlobalEnv>) )"
+  format(dots(a, b, c)) %is% paste0("c.dots( quo(a, ", e, "), quo(b, ", e, "), quo(c, ", e, ") )")
 })
 
 test_that("format outputs one line", {

@@ -10,10 +10,11 @@
 #' * data (The R interpreter treates it as literal data rather
 #' than triggering argument splicing).
 #'
-#' `d <- dots(...)` can be used to capture the contents of `...`
-#' without triggering evaluation. This improves on `substitute(...())`
-#' by capturing the environment of each component along with the
-#' expressions.
+#' `d <- dots(...)` is used to capture the contents of `...` without
+#' triggering evaluation. This improves on
+#' `as.list(substitute(...()))` by capturing the environment of each
+#' argument along with their expressions. (You can also use
+#' [`get_dots()`].)
 #'
 #' @param ... Any number of arguments.
 #' @return A list with class 'dots', each element of which is a [quotation].
@@ -32,8 +33,9 @@ dots <- function(...) {
 }
 
 #' @rdname dots
-#' @return `dots_(exprs, envs)` directly constructs a dots object
-#'   given lists of expresions and environments.
+#' @return `dots_(exprs, envs)` constructs a dots object given lists
+#'   of expressions and environments. (To construct a dots object from
+#'   quotation objects, use [`c()`].)
 #' @param exprs An expression or list of expressions.
 #' @param envs An environment or list of environments.
 #' @export
@@ -145,10 +147,10 @@ c.quotation <- c.dots
 #'   [dots] object.
 #'
 #' `get_dots()` is equivalent to `dots(...)` or
-#' `arg_list( (...) )`.
+#' ``arg_list(`...`)``.
 #'
 #' @param env The environment to look in.
-#' @param inherits Whether to pull '...' from enclosing environments.
+#' @param inherits Whether to pull `...` from enclosing environments.
 #' @return `get_dots` returns a [dots] list. If `...` is not bound or
 #'   is missing, it returns an empty dots list.
 #' @seealso env2dots set_arg dots2env

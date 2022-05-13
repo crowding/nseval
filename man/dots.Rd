@@ -73,8 +73,9 @@ forced_dots_(values)
 \value{
 A list with class 'dots', each element of which is a \link{quotation}.
 
-\code{dots_(exprs, envs)} directly constructs a dots object
-given lists of expresions and environments.
+\code{dots_(exprs, envs)} constructs a dots object given lists
+of expressions and environments. (To construct a dots object from
+quotation objects, use \code{c.dots()}.)
 
 \code{exprs} returns a named list of expressions.
 
@@ -96,10 +97,11 @@ Unlike \code{...}, a \code{dots} is:
 than triggering argument splicing).
 }
 
-\code{d <- dots(...)} can be used to capture the contents of \code{...}
-without triggering evaluation. This improves on \code{substitute(...())}
-by capturing the environment of each component along with the
-expressions.
+\code{d <- dots(...)} is used to capture the contents of \code{...} without
+triggering evaluation. This improves on
+\code{as.list(substitute(...()))} by capturing the environment of each
+argument along with their expressions. (You can also use
+\code{\link[=get_dots]{get_dots()}}.)
 }
 \note{
 The columns have a class \code{"oneline"} for better printing.

@@ -12,7 +12,7 @@ extern SEXP _arg(SEXP, SEXP, SEXP);
 extern SEXP _arg_dots(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _arg_env(SEXP, SEXP, SEXP);
 extern SEXP _arg_expr(SEXP, SEXP, SEXP);
-extern SEXP _do(SEXP);
+extern SEXP _construct_do_call(SEXP);
 extern SEXP _dots_envs(SEXP);
 extern SEXP _dots_exprs(SEXP);
 extern SEXP _dots_to_env(SEXP, SEXP, SEXP);
@@ -39,7 +39,7 @@ static const R_CallMethodDef CallEntries[] = {
   {"_arg_dots",             (DL_FUNC) &_arg_dots,             4},
   {"_arg_env",              (DL_FUNC) &_arg_env,              3},
   {"_arg_expr",             (DL_FUNC) &_arg_expr,             3},
-  {"_do",                   (DL_FUNC) &_do,                   1},
+  {"_construct_do_call",    (DL_FUNC) &_construct_do_call,    1},
   {"_dots_envs",            (DL_FUNC) &_dots_envs,            1},
   {"_dots_exprs",           (DL_FUNC) &_dots_exprs,           1},
   {"_dots_to_env",          (DL_FUNC) &_dots_to_env,          3},

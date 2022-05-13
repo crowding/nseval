@@ -12,7 +12,7 @@ set_dots(env, d, append = FALSE)
 \arguments{
 \item{env}{The environment to look in.}
 
-\item{inherits}{Whether to pull '...' from enclosing environments.}
+\item{inherits}{Whether to pull \code{...} from enclosing environments.}
 
 \item{d}{a \verb{[dots]} object.}
 
@@ -32,7 +32,7 @@ is missing, it returns an empty dots list.
 }
 \details{
 \code{get_dots()} is equivalent to \code{dots(...)} or
-\code{arg_list( (...) )}.
+\code{arg_list(`...`)}.
 }
 \seealso{
 env2dots set_arg dots2env

@@ -32,6 +32,13 @@ SEXP _set_dots(SEXP dots, SEXP env) {
   return R_NilValue;
 }
 
+SEXP _nseval_update(SEXP name, SEXP env, SEXP value, SEXP inherit) {
+  assert_type(env, ENVSXP);
+  assert_type(name, SYMSXP);
+  assert_type(value, SYMSXP);
+  return R_NilValue;
+}
+
 /* measure the length of a dots object. */
 int _dots_length(SEXP dots) {
   SEXP s;

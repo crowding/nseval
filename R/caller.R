@@ -21,11 +21,11 @@
 #'
 #' `caller` is intended as a replacement for [parent.frame], which
 #' returns the next environment up the calling stack -- which is
-#' sometimes the same value, but differs in some cases such as when
-#' lazy evaluation re-activates an environment. `parent.frame()` can
-#' return different things depending on the order in which arguments
-#' are evaluated, and without warning. `caller` will by default throw
-#' an error if the caller cannot be determined.
+#' sometimes the same value, but differs in some situations, such as
+#' when lazy evaluation re-activates an environment. `parent.frame()`
+#' can return different things depending on the order in which
+#' arguments are evaluated, without warning. `caller` will by default
+#' throw an error if the caller cannot be determined.
 #'
 #' In addition, `caller` tries to do the right thing when the
 #' environment was instantiated by means of `do.call`, [eval] or
@@ -91,10 +91,7 @@ caller <- function(env = caller(environment()),
     #
     # do.call will make a stack frame that has the right sysparent, which
     # parent.frame will return.
-    result <- do.call(parent.frame, list(), envir=env)
-
-    # Do I really need do.call for this? What's the way for
-    # NSE to directly call with a builtin?
+    result <- do_(quo_(parent.frame, env))
   } else if(whichparent == 0) {
     result <- globalenv()
   } else {
@@ -115,7 +112,7 @@ caller <- function(env = caller(environment()),
 #' convertible to such using `as.quo()`. They will be concatenated
 #' together by [c.dots] to form the call list (a `dots` object).
 #' For `do` the first argument is quoted literally, but the
-#' rest of the arguments are evaluated the same way as do_.
+#' rest of the arguments are evaluated the same way as `do_`.
 #'
 #' The first element of the call list represents the function, and it
 #' should evaluate to a function object. The rest of the call list is
@@ -127,27 +124,42 @@ caller <- function(env = caller(environment()),
 #' should return that environment.
 #'
 #' `do` is intended to be a replacement for base function [do.call].
+#' For instance these two lines are similar in effect:
 #'
-#' @note Special builtins, such as ( [`<-`], or [`for`])
-#'   may require that they are called from the same environment as
-#'   their args.
+#'     do.call("complex", list(imaginary = 1:3))
+#'     do(complex, dots(imaginary = 1:3))
+#'
+#' As are all these:
+#'
+#'     do.call("f", list(as.name("A")), envir = env)
+#'     do_(quo(f, env), quo(A, env)):
+#'     do_(dots_(list(as.name("f"), as.name("A")), env))
+#'     do_(dots_(alist(f, A), env))
+#'
+#' @note When the environment of the head differs from that of the
+#'   arguments, `do` may make a temporary binding of `...` to pass
+#'   arguments. This will cause some builtins, like ( [`<-`], or
+#'   [`for`]), to fail with an error like
+#'   "'...' use an in incorrect context." These primitives can only be
+#'   called using `do_` if all inputs reference the same environment.
 #' @seealso get_call do.call match.call
 #'
-#' @param ... All arguments are concatenated using `c.dots()`. The
-#'   first element of the resulting list is taken as a function to
-#'   call, the rest as its arguments.
+#' @param ... A function to call and list(s) of arguments to pass. All
+#'   should be `quotation` or `dots` objects, except the first
+#'   argument for `do` which is quoted literally.
 #'
 #' @return The return value of the call.
 #' @export
 do <- function(...) {
   d <- dots(...)
-  d[[1]] <- forced_quo(arg(..1)) #unwrap and then insulate from forcing
-  d <- do_(quo(c.dots), d)       #force dots and concatenate
+  d[[1]] <- forced_quo(arg(..1)) #quote first argument
+  set_dots(environment(), d)
+  d <- c.dots(...)
   do__(d)
 }
 
 #' @rdname do
-#' @useDynLib nseval _do
+#' @useDynLib nseval _construct_do_call
 #' @export
 do_ <- function(...) {
   d <- c.dots(...)
@@ -155,7 +167,26 @@ do_ <- function(...) {
 }
 
 do__ <- function(d) {
-  .Call("_do", d)
+  # returns list of 3: expr, env, temporary dotsxp
+  toeval <- .Call("_construct_do_call", d)
+  e <- toeval[[2]]
+  if (!is.null(toeval[[3]])) {
+    # make an ephemeral self-resetting binding for `...`
+    if (exists("...", e, inherits=FALSE)) {
+      olddots <- mget("...", e, inherits=FALSE)
+      .Internal(remove("...", e, FALSE))
+      delayedAssign(  # lazy so that it only resets once!
+        "reset", {
+          .Internal(remove("...", e, FALSE))
+          .Call("_set_dots", olddots[[1]], envir=e)
+        })
+    } else {
+      delayedAssign("reset", .Internal(remove("...", e, FALSE)))
+    }
+    makeActiveBinding(quote(...), function() {reset; toeval[[3]]}, e)
+    on.exit(reset) # if it hasn't already
+  }
+  eval(toeval[[1]], e)
 }
 
 #' Get information about currently executing calls.

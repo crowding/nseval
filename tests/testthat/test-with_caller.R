@@ -24,80 +24,59 @@ test_that("do_ with primitives", {
   e <- new.env()
   x <- 1
   e$x <- 10
-  expect_error(do(`<-`, quo(x, e), quo(x+2)), "left-hand")
+  # with the `...` injection approach, no
+  expect_error(do(`<-`, quo(x, e), quo(x+2)), "number of arguments")
+  # forcing the direct PROMSXP calling approach, still no
+  e2 <- new.env(e)
+  lockEnvironment(e2)
+  expect_error(do_(quo(`<-`, e2), quo(x, e), quo(x+2)), "left-hand")
 
-  # but the RHS can be in another env
+  # but if calling env and LHS are same, can RHS can be in another env?
   e <- new.env()
   x <- 1
   e$x <- 10
-  do(`<-`, quo(x), quo(x+2, e))
-  x %is% 12
+  expect_error(do(`<-`, quo(x), quo(x+2, e)), "\\.\\.\\.")
+  #no, but when forcing promsxp injection, yes:
+  e2 <- new.env(e)
+  e2$x <- 7
+  lockEnvironment(e2)
+  do_(quo(`<-`, e2), quo(x, e2), quo(x+2, e))
+  e2$x %is% 12
   e$x %is% 10
 
-  # and we can do the assign in another env
+  # and we can do the assign in another env?
   e <- new.env()
   x <- 1
   e$x <- 10
+  expect_error(do_(quo(`<-`, e), quo(x, e), quo(x+2)), "incorrect context")
+  #no, but when forcing promsxp injection, we can.
+  lockEnvironment(e)
   do_(quo(`<-`, e), quo(x, e), quo(x+2))
   e$x %is% 3
   x %is% 1
 
-  # and we can assign in detached env, trickily. Note that the primitive itself
-  # is going into the call, not the name `<-`
+  # and we can assign in detached env, trickily. Note that the
+  # primitive itself is going into the call, not the name `<-`
   e <- new.env(parent=emptyenv())
+  e$x <- NULL
   x <- 10
+  lockEnvironment(e)
   expect_error( do_(quo(`<-`, e), quo(x, e), quo(x+1)), "could not find")
   do_(quo_(`<-`, e), quo(x, e), quo(x+1))
   x %is% 10
   e$x %is% 11
 
-  # however `+` is copacetic with promises and being called from emptyenv
+  # however `+` is copacetic with `...` and being called from emptyenv
   x <- 3
   do_(forced_quo_(`+`), dots(x+1, x+2)) %is% 9
   do_(quo(`+`, force=TRUE), dots(x+1, x+2)) %is% 9
 
-  mode(do(alist, forced_quo_(as.name("x")))[[1]]) %is% "promise" #???
-  #FIXME. This may point to an incompatibility with how we do do()
-  #versus sys.call(), which makes sys.call() leak promsxps to
-  #user. However, this package's position is that sys.call() is
-  #broken, so the question is if we should care about sys.call()
-  #leaking promises. An alternative might be to involve "...", and
-  #implement do() in such a way that sys.call() always gets you
-  #f(...).
-
-})
-
-
-test_that("do_", {
-  # having extablished how to invoke `<-`,
-  # let's make an "update" operator, like `<<-` except it starts
-  # search in the present environment, but still defaulting to global
-  # (that is, like Javascript "=")
-  `:=` <- function(lval, rval) {
-    lval_ <- arg(lval)
-    rval_ <- arg(rval)
-    target.env <- locate_(lval_, ifnotfound = globalenv())
-    if (identical(target.env, emptyenv()))
-      target.env <- globalenv()
-    env(lval_) <- target.env
-    do_(quo_(`<-`, target.env), lval_, rval_)
-  }
-
-  local({x <- 13; x := x + 1}) %is% 14
-
-  x <- 5
-  y <- 10
-
-  local({
-    x <- 13
-    x := x + 1
-    y := y + 1
-    z := x + y
-    x %is% 14
-  })
-  x %is% 5
-  y %is% 11
-  z %is% 25
+  # and alist knows how to unpack `...`
+  mode(do(alist, forced_quo_(as.name("x")))[[1]]) %is% "name"
+  # but if promsxp injection is forced, alist leaks naked promsxps
+  e <- new.env()
+  lockEnvironment(e)
+  mode(do_(quo(alist, e), forced_quo_(as.name("x")))[[1]]) %is% "promise"
 })
 
 test_that("`do` allows different args to come from different environments, just like ...", {
@@ -281,4 +260,22 @@ test_that("arg_envs propagate through do()", {
     arg_env(z)$where %is% "e"
   }
   e()
+})
+
+test_that("errors occurring under do_ should have printable sys.calls", {
+  concat <- function(...) list(...)
+  doodo <- function(...) {
+    d <- dots(...)
+    d <- do_(quo(concat), d) # error thrown when "concat" forces is args
+  }
+  st <- NULL
+  ee <- function(object) {
+    withCallingHandlers({
+      object
+    }, error = function(cnd) {
+      s <- sys.calls()
+      capture.output(print(s))   # this should not throw
+    })
+  }
+  expect_error( ee(doodo(stop("expected_error"))), "expected_error")
 })

@@ -28,7 +28,7 @@ forced(x)
 
 forced_quo(x)
 
-forced_quo_(x)
+forced_quo_(val)
 
 forced_dots(...)
 
