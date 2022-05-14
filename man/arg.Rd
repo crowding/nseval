@@ -30,8 +30,8 @@ character.}
 from which \code{sym} was passed.}
 
 \item{...}{Bare names (not forced). Arguments may be named; these
-names determine the names on the output list. If argument names
-are not given, the input is used as output names}
+names determine the names on the output list. If arguments are
+not named, the names given are used.}
 
 \item{syms}{A character vector or list of names.}
 
@@ -55,6 +55,20 @@ quotation, like a formula).}
 \code{arg(x)} looks in the calling environment for the binding \code{x},
 taken literally, and returns it as a \link{quotation}. \code{arg(x)} is
 equivalent to \code{unwrap(quo(x))}.
+
+\code{arg_} evaluates the first element normally;
+\code{arg(x, e)} is equivalent to \code{arg_(quote(x), e)}.
+
+\code{arg_list} looks up multiple variables, and returns a \link{dots}
+object.  \code{arg_list(x, y)} is equivalent to \code{unwrap(dots(x=x, y=y))}. If any of the requested variables are not bound, an error
+will be raised.
+
+\code{arg_list_} is a normally evaluating version of \code{arg_list};
+\code{arg_list(x, y)} is equivalent to
+\code{arg_list_(alist(x, y), environment())}.
+
+\code{set_arg} and set_arg_ create bindings from quotations. They
+replace base function \link{delayedAssign}.
 }
 \note{
 If you use a a literal character value, as in \code{arg_("x", environment())}, you MUST also give the environment

@@ -21,6 +21,3 @@ as.lazy_dots(x, env)
 Convert quotations and dot lists to the representations used
 by other packages.
 }
-\seealso{
-as.dots
-}

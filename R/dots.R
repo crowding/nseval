@@ -17,7 +17,8 @@
 #' [`get_dots()`].)
 #'
 #' @param ... Any number of arguments.
-#' @return A list with class 'dots', each element of which is a [quotation].
+#' @return `dots(...)` constructs a list with class 'dots', each
+#'   element of which is a [quotation].
 #' @examples
 #'
 #' named.list <- function(...) {
@@ -50,9 +51,8 @@ dots_ <- function(exprs, envs) {
 }
 
 
-#' `exprs(d)` extracts a list of expressions from a dots object.
 #' @param d A [dots] object.
-#' @return `exprs` returns a named list of expressions.
+#' @return `exprs(d)` extracts a list of expressions from a dots object.
 #' @rdname dots
 #' @export
 exprs <- function(d) UseMethod("exprs")
@@ -63,8 +63,8 @@ exprs.dots <- function(d) {
   lapply(unclass(d), function(x) .Call("_expr_quotation", x))
 }
 
-#' The mutator `exprs(d) <- value` returns a new dots object with the new
-#' expressions.
+#' @return The mutator `exprs(d) <- value` returns a new dots object
+#'   with the new expressions.
 #' @export
 #' @rdname dots
 `exprs<-` <- function(d, value) {
@@ -78,7 +78,7 @@ exprs.dots <- function(d) {
                    expr = value, env = envs(d)), class="dots")
 }
 
-#' `envs(d)` extracts a list of environments from a dots
+#' @return `envs(d)` extracts a list of environments from a dots
 #'   object.
 #' @rdname dots
 #' @export
@@ -93,10 +93,10 @@ envs.dots <- function(d) {
   lapply(d, environment)
 }
 
-#' `envs(d) <- value` replaces the environments with the new
-#' value and returns an updated dots object.
+#' @return `envs(d) <- value` returns an updated dots object with the
+#'   environments replaced with the new value(s).
 #' @rdname dots
-#' @param value A replacement value.
+#' @param value A replacement value or list of values.
 #' @export
 `envs<-` <- function(d, value) {
   UseMethod("envs<-")
@@ -162,13 +162,14 @@ get_dots <- function(env = caller(environment()), inherits=FALSE) {
   .Call("_dotsxp_to_flist", dts)
 }
 
+#' @rdname get_dots
+#' @description
 #' `set_dots` takes a [dots] list and uses it to create a binding for
 #' `...` in a given environment.
 #' @param d a `[dots]` object.
 #' @param append if TRUE, the values should be appended to the
 #'   existing binding. If false, existing binding for "..." will be
 #'   replaced.
-#' @rdname get_dots
 #' @return `set_dots` returns the updated environment, invisibly.
 #' @useDynLib nseval _set_dots
 #' @useDynLib nseval _flist_to_dotsxp

@@ -52,6 +52,13 @@ quotations.}
 }
 \description{
 \code{format.dots} constructs a string representation of a dots
-object. An un\link{forced} quotation is shown as \code{envir ? expr} and a
-forced quotation is shown as \code{expr := value}.
+object.
+
+\code{format.quotation} constructs a string representation of a
+quotation object.
+
+\code{format.oneline} formats a vector or list so that each item is
+displayed on one line. It is similar to \link{format.AsIs} but tries
+harder with language objects. The "oneline" class is used by
+\link{as.data.frame.dots}.
 }

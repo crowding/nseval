@@ -245,9 +245,10 @@ get_call <- function(env = caller(environment()),
          env2dots(env, argnames));
 }
 
+#' @description
 #' `get_function(env)` finds the function object associated with a
 #' currently executing call.
-#'
+#' @details
 #' `get_function` is similar to [`sys.function`], but is keyed by
 #' environment rather than number.
 #' @return `get_function` returns a closure.

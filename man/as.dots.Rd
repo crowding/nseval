@@ -32,6 +32,8 @@ An object of class \code{\dots}.
 }
 \description{
 \code{as.dots} is a generic function for converting data into \link{dots}.
+
+\code{as.dots.environment} is a synonym for \code{\link{env2dots}}.
 }
 \seealso{
 env2dots

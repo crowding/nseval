@@ -1,8 +1,7 @@
 #' Formatting methods for dots and quotations.
 #'
 #' `format.dots` constructs a string representation of a dots
-#' object. An un[forced] quotation is shown as `envir ? expr` and a
-#' forced quotation is shown as `expr := value`.
+#' object.
 #' @param x An object.
 #' @param compact Implies `show.environments=FALSE` and
 #'   `show.expressions=FALSE`.
@@ -41,9 +40,10 @@ format.dots <- function(x,
 }
 
 
+#' @rdname format
+#' @description
 #' `format.quotation` constructs a string representation of a
 #' quotation object.
-#' @rdname format
 #' @export
 format.quotation <- function(x,
                              compact = FALSE,
@@ -56,12 +56,13 @@ format.quotation <- function(x,
   format.default(chars, ...)
 }
 
+#' @rdname format
+#' @description
 #' `format.oneline` formats a vector or list so that each item is
 #' displayed on one line. It is similar to [format.AsIs] but tries
 #' harder with language objects. The "oneline" class is used by
 #' [as.data.frame.dots].
 #' @export
-#' @rdname format
 #' @param max.width See [base::format].
 #' @param ... Further parameters passed along to [base::format].
 format.oneline <- function(x, max.width=50, width=max.width, ...) {

@@ -1,10 +1,11 @@
 #' Quotation objects.
 #'
-#' `quo` captures its argument literally, that is, without evaluating,
-#' and constructs a quotation. A quotation has two parts: an
-#' expression `expr(q)` with an environment `env(q)`. (Like in
-#' writing, an 'expression' may simply be a set of words, but a
-#' 'quotation' comes bundled with a citation, to reference a context
+#' `quo(expr, env)` captures `expr` without evaluating, and returns a
+#' qutation object. A quotation has two parts: an
+#' expression `expr(q)` with an environment `env(q)`.
+#'
+#' (Like in writing, an 'expression' may simply be a set of words, but
+#' a 'quotation' comes bundled with a citation, to reference a context
 #' in which it was said.)
 #'
 #' A quo is parallel to a 'promise' which is the data structure R uses
@@ -14,7 +15,8 @@
 #' As a data object, a quo does not automatically evaluate like a
 #' promise, but can be evaluated explicitly with the methods [value]
 #' or [force_].  A quo is immutable, so it does not mutate into a
-#' "forced" state if you choose to evaluate it.
+#' "forced" state if you choose to evaluate it; instead `force_(q)`
+#' returns a new object in the forced state.
 #'
 #' A function can capture its arguments as quotations using [`arg`].
 #'
@@ -24,15 +26,15 @@
 #' @param expr An expression. For `quo` this is taken literally and
 #'   not evaluated. For `quo_` this is evaluated normally.
 #' @param env An [environment].
-#' @param force Immediately evaluate the expression and create a
-#'   [forced] quotation, i.e. one that stores an expression and value,
-#'   but no environment.
+#' @param force Whether to evaluate the expression and create a
+#'   [forced] quotation.
 #' @return `quo_` and `quo` return an object of class "quotation".
 #' @aliases quotation
 quo <- function(expr, env = arg_env_(quote(expr), environment()), force = FALSE) {
   quo_(arg_expr_(quote(expr), environment()), env = env, force = force)
 }
 
+#' @description
 #' `quo_(expr, env)` is the normally evaluating version. It
 #' constructs a quotation given an expression and environment.
 #' @rdname quo

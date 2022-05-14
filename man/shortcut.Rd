@@ -41,7 +41,7 @@ is_literal_(syms, envs)
 
 is_missing(...)
 
-is_missing_(syms, envs, recursive = TRUE)
+is_missing_(syms, envs, unwrap = TRUE)
 
 is_promise(...)
 
@@ -52,8 +52,9 @@ is_default(...)
 is_default_(syms, envs = arg_env(syms))
 }
 \arguments{
-\item{sym}{For \code{arg_env}, etc, a bare name (not forced). For the
-normally evaluating \code{arg_env_} and so on, \link{name}.}
+\item{sym}{For plain \code{arg_env}, etc, a bare name, which is
+quoted. For the underscore versions \code{arg_env_}, something that
+evaluates to a name or character.}
 
 \item{env}{The environment to search in.}
 
@@ -64,14 +65,29 @@ normally evaluating \code{arg_env_} and so on, \link{name}.}
 
 \item{envs}{An environment or list of environments.}
 
-\item{recursive}{Whether to recursively \link{unwrap} before testing for
+\item{unwrap}{Whether to recursively \link{unwrap} before testing for
 missingness.}
 }
 \value{
-\code{arg_expr} extracts an expression from a named argument.
+\code{arg_env} returns an environment.
 
-\code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))} (which
-is nearly equivalent to \code{alist(...)}.)
+\code{arg_expr} returns the expression bound to a named argument.
+
+\code{is_forced} and other \verb{is_*} return a logical vector with
+optional names.
+}
+\description{
+These are shortcut methods for querying current bindings.  For
+example, \code{arg_env(x)} is equivalent to \code{env(arg(x))},
+\code{is_forced(x, y)} is equivalent to \code{forced(arg_list(x,y))},
+\code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))}, and so
+on. The shortcut forms skip the construction of the
+intermediate \link{quotation} objects.
+
+\code{dots_exprs(...)} quotes its arguments and returns a
+list of expressions. It is equivalent to \code{exprs(dots(...))} (and
+is nearly equivalent to \code{alist(...)}, one difference being that
+dots_exprs will expand \code{...}.)
 
 \code{is_literal(x)} returns TRUE if an argument \code{x} could be a
 source literal. Specifically it tests whether \code{x} is bound to a
@@ -93,13 +109,14 @@ a vector of names and one env, or vice versa.
 a promise. Not all arguments are bound to promises; byte-compiled
 code often omits creating a promise for literal or missing arguments.
 
-\code{is_default} returns a logical vector.
+\code{is_default}  determines whether an argument is bound to the
+function's default value for that argument. It must be called
+before the arguments have been forced (afterwards it will return
+FALSE).
 }
-\description{
-These are shortcut methods for querying current bindings.  For
-example, \code{arg_env(x)} is equivalent to \code{env(arg(x))},
-\code{is_forced(x, y)} is equivalent to \code{forced(arg_list(x,y))},
-\code{dots_exprs(...)} is equivalent to \code{exprs(dots(...))}, and so
-on. The shortcut forms skip the construction of the
-intermediate \link{quotation} objects.
+\details{
+As throughout this package, the functions with bare names will
+quote their first argument literally. Their counterparts, with
+underscores \verb{_} at the end, take a character vector or list of
+names.  and an environment to look in.
 }

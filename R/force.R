@@ -10,18 +10,20 @@
 #' @seealso [is_forced]
 forced <- function(x) UseMethod("forced")
 
+#' @rdname forced
+#' @description
 #' `forced(q)` tests whether a [quotation] is forced.
 #' @export
 #' @useDynLib nseval _forced_quotation
-#' @rdname forced
 forced.quotation <- function(x, ...) {
   .Call("_forced_quotation", x)
 }
 
+#' @rdname forced
+#' @description
 #' `forced(d)` on a [dots] object tests whether each element
 #' is forced, and returns a logical vector.
 #' @export
-#' @rdname forced
 forced.dots <- function(x) {
   lapply(x, forced)
 }
@@ -30,21 +32,23 @@ forced.dots <- function(x) {
 #' @rdname forced
 forced.default <- function(x) forced(as.quo(x))
 
+#' @rdname forced
+#' @description
 #' `forced_quo(x)` captures the expression in its argument, then
 #' forces it, returning a [quotation](quo) with the expression and value.
-#' @rdname forced
 #' @export
 forced_quo <- function(x) {
   force(x)
   arg(x)
 }
 
+#' @rdname forced
+#' @description
 #' `forced_quo_(val)` makes a forced quotation given a value.
 #' Specifically it constructs a [quotation](quo) with the same object in
 #' both the `expr` and `value` slots, except if is a
 #' [language](is.language) object in which case the `expr` slot is wrapped
 #' in `quote()`.
-#' @rdname forced
 #' @return `forced_quo` and `forced_quo_` return [quotation](quo)
 #'   objects.
 forced_quo_ <- function(val) {
@@ -52,21 +56,21 @@ forced_quo_ <- function(val) {
 }
 
 
-#' `forced_dots(...)` forces its arguments and emits a `dots` object.
-#' @export
 #' @rdname forced
-#' @param ... any number of arguments; they will be quoted literally.
-#' @return `forced_dots` and `forced_dots_` return [dots] objects.
+#' @description
+#' `forced_dots(...)` forces its arguments and constructs a `dots` object with
+#' [forced] quotations.
+#' @export
 #' @useDynLib nseval _quotation_literal
 forced_dots <- function(...) {
   list(...)
   get_dots(environment())
 }
 
-#' `forced_dots_(values)` create from dots object from any data.
-#'
+#' @rdname forced
+#' @description
+#' `forced_dots_(values)` creates a dots object from a list of values
 #' @param values A list; each element will be used as data.
-#' @rdname dots
 #' @export
 forced_dots_ <- function(values) {
   structure(lapply(as.list(values),
@@ -74,10 +78,12 @@ forced_dots_ <- function(values) {
             class="dots")
 }
 
+
+#' @rdname forced
+#' @description
 #' `force_(x)` converts an unforced quotation or dots object into a
 #' forced one, by evaluating it.
 #' @export
-#' @rdname forced
 #' @seealso [force]
 force_ <- function(x, ...) {
   UseMethod("force_")
@@ -100,7 +106,8 @@ force_.dots <- function(x, ...) {
   structure(lapply(x, force_.quotation, ...), class="dots")
 }
 
-#' `value` or `values` returns the value of a quotation or dots,
+#' rdname forced
+#' `value(x)` or `values(...)` returns the value of a quotation or dots,
 #'   forcing it if necessary.
 #' @rdname forced
 #' @return `value(x)` returns the result of forcing the quotation.

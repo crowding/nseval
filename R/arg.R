@@ -25,24 +25,26 @@ arg <- function(sym,
   arg_(sym_, env)
 }
 
+#' @rdname arg
+#' @description
 #' `arg_` evaluates the first element normally;
 #' `arg(x, e)` is equivalent to `arg_(quote(x), e)`.
-#' @rdname arg
 #' @export
 #' @useDynLib nseval _arg
 arg_ <- function(sym, env = arg_env(sym, environment())) {
   .Call("_arg", env, as.name(sym), TRUE)
 }
 
-
+#' @rdname arg
+#' @description
 #' `arg_list` looks up multiple variables, and returns a [dots]
 #' object.  `arg_list(x, y)` is equivalent to `unwrap(dots(x=x,
 #' y=y))`. If any of the requested variables are not bound, an error
 #' will be raised.
 #'
 #' @param ... Bare names (not forced). Arguments may be named; these
-#'   names determine the names on the output list. If argument names
-#'   are not given, the input is used as output names
+#'   names determine the names on the output list. If arguments are
+#'   not named, the names given are used.
 #' @return `args` returns a [dots] object.
 #' @note Beware of writing `arg_list(a, b, ...)` which probably
 #'   doesn't do what you want. This is because R unwraps `...` before
@@ -53,7 +55,6 @@ arg_ <- function(sym, env = arg_env(sym, environment())) {
 #'   function inputs to an active function.
 #' @return `arg_list` returns a [dots] object.
 #' @seealso dots get_dots unwrap
-#' @rdname arg
 #' @export
 #' @useDynLib nseval _arg_dots
 #' @useDynLib nseval _dotsxp_to_flist
@@ -63,10 +64,11 @@ arg_list <- function(...) {
 }
 
 
+#' @rdname arg
+#' @description
 #' `arg_list_` is a normally evaluating version of `arg_list`;
 #' `arg_list(x, y)` is equivalent to
 #' `arg_list_(alist(x, y), environment())`.
-#' @rdname arg
 #' @param syms A character vector or list of names.
 #' @param envs An environment, or a list of environments, to look for
 #'   the bindings in.
@@ -82,13 +84,14 @@ arg_list_ <- function(syms, envs) {
 }
 
 
+#' @rdname arg
+#' @description
 #' `set_arg` and set_arg_ create bindings from quotations. They
 #' replace base function [delayedAssign].
 #' @param dst A name; for `set_arg` this is quoted literally; for
 #'   `set_arg_` this should be a [quotation].
 #' @param src A [quotation] (or something that can be converted to a
 #'   quotation, like a formula).
-#' @rdname arg
 `set_arg` <- function(dst, src)  {
   dst_ <- arg_(quote(dst), environment())
   set_arg_(dst_, src)

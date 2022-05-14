@@ -56,12 +56,24 @@ default an exception is raised.}
 }
 \value{
 An environment object which defines \code{sym}, if one is found.
+
+If \code{sym} is a list (of \link{name}s) or a \link{dots} object, \code{locate_(sym)}
+returns a list.
 }
 \description{
 \code{locate} starts at a given environment, and searches enclosing
-environments for a name. It returns the first which defines \code{sym}.
+environments for a name. It returns the first enclosing environment
+which defines \code{sym}.
+
+\code{locate_} is the normally evaluating method; \code{locate(x)} is
+equivalent to \code{locate_(quo(x))} or \code{locate_(quote(x), environment())}.
+
+When \code{sym} is a \link{quotation} or \link{dots}, any \code{env} argument is ignored.
 }
 \note{
+To locate where \code{...} is bound, you can wrap it in parens, as
+\code{locate( (...) )}.
+
 If you use a literal character argument, as in \code{locate("x", environment())}, you must also provide the environment argument
 explicitly; \code{locate("x")} won't work in compiled
 functions. However using a literal name like \code{locate(x)} will

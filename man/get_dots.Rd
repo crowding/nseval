@@ -29,6 +29,9 @@ is missing, it returns an empty dots list.
 \description{
 \code{get_dots()} unpacks \code{...} from a given environment and returns a
 \link{dots} object.
+
+\code{set_dots} takes a \link{dots} list and uses it to create a binding for
+\code{...} in a given environment.
 }
 \details{
 \code{get_dots()} is equivalent to \code{dots(...)} or

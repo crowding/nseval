@@ -2,9 +2,12 @@
 % Please edit documentation in R/conversions.R
 \name{function_}
 \alias{function_}
+\alias{arglist}
 \title{Explicitly create closures.}
 \usage{
 function_(args, body, env = arg_env(args, environment()))
+
+arglist(names, fill = missing_value())
 }
 \arguments{
 \item{args}{The argument list of the new function. NULL is accepted
@@ -17,6 +20,10 @@ useful for making argument lists.}
 \item{body}{An expression for the body of the function.}
 
 \item{env}{The enclosing environment of the new function.}
+
+\item{names}{A character vector.}
+
+\item{fill}{The expression (default missing)}
 }
 \value{
 A closure.
@@ -25,6 +32,9 @@ A closure.
 \code{function_} is a normally-evaluating version of \code{\link{function}}, which
 creates closures. A closure object has three components: the
 argument list, the body expression, and the enclosing environment.
+
+\code{arglist()} is a helper that produces a named list of
+\link{missing_value}s given a character vector of names.
 }
 \examples{
 f1 <- function(x, y = x) { x + y }

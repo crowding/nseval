@@ -28,8 +28,6 @@ quotation. When the argument is forced or has a nontrivial
 expression \code{unwrap} has no effect.
 }
 \details{
-The syntax \code{locate( (...) )} is available for locating \code{...}.
-
 There are two good use cases for \code{unwrap(x, recursive=TRUE)}. One
 is to derive plot labels (the most inoccuous use of
 metaprogramming). Another is to check for missingness (this is what
