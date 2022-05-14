@@ -4,3 +4,5 @@
 ^TAGS$
 ^\.travis\.yml$
 vignettes/draft
+^\.github$
+^codecov\.yml$

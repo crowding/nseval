@@ -1,9 +1,10 @@
 NSEval
 ======
 
-[![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)
-[![Travis build status](http://travis-ci.org/crowding/nseval.svg?branch=master)](https://travis-ci.org/crowding/nseval)
-[![Code coverage](https://codecov.io/gh/crowding/nseval/branch/master/graph/badge.svg)](https://codecov.io/gh/crowding/nseval)
+  <!-- badges: start -->
+[![R-CMD-check](https://github.com/crowding/nseval/workflows/R-CMD-check/badge.svg)](https://github.com/crowding/nseval/actions)
+ [![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)
+  <!-- badges: end -->
 
 `nseval` is the missing API for non-standard evaluation and
 metaprogramming in R.

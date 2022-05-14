@@ -9,16 +9,16 @@ Description: Functions to capture, inspect, manipulate, and create
              lazy values (promises), "..." lists, and active calls.
 License: GPL (>= 2.0)
 Encoding: UTF-8
-Depends:
 Suggests:
     testthat (>= 2.0.0),
     compiler (>= 3.4),
     roxygen2 (>= 2.2.2),
     knitr (>= 1.2),
     plyr (>= 1.8.1),
-    ggplot2(>= 1.0.1),
-    lazyeval(>= 0.2.0),
-    stringr(>= 1.2.0)
+    ggplot2 (>= 1.0.1),
+    lazyeval (>= 0.2.0),
+    stringr (>= 1.2.0),
+    covr
 Collate:
     'arg.R'
     'caller.R'
