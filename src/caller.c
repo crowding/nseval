@@ -7,6 +7,13 @@ int nullish(SEXP dots) {        /* R_NilValue but also list() */
   return (TYPEOF(dots) == VECSXP && LENGTH(dots) == 0);
 }
 
+SEXP _remove(SEXP what, SEXP env) {
+  assert_type(what, SYMSXP);
+  assert_type(env, ENVSXP);
+  R_removeVarFromFrame(what, env);
+  return R_NilValue;
+}
+
 SEXP _construct_do_call(SEXP dots) {
   dots = PROTECT(_flist_to_dotsxp(dots));
 

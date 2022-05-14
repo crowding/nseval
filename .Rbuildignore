@@ -1,3 +1,4 @@
+^TODO.*
 ^task\.org$
 ^.*\.Rproj$
 ^\.Rproj\.user$

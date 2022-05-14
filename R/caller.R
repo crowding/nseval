@@ -160,6 +160,7 @@ do <- function(...) {
 
 #' @rdname do
 #' @useDynLib nseval _construct_do_call
+#' @useDynLib nseval _remove
 #' @export
 do_ <- function(...) {
   d <- c.dots(...)
@@ -174,14 +175,14 @@ do__ <- function(d) {
     # make an ephemeral self-resetting binding for `...`
     if (exists("...", e, inherits=FALSE)) {
       olddots <- mget("...", e, inherits=FALSE)
-      .Internal(remove("...", e, FALSE))
+      .Call("_remove", quote(...), e)
       delayedAssign(  # lazy so that it only resets once!
         "reset", {
-          .Internal(remove("...", e, FALSE))
+          .Call("_remove", quote(...), e)
           .Call("_set_dots", olddots[[1]], envir=e)
         })
     } else {
-      delayedAssign("reset", .Internal(remove("...", e, FALSE)))
+      delayedAssign("reset", .Call("_remove", quote(...), e))
     }
     makeActiveBinding(quote(...), function() {reset; toeval[[3]]}, e)
     on.exit(reset) # if it hasn't already

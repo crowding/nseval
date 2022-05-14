@@ -32,7 +32,7 @@ forced.dots <- function(x) {
 #' @rdname forced
 forced.default <- function(x) forced(as.quo(x))
 
-#' @rdname forced
+#' @rdname quo
 #' @description
 #' `forced_quo(x)` captures the expression in its argument, then
 #' forces it, returning a [quotation](quo) with the expression and value.
@@ -42,21 +42,20 @@ forced_quo <- function(x) {
   arg(x)
 }
 
-#' @rdname forced
+#' @rdname quo
 #' @description
-#' `forced_quo_(val)` makes a forced quotation given a value.
+#' `forced_quo_(val)` makes a [forced] quotation given a value.
 #' Specifically it constructs a [quotation](quo) with the same object in
 #' both the `expr` and `value` slots, except if is a
 #' [language](is.language) object in which case the `expr` slot is wrapped
 #' in `quote()`.
-#' @return `forced_quo` and `forced_quo_` return [quotation](quo)
-#'   objects.
+#' @param val A value.
 forced_quo_ <- function(val) {
   .Call("_quotation_literal", val)
 }
 
 
-#' @rdname forced
+#' @rdname dots
 #' @description
 #' `forced_dots(...)` forces its arguments and constructs a `dots` object with
 #' [forced] quotations.
@@ -67,7 +66,7 @@ forced_dots <- function(...) {
   get_dots(environment())
 }
 
-#' @rdname forced
+#' @rdname dots
 #' @description
 #' `forced_dots_(values)` creates a dots object from a list of values
 #' @param values A list; each element will be used as data.
@@ -84,6 +83,7 @@ forced_dots_ <- function(values) {
 #' `force_(x)` converts an unforced quotation or dots object into a
 #' forced one, by evaluating it.
 #' @export
+#' @param ... Options used by methods
 #' @seealso [force]
 force_ <- function(x, ...) {
   UseMethod("force_")
@@ -106,10 +106,10 @@ force_.dots <- function(x, ...) {
   structure(lapply(x, force_.quotation, ...), class="dots")
 }
 
-#' rdname forced
+#' @rdname forced
+#' @description
 #' `value(x)` or `values(...)` returns the value of a quotation or dots,
 #'   forcing it if necessary.
-#' @rdname forced
 #' @return `value(x)` returns the result of forcing the quotation.
 #' @export
 value <- function(x, ...) {

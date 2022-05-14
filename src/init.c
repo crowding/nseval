@@ -31,6 +31,7 @@ extern SEXP _locate(SEXP, SEXP, SEXP);
 extern SEXP _quotation(SEXP, SEXP, SEXP);
 extern SEXP _quotation_literal(SEXP);
 extern SEXP _quotation_to_promsxp(SEXP);
+extern SEXP _remove(SEXP, SEXP);
 extern SEXP _set_dots(SEXP, SEXP);
 extern SEXP _unwrap_quotation(SEXP, SEXP);
 
@@ -58,6 +59,7 @@ static const R_CallMethodDef CallEntries[] = {
   {"_quotation",            (DL_FUNC) &_quotation,            3},
   {"_quotation_literal",    (DL_FUNC) &_quotation_literal,    1},
   {"_quotation_to_promsxp", (DL_FUNC) &_quotation_to_promsxp, 1},
+  {"_remove",               (DL_FUNC) &_remove, 2},
   {"_set_dots",             (DL_FUNC) &_set_dots,             2},
   {"_unwrap_quotation",     (DL_FUNC) &_unwrap_quotation,     2},
   {NULL, NULL, 0}

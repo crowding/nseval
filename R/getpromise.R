@@ -18,13 +18,10 @@
 #' @examples
 #' # Here is how to implement R's `<<-` operator, using `locate_`:
 #' `%<<-%` <- function(lval, rval) {
-#'  lval_ <- arg(lval)
-#'  rval_ <- arg(rval)
-#'  target.env <- locate_(expr(lval_), parent.env(env(lval_)))
-#'  #note that `<-` is a primitive which requires its lvalue and call
-#'  #head to come from the same env
-#'  env(lval_) <- target.env
-#'  do_(quo(`<-`, target.env), lval_, rval_)
+#'   lval_ <- arg(lval)
+#'   name <- expr(lval_)
+#'   target.env <- locate_(name, parent.env(env(lval_)))
+#'   assign(as.character(name), rval, envir=target.env)
 #' }
 #'
 #' x <- "not this one"
@@ -36,6 +33,7 @@
 #'   })
 #'   print(x)
 #' })
+#' print(x)
 #' @export
 locate <- function(sym,
                    env = arg_env_(quote(sym), environment()),

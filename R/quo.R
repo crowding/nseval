@@ -165,6 +165,7 @@ ifnot <- function(a, why) if (!isTRUE(a)) why else a
 `%&&%` <- function(a, b) if (!isTRUE(a)) a else b
 
 #' @exportS3Method all.equal quotation
+#' @importFrom methods is
 all.equal.quotation <- function(target, current, ...) {
   ifnot(is(current, "quotation"), "current is not a quotation") %&&%
     ifnot(all.equal(expr(target), expr(current), ...),
