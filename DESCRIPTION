@@ -11,6 +11,8 @@ License: GPL (>= 2.0)
 Encoding: UTF-8
 Imports:
     methods
+Depends:
+    R (>= 4.0.0)
 Suggests:
     testthat (>= 2.0.0),
     compiler (>= 3.4),

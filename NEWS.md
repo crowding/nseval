@@ -2,7 +2,7 @@
 
 Fixes:
 * Fixed handling of missing arguments in `do` and `quo`
-* `do` now handles arguments via a temporary binding of `...` in some
+* `do` now passes arguments via a temporary binding of `...` in some
   cases. This should fix some cases where `sys.calls()` returned naked
   promises, which made for confusing debugging.
 * Fixed man pages which were not generated completely.
