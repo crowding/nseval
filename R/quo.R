@@ -52,7 +52,6 @@ quo_ <- function(expr, env, force = FALSE) {
 #' @export
 env <- function(q) UseMethod("env")
 
-#' @rdname quo
 #' @export
 env.quotation <- function(q) {
   environment(q)
@@ -65,8 +64,7 @@ env.quotation <- function(q) {
   UseMethod("env<-")
 }
 
-#' @rdname quo
-#' @export
+#' @exportS3Method "env<-" quotation
 `env<-.quotation` <- function(q, value) {
   quo_(expr(q), value);
 }
@@ -88,17 +86,21 @@ expr.quotation <- function(q) {
   UseMethod("expr<-")
 }
 
-#' @rdname quo
-#' @export
+#' @exportS3Method "expr<-" quotation
 `expr<-.quotation` <- function(q, value) {
   quo_(value, env(q))
 }
-
 
 #' @rdname quo
 #' @export
 #' @param x Any object.
 is.quotation <- function(x) {
+  inherits(x, "quotation")
+}
+
+#' @rdname quo
+#' @export
+is.quo <- function(x) {
   inherits(x, "quotation")
 }
 
@@ -112,7 +114,6 @@ as.quo <- function(x) {
   UseMethod("as.quo")
 }
 
-#' @rdname quo
 #' @exportS3Method as.quo "function"
 as.quo.function <- function(x) {
   if (is.primitive(x)) stop("can't convert primitive to quotation")
@@ -123,12 +124,10 @@ as.quo.function <- function(x) {
   quo_(body(x), environment(x))
 }
 
-#' @export
-#' @rdname quo
+#' @exportS3Method as.quo quotation
 as.quo.quotation <- identity
 
-#' @export
-#' @rdname quo
+#' @exportS3Method as.quo dots
 as.quo.dots <- function(x) {
   if (length(x) == 1)
     x[[1]]
@@ -136,22 +135,19 @@ as.quo.dots <- function(x) {
     stop("can't convert nonscalar dots to a quotation")
 }
 
-#' @export
-#' @rdname quo
+#' @exportS3Method as.quo formula
 as.quo.formula <- function(x) {
   expr <- x[[2]]
   env <- attr(x, ".Environment")
   quo_(expr, env)
 }
 
-#' @export
-#' @rdname quo
+#' @exportS3Method as.quo lazy
 as.quo.lazy <- function(x) {
   quo_(x$expr, x$env)
 }
 
-#' @export
-#' @rdname quo
+#' @exportS3Method as.quo default
 as.quo.default <- function(x) {
   if (mode(x) == "list") {
     expr <- x$expr

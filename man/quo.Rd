@@ -5,21 +5,13 @@
 \alias{quotation}
 \alias{quo_}
 \alias{env}
-\alias{env.quotation}
 \alias{env<-}
-\alias{env<-.quotation}
 \alias{expr}
 \alias{expr.quotation}
 \alias{expr<-}
-\alias{expr<-.quotation}
 \alias{is.quotation}
+\alias{is.quo}
 \alias{as.quo}
-\alias{as.quo.function}
-\alias{as.quo.quotation}
-\alias{as.quo.dots}
-\alias{as.quo.formula}
-\alias{as.quo.lazy}
-\alias{as.quo.default}
 \alias{forced_quo}
 \alias{forced_quo_}
 \title{Quotation objects.}
@@ -30,11 +22,7 @@ quo_(expr, env, force = FALSE)
 
 env(q)
 
-\method{env}{quotation}(q)
-
 env(q) <- value
-
-\method{env}{quotation}(q) <- value
 
 expr(q)
 
@@ -42,23 +30,11 @@ expr(q)
 
 expr(q) <- value
 
-\method{expr}{quotation}(q) <- value
-
 is.quotation(x)
 
+is.quo(x)
+
 as.quo(x)
-
-\method{as.quo}{`function`}(x)
-
-\method{as.quo}{quotation}(x)
-
-\method{as.quo}{dots}(x)
-
-\method{as.quo}{formula}(x)
-
-\method{as.quo}{lazy}(x)
-
-\method{as.quo}{default}(x)
 
 forced_quo(x)
 

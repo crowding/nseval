@@ -10,7 +10,6 @@
 \alias{envs}
 \alias{envs.dots}
 \alias{envs<-}
-\alias{envs<-.dots}
 \alias{[.dots}
 \alias{[<-.dots}
 \alias{c.dots}
@@ -37,8 +36,6 @@ envs(d)
 \method{envs}{dots}(d)
 
 envs(d) <- value
-
-\method{envs}{dots}(d) <- value
 
 \method{[}{dots}(x, ..., drop = FALSE)
 

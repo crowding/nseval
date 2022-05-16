@@ -102,8 +102,7 @@ envs.dots <- function(d) {
   UseMethod("envs<-")
 }
 
-#' @rdname dots
-#' @export
+#' @exportS3Method "envs<-" dots
 `envs<-.dots` <- function(d, value) {
   structure(mapply(FUN=quo_,
                    expr=exprs(d),
@@ -112,16 +111,16 @@ envs.dots <- function(d) {
             class="dots")
 }
 
-#' @export
 #' @rdname dots
 #' @param drop See [Extract].
+#' @exportS3Method "[<-" dots
 `[.dots` <- function(x, ..., drop=FALSE) {
   y <- NextMethod("[")
   structure(y, class="dots")
 }
 
-#' @export
 #' @rdname dots
+#' @exportS3Method "[<-" dots
 `[<-.dots` <- function(x, ..., value)
 {
   if (!is.null(value)) value <- as.dots(value)
