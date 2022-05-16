@@ -1,9 +1,13 @@
 ^TODO.*
 ^task\.org$
+^draft$
+^draft/.*$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^TAGS$
 ^\.travis\.yml$
-vignettes/draft
 ^\.github$
 ^codecov\.yml$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

@@ -69,7 +69,7 @@ This means that it's sometimes tricky to work with missings:
   cols <- x[[4]]
   x <- list(missing_value(), 2, 3)     # this is ok, but...
   a <- missing_value(); b <- 2; c <- 3 # this stores missing in "cols",
-  x <- list(a, b, c)                   # throws an error: "a" missingrt
+  x <- list(a, b, c)                   # throws an error: "a" missing
 }
 Generally, keep your missing values wrapped up in lists or quotations,
 instead of assigning them to variables directly.

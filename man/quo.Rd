@@ -94,6 +94,9 @@ expression \code{expr(q)} with an environment \code{env(q)}.
 \code{quo_(expr, env)} is the normally evaluating version. It
 constructs a quotation given an expression and environment.
 
+\code{as.quo(x)} converts an object into a quotation. Closures,
+formulas, and single-element \link{dots} can be converted this way.
+
 \code{forced_quo(x)} captures the expression in its argument, then
 forces it, returning a \href{quo}{quotation} with the expression and value.
 

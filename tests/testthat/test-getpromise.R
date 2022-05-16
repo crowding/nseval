@@ -118,10 +118,12 @@ test_that("is_promise and is_forced and is_literal and is_missing", {
                   a, b, c, e) {
     d <- (c)
     list(f(a, b, c, d, e),
-         f("a", "b", "c", "d", "e"),
+         #f("a", "b", "c", "d", "e"), # not when compiled/installed!
          f_(c("a", "b", "c", "d", "e"), environment()),
-         f_(alist(a, b, c, d, e), environment()))
-  }
+         f_(alist(a, b, c, d, e), environment()),
+         f_(dots(a=a, b=b, c=c, d=d, e=e)),
+         c(a=f_(quo(a)), b=f_(quo(b)), c=f_(quo(c)), d=f_(quo(d)), e=f_(quo(e))))
+    }
 
   both <- function(data, cmp) {
     ccll <- match.call()
@@ -131,12 +133,14 @@ test_that("is_promise and is_forced and is_literal and is_missing", {
       expect_equal(data[[2]], cmp)
       expect_equal(data[[3]], cmp)
       expect_equal(data[[4]], cmp)
+      expect_equal(data[[5]], cmp)
     }, error=function(e) {
       message(deparse(ccll))
       message(deparse(data[[1]]))
       message(deparse(data[[2]]))
       message(deparse(data[[3]]))
       message(deparse(data[[4]]))
+      message(deparse(data[[5]]))
       message(deparse(cmp))
       e
     })
@@ -293,6 +297,8 @@ test_that("error when symbol is not bound", {
   expect_error(f(), "not")
   f <- function(x) is_missing_("yyyyy", environment())
   expect_error(f(), "not")
+  f <- function(x) is_missing_(quo(yyyyy))
+  expect_error(f(), "not")
 })
 
 test_that("empty dots accessors return empty lists", {
@@ -335,7 +341,9 @@ test_that("is_missing_ unwraps naturally created promise chains", {
   f <- function(a, b, c, d, e) {
     x <- is_missing_(c("a", "b", "c", "d", "e"), environment())
     y <- missing_(arg_list(a, b, c, d, e))
+    z <- is_missing_(dots(a=a, b=b, c=c, d=d, e=e))
     x %is% y
+    y %is% z
     x
   }
   g <- function(...) f(...)
@@ -355,6 +363,7 @@ test_that("is_missing_ unwraps explicitly created promise chains?", {
   target <- c(a = TRUE, b = FALSE, c = FALSE, d = TRUE)
   is_missing_(c("a", "b", "c", "d"), e1) %is% target
   missing_(arg_list_(c("a", "b", "c", "d"), e1)) %is% target
+  is_missing_(dots_(alist(a=a, b=b, c=c, d=d), e1)) %is% target
 })
 
 test_that("R_MissingValue bound directly", {
@@ -624,4 +633,28 @@ test_that("is_default", {
   body(g) <- body(g)
   g()
   h()
+})
+
+test_that("is_default et al in enclosed function", {
+
+  f <-function() {
+    g <- function(x = foo-bar) {
+      h <- function() {
+        c(is_default(x), is_promise(x), is_missing(x), is_forced(x), is_literal(x))
+      }
+      h()
+    }
+    g
+  }
+  f <- compiler::cmpfun(f)
+
+  ff <- function() {
+    g_inst <- f()
+    g_inst()        %is% c(x=TRUE,  x=TRUE,  x=FALSE, x=FALSE, x=FALSE)
+    g_inst(12)      %is% c(x=FALSE, x=TRUE, x=FALSE, x=FALSE, x=TRUE)
+    g_inst(x=hello) %is% c(x=FALSE, x=TRUE,  x=FALSE, x=FALSE, x=FALSE)
+  }
+  ff <- compiler::cmpfun(ff)
+
+  ff()
 })

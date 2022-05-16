@@ -12,8 +12,8 @@ how the `fexpr` package enhances your ability to do things with it.
 Here is an example function definition:
 
 ```{r}
-function(x, y, ...) = {
-  with(y, doTheThing(y, ...))
+function(x, y, ...) {
+  with(x, doTheThing(y, ...))
 }
 ```
 
@@ -29,12 +29,16 @@ non-matching arguments cause an error.
 There are equivalent mechanisms in other languages. For example in
 Python, our function might be specified as follows:
 
-```{python}
+```{python, exec=FALSE}
+def myFun(x, y, *args, **kwargs):
+    with(x, doTheThing(y, *args), **kwargs)
 ```
 
 Here `*args` and `**kwargs` are playing the role that `...` plays in
 R. Any named arguments that don't match get put into the dict
 `kwargs`; excess unnamed arguments get put into the list `args`.
+One difference is that Python keeps "named" and "unnamed" 
+arguments separate while R mixes both kinds into `...`
 
 ### What does `...` mean in function code?
 

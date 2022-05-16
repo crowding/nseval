@@ -10,6 +10,7 @@ Fixes:
 Changes:
 * Implemented `all.equal` method for `quotation` objects.
 * dots and quotation objects now print themselves in a `deparse()`-like style.
+* `is_*_()` functions how have methods for promises/dots.
 
 # nseval 0.4.1
 

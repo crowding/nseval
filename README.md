@@ -24,11 +24,15 @@ metaprogramming in R.
 
 ## Installation
 
-```
-install.packages("devtools")
-library(devtools)
-install_github("crowding/nseval")
-```
+NSEval is on CRAN, install the latest release with:
+
+    install.packages("nseval")
+
+To install the development branch:
+
+    install.packages("devtools")
+    devtools::install_github("crowding/nseval")
+
 
 ### What `nseval` does
 
@@ -60,14 +64,13 @@ capturing, constructing, and manipulating these objects.
   * `do`, which allows different arguments to be passed from
     different environments.
 * Instead of `parent.frame`, use:
-  * `arg_env`, which gives the environment _attached to an argument_, which
-    is what you actually want most the time, or
+  * `arg_env`, which gives the environment _attached to an argument_ (recognizing that this can be different for different arguments!)
   * `caller`, which returns the calling environment, like
     `parent.frame` often does, but avoids the latter's difficulties
     with lazy evaluation and closures; `caller` would rather throw an error
     than return an incorrect result.
 
-### Why `nse` is needed
+### Why `nseval` is needed
 
 Before R, there was S, and S had some metaprogramming facilities,
 exposed by functions like `parent.frame`, `substitute`, `match.call`,

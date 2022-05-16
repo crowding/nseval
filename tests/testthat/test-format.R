@@ -32,15 +32,15 @@ test_that("format dots and quotations", {
   d <- dots_some_forced(4, a=x+2, b+1, c=3+3, "5")
 
   format(d) %is%
-    paste0("c.dots( forced_quo(val=4), a = forced_quo(x + 2, val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
+    paste0("c.dots( forced_quo_(val=4), a = forced_quo(x + 2, val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
   format(d, show.environments=FALSE) %is%
-    paste0("c.dots( forced_quo(val=4), a = forced_quo(x + 2, val=4), quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
+    paste0("c.dots( forced_quo_(val=4), a = forced_quo(x + 2, val=4), quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
   format(d, show.expressions=FALSE) %is%
-    paste0("c.dots( forced_quo(val=4), a = forced_quo(val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
+    paste0("c.dots( forced_quo_(val=4), a = forced_quo_(val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
   ## format(d, compact=TRUE) %is%
   ##   paste0("dots<< 4, a = 4, ? b + 1, c = ? 3 + 3, ? \"5\" >>")
 
-  format(d[[1]]) %is% "forced_quo(val=4)"
+  format(d[[1]]) %is% "forced_quo_(val=4)"
   format(d[[2]]) %is% "forced_quo(x + 2, val=4)"
   format(d[[3]]) %is% paste0("quo(b + 1, ", e, ")")
   format(d[[4]]) %is% paste0("quo(3 + 3, ", e, ")")

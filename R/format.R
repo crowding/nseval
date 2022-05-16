@@ -136,17 +136,12 @@ format.quotation.inner <- function(x,
   }
   contents <- paste0(c(
     if(forced(x)) {
-      c("forced_quo(",
-      if (is.language(expr(x))) {
-        if (show.expressions) {
-          c(dodeparse(expr(x)), ", val=", doformat(value(x)))
+      c(if (is.language(expr(x)) && show.expressions) {
+          c("forced_quo(", dodeparse(expr(x)), ", val=", doformat(value(x)))
         } else {
-          c("val=", doformat(value(x)))
-        }
-      } else {
-        c("val=", doformat(value(x)))
-      },
-      ")")
+          c("forced_quo_(val=", doformat(value(x)))
+        },
+        ")")
     } else {
       c("quo(",
         dodeparse(expr(x)),

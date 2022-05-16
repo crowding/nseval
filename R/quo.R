@@ -102,6 +102,7 @@ is.quotation <- function(x) {
   inherits(x, "quotation")
 }
 
+#' @description
 #' `as.quo(x)` converts an object into a quotation. Closures,
 #' formulas, and single-element [dots] can be converted this way.
 #' @return `as.quo` returns a quotation.
@@ -111,8 +112,8 @@ as.quo <- function(x) {
   UseMethod("as.quo")
 }
 
-#' @export
 #' @rdname quo
+#' @exportS3Method as.quo "function"
 as.quo.function <- function(x) {
   if (is.primitive(x)) stop("can't convert primitive to quotation")
   f <- formals(x)

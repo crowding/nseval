@@ -13,10 +13,13 @@
 \alias{is_literal_}
 \alias{is_missing}
 \alias{is_missing_}
+\alias{is_missing_.quotation}
 \alias{is_promise}
 \alias{is_promise_}
+\alias{is_promise_.quotation}
 \alias{is_default}
 \alias{is_default_}
+\alias{is_default_.quotation}
 \title{Get information about currently bound arguments.}
 \usage{
 arg_env(sym, env = arg_env_(quote(sym), environment()))
@@ -43,13 +46,19 @@ is_missing(...)
 
 is_missing_(syms, envs, unwrap = TRUE)
 
+\method{is_missing_}{quotation}(syms, ..., unwrap = TRUE)
+
 is_promise(...)
 
 is_promise_(syms, envs)
 
+\method{is_promise_}{quotation}(syms, ...)
+
 is_default(...)
 
-is_default_(syms, envs = arg_env(syms))
+is_default_(syms, envs)
+
+\method{is_default_}{quotation}(syms, ...)
 }
 \arguments{
 \item{sym}{For plain \code{arg_env}, etc, a bare name, which is
@@ -58,7 +67,7 @@ evaluates to a name or character.}
 
 \item{env}{The environment to search in.}
 
-\item{...}{Bare variable names (for \verb{is_*_}) or expressions (for
+\item{...}{Bare variable names (for \verb{is_*}) or expressions (for
 \verb{dots_*}). Not forced.}
 
 \item{syms}{A character vector or list of symbols.}
@@ -94,12 +103,12 @@ source literal. Specifically it tests whether \code{x} is bound to a
 singleton vector or a \link{missing_value}. This check happens without
 forcing \code{x}.
 
-\code{is_missing(...)} checks whether an argument is missing,
-without forcing. It is similar to \link{missing} but can take
+\code{is_missing(...)} checks whether an argument is
+missing, without forcing. It is similar to \link{missing} but can take
 multiple arguments, and can be called in more situations, such as
 from a nested inner function.
 
-\code{is_missing_(syms, envs)} is a normally evouating version
+\code{is_missing_(syms, envs)} is a normally evaluating version
 of is_missing.  \code{syms} should be a symbol, character vector or
 list of such. \code{envs} should be an environment, or list of
 environments. Vector recycling rules apply, so you can call with
@@ -115,8 +124,33 @@ before the arguments have been forced (afterwards it will return
 FALSE).
 }
 \details{
-As throughout this package, the functions with bare names will
-quote their first argument literally. Their counterparts, with
-underscores \verb{_} at the end, take a character vector or list of
-names.  and an environment to look in.
+Throughout this package, some functions come in two forms, a "bare"
+version which quote their first argument literally, and a
+normally-evaluating version with a trailing underscore in its
+name. So \code{is_forced(x)} chiecks whether "x" is a missing variable,
+while \code{is_forced_(x, environment())} checks whether "x"
+contains the \emph{name} of another variable which is missing. The
+following are all equivalent:
+\itemize{
+\item \code{arg_env(x)}
+\item \code{{y <- quo(x); arg_env_(y)}}
+\item \code{arg_env_(quote(x), environment())}
+\item \code{arg_env_(quo(x))}
+\item \code{env(arg_(quo(x)))}.
+}
+
+When used with quotation objects, the \verb{is_*_} functions
+with trailing underscore work at one level of indirection
+compared to quotation methods. For example, \code{missing_(x)} tests
+whether \code{expr(x)} is \verb{[missing_value()]}, whereas \code{is_missing_(x)}
+assumes \code{expr(x)} is a \emph{name} and checks if that name refers to a
+variable that is missing. The following are equivalent:
+\itemize{
+\item \code{is_missing(x)}
+\item \code{is_missing_(quo(x))}
+\item \code{missing_(arg(x))}
+}
+
+When used with a \code{quotation} or \code{dots}, is_missing(q)
+looks for the variable(s) specified by expr(q) in environment env(q)]`.
 }
