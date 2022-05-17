@@ -19,20 +19,21 @@ and name.}
 \code{set_} returns \code{val}, invisibly.
 }
 \description{
-\code{set_} is a normally-evaluating version of \href{assignOps}{\verb{<-}} and
+\code{set_} is a normally-evaluating version of \code{\link{<-}}.
 \code{set_enclos_} is a normally evaluating version of
-\href{assignOps}{\verb{<<-}}.
+\code{\link{<<-}}.
 }
 \details{
 \code{set_} differs from \verb{[assign]} in that \code{set_} will process
 subassignments.
 
-These helpers are here because it is particularly tricky to use
-\code{\link{do_}} with \verb{<-}
+These helpers are here because it is tricky to use \code{\link{do_}} with
+\code{\link{<-}} (see Note under \link{do_}).
 }
 \examples{
 set_(quo(x), 12) #equivalent to `x <- 12`
 set_(quo(x[3]), 12) #equivalent to `x[3] <- 12`
+e <- new.env()
 set_(quo(x[3], e), 12) #assigns in environment `e`
 set_enclos_(quo(x[3], e), 12) #assigns in a parent of environment `e`
 }

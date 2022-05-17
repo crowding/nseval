@@ -197,9 +197,9 @@ do__ <- function(d) {
 
 #' Assign values to variables
 #'
-#' `set_` is a normally-evaluating version of [`<-`](assignOps) and
+#' `set_` is a normally-evaluating version of [`<-`].
 #' `set_enclos_` is a normally evaluating version of
-#' [`<<-`](assignOps).
+#' [`<<-`].
 #' @param dest A [quotation] specifying the destination environment
 #'   and name.
 #' @param val The value to assign.
@@ -207,11 +207,12 @@ do__ <- function(d) {
 #' @details `set_` differs from `[assign]` in that `set_` will process
 #'   subassignments.
 #'
-#' These helpers are here because it is particularly tricky to use
-#' [`do_`] with `<-`
+#' These helpers are here because it is tricky to use [`do_`] with
+#' [`<-`] (see Note under [do_]).
 #' @examples
 #' set_(quo(x), 12) #equivalent to `x <- 12`
 #' set_(quo(x[3]), 12) #equivalent to `x[3] <- 12`
+#' e <- new.env()
 #' set_(quo(x[3], e), 12) #assigns in environment `e`
 #' set_enclos_(quo(x[3], e), 12) #assigns in a parent of environment `e`
 #' @export
@@ -223,6 +224,7 @@ set_ <- function(dest, val) {
 }
 
 #' @rdname set_
+#' @export
 set_enclos_ <- function(dest, val) {
   if (is.language(val)) {
     val <- as.call(list(`quote`, val))
