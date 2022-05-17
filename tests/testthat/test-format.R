@@ -29,26 +29,32 @@ test_that("format dots and quotations", {
 
   e <- format(environment())
 
-  d <- dots_some_forced(4, a=x+2, b+1, c=3+3, "5")
+  d <- dots_some_forced(4, a=list(x+2), b+1, c=3+3, "5")
 
   format(d) %is%
-    paste0("c.dots( forced_quo_(val=4), a = forced_quo(x + 2, val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
+    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), val=list(4)), ",
+           "quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
   format(d, show.environments=FALSE) %is%
-    paste0("c.dots( forced_quo_(val=4), a = forced_quo(x + 2, val=4), quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
+    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), val=list(4)), ",
+           "quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
   format(d, show.expressions=FALSE) %is%
-    paste0("c.dots( forced_quo_(val=4), a = forced_quo_(val=4), quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
+    paste0("c.dots( forced_quo_(4), a = forced_quo_(list(4)), quo(b + 1, ", e,
+           "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
   ## format(d, compact=TRUE) %is%
   ##   paste0("dots<< 4, a = 4, ? b + 1, c = ? 3 + 3, ? \"5\" >>")
 
-  format(d[[1]]) %is% "forced_quo_(val=4)"
-  format(d[[2]]) %is% "forced_quo(x + 2, val=4)"
+  format(d[[1]]) %is% "forced_quo_(4)"
+  format(d[[2]]) %is% "forced_quo(list(x + 2), val=list(4))"
   format(d[[3]]) %is% paste0("quo(b + 1, ", e, ")")
   format(d[[4]]) %is% paste0("quo(3 + 3, ", e, ")")
   format(d[[5]]) %is% paste0("quo(\"5\", ", e, ")")
 
-  format(quo_(quote(f), globalenv())) %is% "quo(f, <environment: R_GlobalEnv>)"
-  format(dots_(list(quote(f)), globalenv())) %is% "c.dots( quo(f, <environment: R_GlobalEnv>) )"
-  format(dots(a, b, c)) %is% paste0("c.dots( quo(a, ", e, "), quo(b, ", e, "), quo(c, ", e, ") )")
+  format(quo_(quote(f), globalenv())) %is%
+    "quo(f, <environment: R_GlobalEnv>)"
+  format(dots_(list(quote(f)), globalenv())) %is%
+    "c.dots( quo(f, <environment: R_GlobalEnv>) )"
+  format(dots(a, b, c)) %is%
+    paste0("c.dots( quo(a, ", e, "), quo(b, ", e, "), quo(c, ", e, ") )")
 })
 
 test_that("format outputs one line", {

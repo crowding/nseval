@@ -2,7 +2,7 @@ Package: nseval
 Type: Package
 Title: Tools for Lazy and Non-Standard Evaluation
 Version: 0.4.2
-Date: 2022-05-15
+Date: 2022-05-16
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: Functions to capture, inspect, manipulate, and create

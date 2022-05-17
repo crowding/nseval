@@ -70,46 +70,45 @@ SEXP _construct_do_call(SEXP dots) {
          copyFrom != R_NilValue && copyTo != R_NilValue; 
          copyFrom = CDR(copyFrom), copyTo = CDR(copyTo)) {
 
-      SET_TAG(copyTo, TAG(copyFrom));
       SEXP thing = CAR(copyFrom);
+      SEXP out_dots = CAR(copyFrom);
       if (thing == R_MissingArg) {
         SETCAR(copyTo, thing);
       } else {
         assert_type(thing, PROMSXP);
-        if (PRVALUE(thing) != R_UnboundValue) {
-          if (PREXPR(thing) == PRVALUE(thing)
-              && !is_language(PREXPR(thing))) {
-            SETCAR(copyTo, PRVALUE(thing));
-            LOG("copied 1 forced argument literally (a %s)",
+        if (PRVALUE(thing) != R_UnboundValue
+            && PREXPR(thing) == PRVALUE(thing)
+            && !is_language(PREXPR(thing))) {
+          /* a forced promise that's just a value with no special
+             expression attached; can use the value directly */
+          SET_TAG(copyTo, TAG(copyFrom));
+          SETCAR(copyTo, PRVALUE(thing));
+          LOG("copied 1 forced argument literally (a %s)",
+              type2char(TYPEOF(CAR(copyTo))));
+        } else if (PRVALUE(thing) == R_UnboundValue
+                   && callenv == PRENV(thing)) {
+          /* An unforced promise whose env is the same as the call. Can
+             put the prexpr directly into the call. */
+          SET_TAG(copyTo, TAG(copyFrom));
+          SETCAR(copyTo, PREXPR(thing));
+          LOG("copied 1 argument unwrapped (a %s)\n", type2char(TYPEOF(CAR(copyTo))));
+        } else {
+          /* Either a forced promise with a nontrivial expression or
+             language object, or an unforced promise with a
+             different PREXPR than the call. */
+          if (!using_dots) {
+            // if we can't use ... then we have to put a promise
+            // directly in the call, (which may lead to sys.call()
+            // containing unformattable objects, etc.)
+            SET_TAG(copyTo, TAG(copyFrom));
+            SETCAR(copyTo, thing);
+            LOG("copied 1 forced argument directly (a %s)\n",
                 type2char(TYPEOF(CAR(copyTo))));
           } else {
-            if (using_dots) {
-              break;
-            } else {
-              // if we can't use ... then we have to put a promise
-              // directly in the call, (which may lead to stack traces
-              // containing unprintable objects.)
-              SETCAR(copyTo, thing);
-              LOG("copied 1 forced argument directly (a %s)\n",
-                  type2char(TYPEOF(CAR(copyTo))));
-            }
+            /* We can make a temporary '...' put this and the rest into ... */
+            break;
           }
-        } else /* if (PRVALUE(thing) == R_UnboundValue) */ {
-          if (callenv == PRENV(thing)) {
-            /* strip the promise so that it can work with R primitives */
-            SETCAR(copyTo, PREXPR(thing));
-            LOG("copied 1 argument unwrapped (a %s)\n", type2char(TYPEOF(CAR(copyTo))));
-          } else {
-            if (using_dots) {
-              break;
-            } else {
-              // directly putting a promise in the call 
-              SETCAR(copyTo, thing);
-              LOG("copied 1 unforced argument directly (a %s)\n",
-                  type2char(TYPEOF(CAR(copyTo))));
-            }
-          }
-        }
+        } 
       }
     }
     if (using_dots && copyFrom != R_NilValue && copyTo != R_NilValue) {

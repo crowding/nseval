@@ -11,6 +11,7 @@ Changes:
 * Implemented `all.equal` method for `quotation` objects.
 * dots and quotation objects now print themselves in a `deparse()`-like style.
 * `is_*_()` functions how have methods for promises/dots.
+* `set_` and `set_enclos_` are added to help with making assignments.
 
 # nseval 0.4.1
 

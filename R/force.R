@@ -3,11 +3,12 @@
 #' There are two kinds of [quotation]s: forced and unforced.
 #' Unforced quotations have an expression and an environment; forced
 #' quotations have an expression and a value.
+#'
 #' @export
 #' @rdname forced
 #' @param x A [quotation] or [dots] object.
 #' @return `forced(x)` returns a [logical].
-#' @seealso [is_forced]
+#' @seealso is_forced forced_quo
 forced <- function(x) UseMethod("forced")
 
 #' @rdname forced
@@ -35,7 +36,7 @@ forced.default <- function(x) forced(as.quo(x))
 #' @rdname quo
 #' @description
 #' `forced_quo(x)` captures the expression in its argument, then
-#' forces it, returning a [quotation](quo) with the expression and value.
+#' forces it, returning a quotation with the expression and value.
 #' @export
 forced_quo <- function(x) {
   force(x)
@@ -45,7 +46,7 @@ forced_quo <- function(x) {
 #' @rdname quo
 #' @description
 #' `forced_quo_(val)` makes a [forced] quotation given a value.
-#' Specifically it constructs a [quotation](quo) with the same object in
+#' Specifically it constructs a [quotation] with the same object in
 #' both the `expr` and `value` slots, except if is a
 #' [language](is.language) object in which case the `expr` slot is wrapped
 #' in `quote()`.

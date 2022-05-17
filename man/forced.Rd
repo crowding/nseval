@@ -73,7 +73,7 @@ forced one, by evaluating it.
 forcing it if necessary.
 }
 \seealso{
-\link{is_forced}
+is_forced forced_quo
 
 \link{force}
 }

@@ -74,10 +74,10 @@ constructs a quotation given an expression and environment.
 formulas, and single-element \link{dots} can be converted this way.
 
 \code{forced_quo(x)} captures the expression in its argument, then
-forces it, returning a \href{quo}{quotation} with the expression and value.
+forces it, returning a quotation with the expression and value.
 
 \code{forced_quo_(val)} makes a \link{forced} quotation given a value.
-Specifically it constructs a \href{quo}{quotation} with the same object in
+Specifically it constructs a \link{quotation} with the same object in
 both the \code{expr} and \code{value} slots, except if is a
 \href{is.language}{language} object in which case the \code{expr} slot is wrapped
 in \code{quote()}.

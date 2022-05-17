@@ -30,9 +30,9 @@ together by \link{c.dots} to form the call list (a \code{dots} object).
 For \code{do} the first argument is quoted literally, but the
 rest of the arguments are evaluated the same way as \code{do_}.
 
-The first element of the call list represents the function, and it
-should evaluate to a function object. The rest of the call list is
-used as that function's arguments.
+The head, or first element of the call list, represents the
+function, and it should evaluate to a function object. The rest of
+the call list is used as that function's arguments.
 
 When a quotation is used as the first element, the call is evaluated
 from the environment given in that quotation. This means that calls
@@ -51,13 +51,18 @@ do_(dots_(alist(f, A), env))
 }
 }
 \note{
-When the environment of the head differs from that of the
-arguments, \code{do} may make a temporary binding of \code{...} to pass
-arguments. This will cause some builtins, like ( \code{\link{<-}}, or
-\code{\link{for}}), to fail with an error like
-"'...' use an in incorrect context." These primitives can only be
-called using \code{do_} if all inputs reference the same environment.
+When the environment of the call head differs from that of
+the arguments, \code{do} may make a temporary binding of \code{...} to pass
+arguments. This will cause some primitive functions, like (
+\code{\link{<-}}, or \code{\link{for}}), to fail with an error like
+"'...' used an in incorrect context," because these primitives do
+not understand how to unpack \code{...}. To avoid the use of \code{...},
+ensure that all args have the same environment as the call head,
+or are forced.
+
+For the specific case of calling \verb{<-}, you can use \code{\link{set_}} to
+make assignments.
 }
 \seealso{
-get_call do.call match.call
+get_call do.call match.call set_
 }

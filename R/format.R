@@ -128,7 +128,7 @@ format.quotation.inner <- function(x,
     }
   }
   dodeparse <- function(x) {
-    if (is.language(x) || is.character(x)) {
+    if (is.language(x) || is.character(x) || is.list(x)) {
       deparse(x, width.cutoff=width, nlines = 1)
     } else {
       doformat(x)
@@ -137,9 +137,9 @@ format.quotation.inner <- function(x,
   contents <- paste0(c(
     if(forced(x)) {
       c(if (is.language(expr(x)) && show.expressions) {
-          c("forced_quo(", dodeparse(expr(x)), ", val=", doformat(value(x)))
+          c("forced_quo(", dodeparse(expr(x)), ", val=", dodeparse(value(x)))
         } else {
-          c("forced_quo_(val=", doformat(value(x)))
+          c("forced_quo_(", dodeparse(value(x)))
         },
         ")")
     } else {

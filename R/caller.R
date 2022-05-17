@@ -114,9 +114,9 @@ caller <- function(env = caller(environment()),
 #' For `do` the first argument is quoted literally, but the
 #' rest of the arguments are evaluated the same way as `do_`.
 #'
-#' The first element of the call list represents the function, and it
-#' should evaluate to a function object. The rest of the call list is
-#' used as that function's arguments.
+#' The head, or first element of the call list, represents the
+#' function, and it should evaluate to a function object. The rest of
+#' the call list is used as that function's arguments.
 #'
 #' When a quotation is used as the first element, the call is evaluated
 #' from the environment given in that quotation. This means that calls
@@ -136,13 +136,18 @@ caller <- function(env = caller(environment()),
 #'     do_(dots_(list(as.name("f"), as.name("A")), env))
 #'     do_(dots_(alist(f, A), env))
 #'
-#' @note When the environment of the head differs from that of the
-#'   arguments, `do` may make a temporary binding of `...` to pass
-#'   arguments. This will cause some builtins, like ( [`<-`], or
-#'   [`for`]), to fail with an error like
-#'   "'...' use an in incorrect context." These primitives can only be
-#'   called using `do_` if all inputs reference the same environment.
-#' @seealso get_call do.call match.call
+#' @note When the environment of the call head differs from that of
+#'   the arguments, `do` may make a temporary binding of `...` to pass
+#'   arguments. This will cause some primitive functions, like (
+#'   [`<-`], or [`for`]), to fail with an error like
+#'   "'...' used an in incorrect context," because these primitives do
+#'   not understand how to unpack `...`. To avoid the use of `...`,
+#'   ensure that all args have the same environment as the call head,
+#'   or are forced.
+#'
+#'   For the specific case of calling `<-`, you can use [`set_`] to
+#'   make assignments.
+#' @seealso get_call do.call match.call set_
 #'
 #' @param ... A function to call and list(s) of arguments to pass. All
 #'   should be `quotation` or `dots` objects, except the first
@@ -188,6 +193,41 @@ do__ <- function(d) {
     on.exit(reset) # if it hasn't already
   }
   eval(toeval[[1]], e)
+}
+
+#' Assign values to variables
+#'
+#' `set_` is a normally-evaluating version of [`<-`](assignOps) and
+#' `set_enclos_` is a normally evaluating version of
+#' [`<<-`](assignOps).
+#' @param dest A [quotation] specifying the destination environment
+#'   and name.
+#' @param val The value to assign.
+#' @return `set_` returns `val`, invisibly.
+#' @details `set_` differs from `[assign]` in that `set_` will process
+#'   subassignments.
+#'
+#' These helpers are here because it is particularly tricky to use
+#' [`do_`] with `<-`
+#' @examples
+#' set_(quo(x), 12) #equivalent to `x <- 12`
+#' set_(quo(x[3]), 12) #equivalent to `x[3] <- 12`
+#' set_(quo(x[3], e), 12) #assigns in environment `e`
+#' set_enclos_(quo(x[3], e), 12) #assigns in a parent of environment `e`
+#' @export
+set_ <- function(dest, val) {
+  if (is.language(val)) {
+    val <- as.call(list(`quote`, val))
+  }
+  do.call(`<-`, list(expr(dest), val), FALSE, env(dest))
+}
+
+#' @rdname set_
+set_enclos_ <- function(dest, val) {
+  if (is.language(val)) {
+    val <- as.call(list(`quote`, val))
+  }
+  do.call(`<<-`, list(expr(dest), val), FALSE, env(dest))
 }
 
 #' Get information about currently executing calls.

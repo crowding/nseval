@@ -72,11 +72,40 @@ test_that("do_ with primitives", {
   do_(quo(`+`, force=TRUE), dots(x+1, x+2)) %is% 9
 
   # and alist knows how to unpack `...`
+  e2 <- new.env(); e2$x <- 1
+  mode(do(alist, quo(x, e2))[[1]]) %is% "name"
   mode(do(alist, forced_quo_(as.name("x")))[[1]]) %is% "name"
   # but if promsxp injection is forced, alist leaks naked promsxps
   e <- new.env()
+  e2 <- new.env(); e2$x <- 1
   lockEnvironment(e)
   mode(do_(quo(alist, e), forced_quo_(as.name("x")))[[1]]) %is% "promise"
+  mode(do_(quo(alist, e), quo(x, e2))[[1]]) %is% "promise"
+  #f <- function(...) .Internal(inspect(tail(sys.calls(), 1)[[1]]))
+  #x <- do_(quo(f, e), quo("foo"+1), forced_quo(2+2))
+})
+
+test_that("set_", {
+  e0 <- new.env(parent=emptyenv()) # does not have `<-` bound
+  e1 <- new.env()
+  e2 <- new.env(parent=e1)
+  set_(quo(x, e2), "two")
+  set_(quo(x, e1), "one")
+  set_(quo(x, e0), "zero")
+  e0$x %is% "zero"
+  e1$x %is% "one"
+  e2$x %is% "two"
+  # set_enclos_ behaves like <<-
+  set_enclos_(quo(x, e2), "ONE!")
+  e2$x %is% "two"
+  e1$x %is% "ONE!"
+  # subassignment
+  set_(quo(x[2], e1), list(2))
+  e1$x %is% list("ONE!", 2)
+  expect_error(set_(quo(x[2], e0), "two"), "\\[<-")
+  # assign_ does not behave like <<- here
+  assign("x", "two?", envir=e2, inherits=TRUE)
+  e2$x %is% "two?"
 })
 
 test_that("`do` allows different args to come from different environments, just like ...", {
