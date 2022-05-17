@@ -77,9 +77,9 @@ convertible to such using <code><a href="quo.html">as.quo()</a></code>. They wil
 together by <a href="dots.html">c.dots</a> to form the call list (a <code>dots</code> object).
 For <code>do</code> the first argument is quoted literally, but the
 rest of the arguments are evaluated the same way as <code>do_</code>.</p>
-<p>The first element of the call list represents the function, and it
-should evaluate to a function object. The rest of the call list is
-used as that function's arguments.</p>
+<p>The head, or first element of the call list, represents the
+function, and it should evaluate to a function object. The rest of
+the call list is used as that function's arguments.</p>
 <p>When a quotation is used as the first element, the call is evaluated
 from the environment given in that quotation. This means that calls
 to <code><a href="caller.html">caller()</a></code> (or <code><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">parent.frame()</a></code>) from within that function
@@ -96,16 +96,20 @@ For instance these two lines are similar in effect:</p><div class="sourceCode"><
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>When the environment of the head differs from that of the
-arguments, <code>do</code> may make a temporary binding of <code>...</code> to pass
-arguments. This will cause some builtins, like ( <code>&lt;-</code>, or
-<code><a href="https://rdrr.io/r/base/Control.html" class="external-link">for</a></code>), to fail with an error like
-"'...' use an in incorrect context." These primitives can only be
-called using <code>do_</code> if all inputs reference the same environment.</p>
+    <p>When the environment of the call head differs from that of
+the arguments, <code>do</code> may make a temporary binding of <code>...</code> to pass
+arguments. This will cause some primitive functions, like (
+<code>&lt;-</code>, or <code><a href="https://rdrr.io/r/base/Control.html" class="external-link">for</a></code>), to fail with an error like
+"'...' used an in incorrect context," because these primitives do
+not understand how to unpack <code>...</code>. To avoid the use of <code>...</code>,
+ensure that all args have the same environment as the call head,
+or are forced.</p>
+<p>For the specific case of calling <code>&lt;-</code>, you can use <code><a href="set_.html">set_</a></code> to
+make assignments.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p>get_call do.call match.call</p></div>
+    <div class="dont-index"><p>get_call do.call match.call set_</p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

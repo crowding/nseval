@@ -41,7 +41,7 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.2" id="nseval-042">nseval 0.4.2<a class="anchor" aria-label="anchor" href="#nseval-042"></a></h2>
 <p>Fixes: * Fixed handling of missing arguments in <code>do</code> and <code>quo</code> * <code>do</code> now passes arguments via a temporary binding of <code>...</code> in some cases. This should fix some cases where <code><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">sys.calls()</a></code> returned naked promises, which made for confusing debugging. * Fixed man pages which were not generated completely.</p>
-<p>Changes: * Implemented <code>all.equal</code> method for <code>quotation</code> objects. * dots and quotation objects now print themselves in a <code><a href="https://rdrr.io/r/base/deparse.html" class="external-link">deparse()</a></code>-like style. * <code>is_*_()</code> functions how have methods for promises/dots.</p>
+<p>Changes: * Implemented <code>all.equal</code> method for <code>quotation</code> objects. * dots and quotation objects now print themselves in a <code><a href="https://rdrr.io/r/base/deparse.html" class="external-link">deparse()</a></code>-like style. * <code>is_*_()</code> functions how have methods for promises/dots. * <code>set_</code> and <code>set_enclos_</code> are added to help with making assignments.</p>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="nseval-041">nseval 0.4.1<a class="anchor" aria-label="anchor" href="#nseval-041"></a></h2>
