@@ -117,6 +117,12 @@ int unwrappable(SEXP prom) {
   return unwrappable;
 }
 
+int is_forced_promise(SEXP prom) {
+  return !( PRVALUE(prom) == R_UnboundValue
+            || PRVALUE(prom) == R_MissingArg
+            || PRENV(prom) == NULL);
+}
+
 SEXP unwrap_step(SEXP prom) {
   // attmpt to unwrap, returning another promise if one is found.
   // If no other promise is found return R_UnboundValue.
@@ -173,6 +179,44 @@ SEXP unwrap_promise(SEXP prom, int recursive) {
   }
 
   return prom;
+}
+
+/* Attempt to tease out a value from a promise without forcing.
+   If unsuccessful return R_UnboundValue. */
+SEXP peek_promise(SEXP prom) {
+  LOG("got a %s", type2char(TYPEOF(prom)));
+  
+  prom = unwrap_promise(prom, TRUE);
+  assert_type(prom, PROMSXP);
+  while(TYPEOF(PREXPR(prom)) == PROMSXP) {
+    prom = PREXPR(prom);
+  }
+  LOG("unwrapped to a %s", type2char(TYPEOF(prom)));
+  if (is_forced_promise(prom)) {
+    LOG("it's forced - a %s", type2char(TYPEOF(PRVALUE(prom))));
+    return PRVALUE(prom);
+  }
+  SEXP name = PREXPR(prom);
+  SEXP env = PRENV(prom);
+  switch(TYPEOF(name)) {
+  case SYMSXP: {
+    LOG("it's a %s, `%s`, quoted in environment %p",
+        type2char(TYPEOF(name)), CHAR(PRINTNAME(name)), PRENV(prom));
+    SEXP binding;
+    binding = x_findVar(name, env);
+    // we've already unwrapped so this shouldn't be another promise
+    LOG("...bound to a  %s", type2char(TYPEOF(binding)));
+    assert(TYPEOF(binding) != PROMSXP);
+    return binding; // possibly R_UnboundValue
+  }
+  case LANGSXP:
+    LOG("it's a call");
+    return R_UnboundValue;
+  default:
+    LOG("it's a value");
+    // this must be a value
+    return name;
+  }
 }
 
 SEXP _unwrap_quotation(SEXP q, SEXP recursive) {
@@ -503,13 +547,7 @@ SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
     case IS_PROMISE: 
       return ScalarLogical(TRUE);
     case IS_FORCED:
-      if ( PRVALUE(binding) == R_UnboundValue
-           || PRVALUE(binding) == R_MissingArg
-           || PRENV(binding) == NULL) {
-        return ScalarLogical(FALSE);
-      } else {
-        return ScalarLogical(TRUE);
-      }
+      return is_forced_promise(binding) ? ScalarLogical(TRUE) : ScalarLogical(FALSE);
     }
   case SYMSXP:
     switch(query) {

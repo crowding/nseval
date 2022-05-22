@@ -38,22 +38,26 @@ SEXP _construct_do_call(SEXP dots) {
   {
     int arglen = 0;
     if (has_args) arglen = length(dots);
-    LOG("arglen = %d\n", arglen);
+    LOG("arglen = %d", arglen);
     SET_VECTOR_ELT(out, 0, call = allocList(arglen));
     SET_TYPEOF(call, LANGSXP);
   }
 
   //construct the call head
   SEXP callenv = PRENV(fun);
+  SEXP callvalue = peek_promise(fun);
+  if (TYPEOF(callvalue) == SPECIALSXP)
+    LOG("I can tell the call is to a SPECIAL function");
+
   if (PRVALUE(fun) != R_UnboundValue) {
     // call is a forced promise. Dutifully we call "from" nowhere
     SETCAR(call, fun);
     callenv = R_EmptyEnv;
-    LOG("call head forced (a %s)\n",
+    LOG("call head forced (a %s)",
         type2char(TYPEOF(CAR(call))));
   } else {
     SETCAR(call, PREXPR(fun));
-    LOG("call head unforced (a %s)\n",
+    LOG("call head unforced (a %s)",
         type2char(TYPEOF(CAR(call))));
   };
   SET_VECTOR_ELT(out, 1, callenv);
@@ -71,7 +75,6 @@ SEXP _construct_do_call(SEXP dots) {
          copyFrom = CDR(copyFrom), copyTo = CDR(copyTo)) {
 
       SEXP thing = CAR(copyFrom);
-      SEXP out_dots = CAR(copyFrom);
       if (thing == R_MissingArg) {
         SETCAR(copyTo, thing);
       } else {
@@ -91,7 +94,7 @@ SEXP _construct_do_call(SEXP dots) {
              put the prexpr directly into the call. */
           SET_TAG(copyTo, TAG(copyFrom));
           SETCAR(copyTo, PREXPR(thing));
-          LOG("copied 1 argument unwrapped (a %s)\n", type2char(TYPEOF(CAR(copyTo))));
+          LOG("copied 1 argument unwrapped (a %s)", type2char(TYPEOF(CAR(copyTo))));
         } else {
           /* Either a forced promise with a nontrivial expression or
              language object, or an unforced promise with a
@@ -102,7 +105,7 @@ SEXP _construct_do_call(SEXP dots) {
             // containing unformattable objects, etc.)
             SET_TAG(copyTo, TAG(copyFrom));
             SETCAR(copyTo, thing);
-            LOG("copied 1 forced argument directly (a %s)\n",
+            LOG("copied 1 forced argument directly (a %s)",
                 type2char(TYPEOF(CAR(copyTo))));
           } else {
             /* We can make a temporary '...' put this and the rest into ... */

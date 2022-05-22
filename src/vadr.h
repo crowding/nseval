@@ -49,15 +49,17 @@
 #define LOG(...) NULL
 #endif
 
-/* void assert_type(SEXP, SEXPTYPE); */
 void assert_type3(SEXP, SEXPTYPE, const char *);
 int recycle_length(int i, int j);
 
 SEXP emptypromise();
 SEXP new_promise(SEXP expr, SEXP env);
 SEXP new_forced_promise(SEXP expr, SEXP value);
+SEXP x_findVar(SEXP sym, SEXP envir);
 
 SEXP _flist_to_dotsxp(SEXP flist);
 int is_language(SEXP x);
+int is_forced(SEXP x);
+SEXP peek_promise(SEXP prom);
 
 #endif

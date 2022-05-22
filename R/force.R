@@ -48,7 +48,7 @@ forced_quo <- function(x) {
 #' `forced_quo_(val)` makes a [forced] quotation given a value.
 #' Specifically it constructs a [quotation] with the same object in
 #' both the `expr` and `value` slots, except if is a
-#' [language](is.language) object in which case the `expr` slot is wrapped
+#' [language][is.language] object in which case the `expr` slot is wrapped
 #' in `quote()`.
 #' @param val A value.
 forced_quo_ <- function(val) {

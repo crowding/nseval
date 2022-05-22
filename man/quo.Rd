@@ -79,7 +79,7 @@ forces it, returning a quotation with the expression and value.
 \code{forced_quo_(val)} makes a \link{forced} quotation given a value.
 Specifically it constructs a \link{quotation} with the same object in
 both the \code{expr} and \code{value} slots, except if is a
-\href{is.language}{language} object in which case the \code{expr} slot is wrapped
+\link[=is.language]{language} object in which case the \code{expr} slot is wrapped
 in \code{quote()}.
 }
 \details{
