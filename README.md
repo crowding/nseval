@@ -3,7 +3,7 @@ NSEval
 
   <!-- badges: start -->
 [![R-CMD-check](https://github.com/crowding/nseval/workflows/R-CMD-check/badge.svg)](https://github.com/crowding/nseval/actions)
- [![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)
+ [![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)[![Codecov test coverage](https://codecov.io/gh/crowding/nseval/branch/main/graph/badge.svg)](https://codecov.io/gh/crowding/nseval?branch=main)
   <!-- badges: end -->
 
 `nseval` is the missing API for non-standard evaluation and
