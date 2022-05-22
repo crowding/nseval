@@ -27,8 +27,11 @@ test_that("primitive functions that don't handle `...`", {
   }
 
   # i.e. expect_error(dotwrap(`::`)(async, do))
-  expect_dotfail(nseval::do, "1 argument")
-  expect_dotfail(nseval:::do__, "1 argument")
+  if (getRversion() >= '4.1.0') {
+    # these worked in R 4.0, huh? That shows the value of watchdog testing...
+    expect_dotfail(nseval::do, "1 argument")
+    expect_dotfail(nseval:::do__, "1 argument")
+  }
   expect_dotfail({cat("hello"); cat("world")}, "...")
 
   setClass("track", slots = c(x="numeric", y="numeric"))
@@ -113,8 +116,10 @@ test_that("when can we use promsxps?", {
   x <- "outie"
   e$x <- "innie"
   lockEnvironment(e)
-  expect_error(do_(quo(`::`, e), quo(nseval, e), quo(do)), "name")
-  expect_error(do_(quo(`:::`, e), quo(nseval, e), quo(do)), "name")
+  if(getRversion() >= '4.1.0') {
+    expect_error(do_(quo(`::`, e), quo(nseval, e), quo(do)), "name")
+    expect_error(do_(quo(`:::`, e), quo(nseval, e), quo(do)), "name")
+  }
 
   #{ can promsxp
   fx <- function(x) {

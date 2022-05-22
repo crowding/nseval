@@ -2,15 +2,18 @@
 #include <Rinternals.h>
 #include <setjmp.h>
 #include <R_ext/Boolean.h>
+#include <Rversion.h>
 
 int nullish(SEXP dots) {        /* R_NilValue but also list() */
   return (TYPEOF(dots) == VECSXP && LENGTH(dots) == 0);
 }
 
 SEXP _remove(SEXP what, SEXP env) {
+#if defined(R_VERSION) && R_VERSION >= R_Version(4, 0, 0)
   assert_type(what, SYMSXP);
   assert_type(env, ENVSXP);
   R_removeVarFromFrame(what, env);
+#endif
   return R_NilValue;
 }
 
@@ -63,7 +66,12 @@ SEXP _construct_do_call(SEXP dots) {
   SET_VECTOR_ELT(out, 1, callenv);
 
   // determine whether we can we assign a temp `...`
+#if defined(R_VERSION) && R_VERSION >= R_Version(4, 0, 0)
+  // which we can only do if removeVarFromFrame exists
   Rboolean using_dots = !(R_EnvironmentIsLocked(callenv) || callenv == R_EmptyEnv);
+#else
+  Rboolean using_dots = FALSE;
+#endif
 
   /* construct the call args (all input promises) */
   SEXP copyTo = call;
