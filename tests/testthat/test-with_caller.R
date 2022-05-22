@@ -25,7 +25,8 @@ test_that("do_ with primitives", {
   x <- 1
   e$x <- 10
   # with the `...` injection approach, no
-  expect_error(do(`<-`, quo(x, e), quo(x+2)), "number of arguments")
+  if(getRversion() >= '4.0.0')
+    expect_error(do(`<-`, quo(x, e), quo(x+2)), "number of arguments")
   # forcing the direct PROMSXP calling approach, still no
   e2 <- new.env(e)
   lockEnvironment(e2)
@@ -35,7 +36,8 @@ test_that("do_ with primitives", {
   e <- new.env()
   x <- 1
   e$x <- 10
-  expect_error(do(`<-`, quo(x), quo(x+2, e)), "\\.\\.\\.")
+  if(getRversion() >= '4.0.0')
+    expect_error(do(`<-`, quo(x), quo(x+2, e)), "\\.\\.\\.")
   #no, but when forcing promsxp injection, yes:
   e2 <- new.env(e)
   e2$x <- 7
@@ -48,7 +50,8 @@ test_that("do_ with primitives", {
   e <- new.env()
   x <- 1
   e$x <- 10
-  expect_error(do_(quo(`<-`, e), quo(x, e), quo(x+2)), "incorrect context")
+  if(getRversion() >= '4.0.0')
+    expect_error(do_(quo(`<-`, e), quo(x, e), quo(x+2)), "incorrect context")
   #no, but when forcing promsxp injection, we can.
   lockEnvironment(e)
   do_(quo(`<-`, e), quo(x, e), quo(x+2))
@@ -72,9 +75,11 @@ test_that("do_ with primitives", {
   do_(quo(`+`, force=TRUE), dots(x+1, x+2)) %is% 9
 
   # and alist knows how to unpack `...`
-  e2 <- new.env(); e2$x <- 1
-  mode(do(alist, quo(x, e2))[[1]]) %is% "name"
-  mode(do(alist, forced_quo_(as.name("x")))[[1]]) %is% "name"
+  if(getRversion() >= '4.0.0') {
+    e2 <- new.env(); e2$x <- 1
+    mode(do(alist, quo(x, e2))[[1]]) %is% "name"
+    mode(do(alist, forced_quo_(as.name("x")))[[1]]) %is% "name"
+  }
   # but if promsxp injection is forced, alist leaks naked promsxps
   e <- new.env()
   e2 <- new.env(); e2$x <- 1
@@ -102,7 +107,7 @@ test_that("set_", {
   # subassignment
   set_(quo(x[2], e1), list(2))
   e1$x %is% list("ONE!", 2)
-  expect_error(set_(quo(x[2], e0), "two"), "\\[<-")
+  expect_error(set_(quo(x[2], e0), "two"), "find function")
   # assign_ does not behave like <<- here
   assign("x", "two?", envir=e2, inherits=TRUE)
   e2$x %is% "two?"
@@ -306,5 +311,6 @@ test_that("errors occurring under do_ should have printable sys.calls", {
       capture.output(print(s))   # this should not throw
     })
   }
-  expect_error( ee(doodo(stop("expected_error"))), "expected_error")
+  if(getRversion() >= '4.0.0')
+    expect_error( ee(doodo(stop("expected_error"))), "expected_error")
 })
