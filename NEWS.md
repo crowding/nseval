@@ -6,6 +6,8 @@ Fixes:
   cases. This should fix some cases where `sys.calls()` returned naked
   promises, which made for confusing debugging.
 * Fixed man pages which were not generated completely.
+* `locate(fn, mode="function")` now works in the case where `x` is
+  a forced promise containing a function.
 
 Changes:
 * Implemented `all.equal` method for `quotation` objects.

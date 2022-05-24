@@ -12,7 +12,7 @@ Encoding: UTF-8
 Imports:
     methods
 Suggests:
-    testthat (>= 2.0.0),
+    testthat (>= 3.0.0),
     compiler (>= 3.4),
     roxygen2 (>= 2.2.2),
     knitr (>= 1.2),
@@ -33,3 +33,4 @@ Collate:
     'missing.R'
 RoxygenNote: 7.1.2
 Roxygen: list(markdown=TRUE)
+VignetteBuilder: knitr

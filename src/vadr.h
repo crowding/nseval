@@ -4,7 +4,7 @@
 #include <R.h>
 #include <Rinternals.h>
 
-// #undef DEBUG 
+#undef DEBUG 
 // #define DEBUG
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))

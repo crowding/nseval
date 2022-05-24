@@ -533,6 +533,39 @@ test_that("Locate var that is attached", {
   expect_identical(locate(zzz, env=globalenv())$z, envz$z)
 })
 
+test_that("locate forced and unforced", {
+
+  wyz <- function() NULL
+  loc <- "global"
+  forced <- 0
+  fx <- function(wyz) {
+    loc <- "outer"
+    function(mode) {
+      loc <- "inner"
+      locate_("wyz", environment(), mode=mode)
+    }
+  }
+  fy <- fx({forced <- forced + 1})
+
+  forced %is% 0
+  fy("any")$loc %is% "outer"
+  forced %is% 0
+  fy("function")$loc %is% "global" # should force then skip over...
+  forced %is% 1
+  fy("function")$loc %is% "global"
+  forced %is% 1
+
+  wyz <- 4
+  forced <- 0
+  fy <- fx({forced <- forced+1; function(x) NULL})
+  fy("any")$loc %is% "outer"
+  forced %is% 0
+  fy("function")$loc %is% "outer" # should force then skip over...
+  forced %is% 1
+  fy("function")$loc %is% "outer"
+  forced %is% 1
+})
+
 test_that("locate list", {
   xe <- environment()
   x <- function() {

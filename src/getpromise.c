@@ -30,25 +30,30 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
 
   while (env != R_EmptyEnv) {
     assert_type(env, ENVSXP);
+    LOG("looking in env %p for %s", env, CHAR(PRINTNAME(sym)));
     if (fn) {
       SEXP x = findVarInFrame3(env, sym, TRUE);
-      if (TYPEOF(x) == PROMSXP) {
+      LOG("got a %s", type2char(TYPEOF(x)));
+      while (TYPEOF(x) == PROMSXP) {
         if (PRVALUE(x) == R_UnboundValue) {
           /* Per R rules, we must force. As forcing isn't exposed in
              Rinternals, I'll do it by calling "force"... or forceAndCall and
              then calling force.... */
+          LOG("forcing it");
           SEXP force = findVarInFrame3(R_BaseNamespace, install("force"), TRUE);
           SEXP callForce = PROTECT(list2(force, sym));
           R_forceAndCall(callForce, 1, env);
           UNPROTECT(1);
-          x = PRVALUE(x);
         }
+        x = PRVALUE(x);
+        LOG("containing a %s", type2char(TYPEOF(x)));
       }
 
       switch(TYPEOF(x)) {
       case CLOSXP: 
       case SPECIALSXP:
       case BUILTINSXP:
+        LOG("found a %s", type2char(TYPEOF(x)));
         return env;
       default:
         break;

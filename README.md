@@ -1,15 +1,24 @@
-NSEval
+---
+title: "The `nseval` Package: Utilities for Controlling Non-standard Evaluation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{"The `nseval` Package: Utilities for Controlling Non-standard Evaluation"}
+  %\VignetteEncoding{UTF-8}
+---
+
+The `nseval` Package: Utilities for Controlling Non-standard Evaluation
 ======
 
   <!-- badges: start -->
 [![R-CMD-check](https://github.com/crowding/nseval/workflows/R-CMD-check/badge.svg)](https://github.com/crowding/nseval/actions)
- [![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)[![Codecov test coverage](https://codecov.io/gh/crowding/nseval/branch/main/graph/badge.svg)](https://codecov.io/gh/crowding/nseval?branch=main)
+ [![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)[![Codecov test coverage](https://codecov.io/gh/crowding/nseval/branch/main/graph/badge.svg)](https://app.codecov.io/gh/crowding/nseval?branch=main)
   <!-- badges: end -->
 
 `nseval` is the missing API for non-standard evaluation and
 metaprogramming in R.
 
-### Who NSEval is for
+### Who `nseval` is for
 
 `nseval` might be for you if:
 
@@ -24,7 +33,7 @@ metaprogramming in R.
 
 ## Installation
 
-NSEval is on CRAN, install the latest release with:
+`nseval` is on CRAN, install the latest release with:
 
     install.packages("nseval")
 
@@ -48,7 +57,7 @@ variables and be manipulated without triggering evaluation.
 There is a set of consistently-named accessors and constructors for
 capturing, constructing, and manipulating these objects.
 
-## Quick intro / transitioning from base R to NSEval
+## Quick intro / transitioning from base R to `nseval`
 
 * Instead of `quote`, use:
   * `quo`. This captures the environment along with the text of its argument.
@@ -140,9 +149,9 @@ Some other packages have tread similar ground:
 ## Further reading
 
 It turns out that R's implementation of lazy evaluation via "promise"
-objects amount to a recreation of
-[fexprs](https://en.wikipedia.org/wiki/Fexpr). On the topic of how to
-work with fexprs, particularly in combination with lexical scope and
-environments, John Shutt's 2010
-[PhD thesis](https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf)
+objects are effectively a recreation of
+[fexprs](https://en.wikipedia.org/wiki/Fexpr) with lexical scope On
+the topic of how to work with fexprs, particularly in combination with
+lexical scope and environments, John Shutt's 2010 [PhD
+thesis](https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf)
 has been helpful.
