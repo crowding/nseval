@@ -56,12 +56,12 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="nseval">NSEval<a class="anchor" aria-label="anchor" href="#nseval"></a>
+<div class="page-header"><h1 id="the-nseval-package-utilities-for-controlling-non-standard-evaluation">The <code>nseval</code> Package: Utilities for Controlling Non-standard Evaluation<a class="anchor" aria-label="anchor" href="#the-nseval-package-utilities-for-controlling-non-standard-evaluation"></a>
 </h1></div>
-<p><!-- badges: start --> <a href="https://github.com/crowding/nseval/actions" class="external-link"><img src="https://github.com/crowding/nseval/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a> <a href="https://cran.r-project.org/package=nseval" class="external-link"><img src="http://www.r-pkg.org/badges/version/nseval" alt="CRAN version badge"></a><a href="https://codecov.io/gh/crowding/nseval?branch=main" class="external-link"><img src="https://codecov.io/gh/crowding/nseval/branch/main/graph/badge.svg" alt="Codecov test coverage"></a> <!-- badges: end --></p>
+<p><!-- badges: start --> <a href="https://github.com/crowding/nseval/actions" class="external-link"><img src="https://github.com/crowding/nseval/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a> <a href="https://cran.r-project.org/package=nseval" class="external-link"><img src="http://www.r-pkg.org/badges/version/nseval" alt="CRAN version badge"></a><a href="https://app.codecov.io/gh/crowding/nseval?branch=main" class="external-link"><img src="https://codecov.io/gh/crowding/nseval/branch/main/graph/badge.svg" alt="Codecov test coverage"></a> <!-- badges: end --></p>
 <p><code>nseval</code> is the missing API for non-standard evaluation and metaprogramming in R.</p>
 <div class="section level3">
-<h3 id="who-nseval-is-for">Who NSEval is for<a class="anchor" aria-label="anchor" href="#who-nseval-is-for"></a>
+<h3 id="who-nseval-is-for">Who <code>nseval</code> is for<a class="anchor" aria-label="anchor" href="#who-nseval-is-for"></a>
 </h3>
 <p><code>nseval</code> might be for you if:</p>
 <ul>
@@ -73,7 +73,7 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>NSEval is on CRAN, install the latest release with:</p>
+<p><code>nseval</code> is on CRAN, install the latest release with:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">install.packages</span>(<span class="st">"nseval"</span>)</span></code></pre></div>
 <p>To install the development branch:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">install.packages</span>(<span class="st">"devtools"</span>)</span>
@@ -90,7 +90,8 @@
 </div>
 </div>
 <div class="section level2">
-<h2 id="quick-intro--transitioning-from-base-r-to-nseval">Quick intro / transitioning from base R to NSEval<a class="anchor" aria-label="anchor" href="#quick-intro--transitioning-from-base-r-to-nseval"></a>
+<h2 id="quick-intro--transitioning-from-base-r-to-nseval">Quick intro / transitioning from base R to <code>nseval</code>
+<a class="anchor" aria-label="anchor" href="#quick-intro--transitioning-from-base-r-to-nseval"></a>
 </h2>
 <ul>
 <li>Instead of <code>quote</code>, use:<ul>
@@ -167,7 +168,7 @@
 <div class="section level2">
 <h2 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
 </h2>
-<p>It turns out that R’s implementation of lazy evaluation via “promise” objects amount to a recreation of <a href="https://en.wikipedia.org/wiki/Fexpr" class="external-link">fexprs</a>. On the topic of how to work with fexprs, particularly in combination with lexical scope and environments, John Shutt’s 2010 <a href="https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf" class="external-link">PhD thesis</a> has been helpful.</p>
+<p>It turns out that R’s implementation of lazy evaluation via “promise” objects are effectively a recreation of <a href="https://en.wikipedia.org/wiki/Fexpr" class="external-link">fexprs</a> with lexical scope On the topic of how to work with fexprs, particularly in combination with lexical scope and environments, John Shutt’s 2010 <a href="https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf" class="external-link">PhD thesis</a> has been helpful.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
