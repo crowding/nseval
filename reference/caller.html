@@ -12,7 +12,7 @@ determines the calling environment."><!-- mathjax --><script src="https://cdnjs.
     
     <a class="navbar-brand me-2" href="../index.html">nseval</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.99</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,8 @@ determines the calling environment.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">caller</span><span class="op">(</span>
   env <span class="op">=</span> <span class="fu">caller</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">environment</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,
-  ifnotfound <span class="op">=</span> <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"caller: environment not found on stack"</span><span class="op">)</span>
+  ifnotfound <span class="op">=</span> <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"caller: environment not found on stack"</span><span class="op">)</span>,
+  n <span class="op">=</span> <span class="fl">1</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -60,24 +61,33 @@ determines the calling environment.</p>
 <dd><p>The environment whose caller to find. The default is
 <code>caller</code>'s caller; that is, <code>caller()</code> should return the the same
 value as <code>caller(environment())</code>.)</p></dd>
+
+
 <dt>ifnotfound</dt>
 <dd><p>What to return in case the caller cannot be
 determined. By default an error is raised.</p></dd>
+
+
+<dt>n</dt>
+<dd><p>How many levels to work up the stack.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The environment which called <code>env</code> into being. If that
+    
+
+<p>The environment which called <code>env</code> into being. If that
 environment cannot be determined, <code>ifnotfound</code> is returned.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>For example, in the code:</p><div class="sourceCode"><pre><code><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">environment</a></span><span class="op">(</span><span class="op">)</span>
-<span class="cn">F</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">environment</a></span><span class="op">(</span><span class="op">)</span>
-  <span class="fu"><a href="../reference/caller.html">caller</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>
-<span class="op">}</span>
-<span class="fu"><a href="https://rdrr.io/r/base/logical.html" class="external-link">F</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-
+    <p>For example, in the code:</p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1"></a>X &lt;-<span class="st"> </span><span class="kw">environment</span>()</span>
+<span id="cb1-2"><a href="#cb1-2"></a>F &lt;-<span class="st"> </span><span class="cf">function</span>() {</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  Y &lt;-<span class="st"> </span><span class="kw">environment</span>()</span>
+<span id="cb1-4"><a href="#cb1-4"></a>  <span class="kw">caller</span>(Y)</span>
+<span id="cb1-5"><a href="#cb1-5"></a>}</span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="kw">F</span>()</span></code></pre><p></p></div>
 <p>the environment called <code>Y</code> was created by calling <code><a href="https://rdrr.io/r/base/logical.html" class="external-link">F()</a></code>, and that
 call occurs in the environment called <code>X</code>. In this case <code>X</code> is the
 calling environment of <code>Y</code>, so <code><a href="https://rdrr.io/r/base/logical.html" class="external-link">F()</a></code> returns the same environment
@@ -114,7 +124,7 @@ environment was instantiated by means of <code>do.call</code>, <a href="https://
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
     </footer></div>

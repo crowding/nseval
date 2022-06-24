@@ -14,7 +14,7 @@ NA."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax
     
     <a class="navbar-brand me-2" href="../index.html">nseval</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.99</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,20 +72,33 @@ represent a missing argument. It is distinct from either <a href="https://rdrr.i
     <dl><dt>n</dt>
 <dd><p>Optional; a number. If provided, will return a list of
 missing values with this many elements.</p></dd>
+
+
 <dt>x</dt>
 <dd><p>a value, <a href="dots.html">dots</a>, or list.</p></dd>
+
+
 <dt>unwrap</dt>
 <dd><p>Whether to descend recursively through unevaluated
 promises using <code>unwrap(x, TRUE)</code></p></dd>
+
+
 <dt>...</dt>
 <dd><p>Arguments evaluated normally. except those which are missing.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>missing_value</code> returns the symbol with empty name, or a
-list of such.
-<code>missing_</code> returns a logical vector.
-<code>list_missing</code> returns a list.</p>
+    
+
+<p><code>missing_value</code> returns the symbol with empty name, or a
+list of such.</p>
+
+
+<p><code>missing_</code> returns a logical vector.</p>
+
+
+<p><code>list_missing</code> returns a list.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -113,7 +126,7 @@ instead of assigning them to variables directly.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="co"># These expressions are equivalent:</span></span>
 <span class="r-in"><span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op">{</span><span class="va">x</span><span class="op">+</span><span class="va">y</span><span class="op">}</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function(x, y=1) {x+y}</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x563d2565f3a0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x562b991797f0&gt;</span>
 <span class="r-in"><span class="fu"><a href="function_.html">function_</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">missing_value</span>, y<span class="op">=</span><span class="fl">1</span><span class="op">)</span>,</span>
 <span class="r-in">          <span class="fu"><a href="https://rdrr.io/r/base/substitute.html" class="external-link">quote</a></span><span class="op">(</span> <span class="op">{</span><span class="va">x</span><span class="op">+</span><span class="va">y</span><span class="op">}</span> <span class="op">)</span><span class="op">)</span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Argument `args` already forced so cannot determine environment.</span>
@@ -161,7 +174,7 @@ instead of assigning them to variables directly.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
     </footer></div>

@@ -14,7 +14,7 @@ of ... in the order in which they appear."><!-- mathjax --><script src="https://
     
     <a class="navbar-brand me-2" href="../index.html">nseval</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.99</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,37 +70,54 @@ of <code>...</code> in the order in which they appear.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
 <dd><p>A <a href="dots.html">dots</a> object with names.</p></dd>
+
+
 <dt>env</dt>
 <dd><p>Specify an environment object to populate and return. By
 default a new environment is created.</p></dd>
+
+
 <dt>names</dt>
 <dd><p>Which variables to populate in the environment. If
 NULL is given, will use all names present in the dotlist.  If a
 name is given that does not match any names from the dots object,
 an error is raised.</p></dd>
+
+
 <dt>use_dots</dt>
 <dd><p>Whether to bind unnamed or unmatched items to
 <code>...</code>. If FALSE, these items are discarded. If TRUE, they
 bound to <code>...</code> in the environment. If items have duplicate
 names, the earlier ones are used and the rest placed in "...".</p></dd>
+
+
 <dt>append</dt>
 <dd><p>if <code>TRUE</code>, unmatched or unnamed items will be
 appended to any existing value of '...'. If <code>FALSE</code>, the existing
 binding of <code>...</code> will be cleared. (Neither happens if <code>use_dots</code>
 is FALSE.)</p></dd>
+
+
 <dt>hash</dt>
 <dd><p>if <code>env</code> is NULL, this argument is passed to
 <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></code>.</p></dd>
+
+
 <dt>size</dt>
 <dd><p>if <code>env</code> is NULL, this argument is paseed to
 <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></code>.</p></dd>
+
+
 <dt>parent</dt>
 <dd><p>if <code>env</code> is NULL, this argument is paseed to
 <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An environment object.</p>
+    
+
+<p>An environment object.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -116,7 +133,7 @@ is FALSE.)</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
     </footer></div>
