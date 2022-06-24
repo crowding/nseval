@@ -1,3 +1,15 @@
+# nseval 0.5
+
+# Changes
+
+* Representation of quotations has been changed.
+* Added method `is_forced_.name`.
+* Added `arg_value` to peek at values of promises (without forcing).
+
+### Fixes:
+
+* Added some exceptions for "weird" promises found in s3 methods dispatched from a generic like `c`. These promises are forced (have a value, which was dispatched from) but still have their environments.
+
 # nseval 0.4.2
 
 Fixes:

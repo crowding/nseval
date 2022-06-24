@@ -56,8 +56,6 @@ arg_ <- function(sym, env = arg_env(sym, environment())) {
 #' @return `arg_list` returns a [dots] object.
 #' @seealso dots get_dots unwrap
 #' @export
-#' @useDynLib nseval _arg_dots
-#' @useDynLib nseval _dotsxp_to_flist
 arg_list <- function(...) {
   d <- dots(...)
   arg_list_(exprs(d), envs(d))
@@ -74,13 +72,13 @@ arg_list <- function(...) {
 #'   the bindings in.
 #' @export
 #' @useDynLib nseval _arg_dots
-#' @useDynLib nseval _dotsxp_to_flist
+#' @useDynLib nseval _dotsxp_to_quolist
 arg_list_ <- function(syms, envs) {
   if (!is.list(envs)) {
     envs <- rep(list(envs), length(syms))
   }
   dts <- .Call("_arg_dots", envs, syms, names(syms), TRUE)
-  .Call("_dotsxp_to_flist", dts)
+  .Call("_dotsxp_to_quolist", dts)
 }
 
 

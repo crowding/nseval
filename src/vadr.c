@@ -39,7 +39,7 @@ SEXP new_promise(SEXP expr, SEXP env) {
 
 SEXP new_forced_promise(SEXP expr, SEXP value) {
   SEXP out = PROTECT(allocSExp(PROMSXP));
-  if (is_language(value)) {
+  if (is_language(value) && value != R_MissingArg) {
     SET_PRCODE(out, Rf_lang2(install("quote"), value));
   } else {
     SET_PRCODE(out, expr);

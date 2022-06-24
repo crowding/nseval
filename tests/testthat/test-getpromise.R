@@ -38,6 +38,61 @@ test_that("arg_env error on forced promise", {
   expect_equal(f2(124), emptyenv())
 })
 
+test_that("arg_value forced vs unforced promise", {
+
+  f1 <- function(x, y, yy, yyy, yyyy) {
+    force(y)
+    z <- y
+    expect_error(arg_value(x), "forced")
+    expect_error(arg_value(yy), "forced")
+    expect_error(arg_value(yyy), "forced")
+    expect_error(arg_value(yyyy), "forced")
+    force(yy)
+    force(yyy)
+    force(yyyy)
+    arg_value(y) %is% 24
+    arg_value(z) %is% 24
+    arg_value(yy) %is% quote(x)
+    arg_value(yyy) %is% quote(x+y)
+    arg_value(yyyy) %is% list(1, 2, 3)
+  }
+  f1(13+13, 12+12, quote(x), quote(x+y), list(1, 2, 3))
+
+})
+
+test_that("weird primitive-dispatch promise behavior", {
+
+  local({
+    called <- FALSE
+    c.cl <- function(...) {
+      #not the original expression but its forced value!
+      arg_expr(..1) %is% structure(list(1), class="cl")
+      arg_env(..1) %is% parent.env(environment())
+      arg_value(..1) %is% structure(list(1), class="cl")
+      forced(arg(..1)) %is% TRUE
+      is_forced(..1) %is% c(..1=TRUE)
+      expr(arg(..1)) %is% arg_expr(..1)
+      env(arg(..1)) %is% arg_env(..1)
+      value(arg(..1)) %is% arg_value(..1)
+      called %is% TRUE                 # even though!
+      is_forced(..2) %is% c(..2=FALSE) # !!!!
+      arg_expr(..2) %is% TRUE # it's the value at least
+      is_forced(..3) %is% c(..3=FALSE)
+      arg_expr(..3) %is% quote(dont+eval+me)
+      # this would then be the workaround for c() over-evaluating?
+      l <- lapply(dots_exprs(...),
+             function(x)
+               if (is.language(x)) call("quote", x) else unclass(x))
+      do.call("c", l)
+    }
+    c(
+      structure(list(1), class="cl"),
+      (function() called <<- TRUE)(),
+      quote(dont+eval+me))
+  })
+
+})
+
 test_that("arg_expr should not force promise", {
   e <- environment()
   # Ugh, when testthat fails here it runs an as.list.environment on
@@ -191,14 +246,31 @@ test_that("arg_get from promises", {
   is_literal(x) %is% c(x = TRUE)
   is_forced(x) %is% c(x = TRUE)
 
-  # FIXME: since this doesn't arise normally, perhaps set_arg should
-  # translate missing promises back to pure missings (also forced
-  # literals, etc.)
-  set_arg(x, forced_quo_(missing_value()))
+  # natural forced promise that has evaluated to missing.
+  (function(x) {
+    is_forced(x) %is% c(x = FALSE)
+    is_promise(x) %is% c(x = TRUE)
+    is_literal(x) %is% c(x = FALSE)
+    is_missing(x) %is% c(x = FALSE)
+    force(x);
+    is_forced(x) %is% c(x = TRUE)
+    is_promise(x) %is% c(x = TRUE)
+    is_literal(x) %is% c(x = FALSE)
+    is_missing(x) %is% c(x = TRUE)
+    arg_value(x)
+    expect_true(identical(arg_value(x), missing_value()))
+    a <- arg(x)
+    forced(a) %is% TRUE
+    missing_(a) %is% TRUE
+  })(quote(expr=))
+
+  # and artificially:
+  set_arg(x, forced_quo_(quote(expr=)))
+  is_forced(x) %is% c(x = TRUE)
   is_promise(x) %is% c(x = TRUE)
-  is_literal(x) %is% c(x = FALSE) #this doesn't arise normally?
+  is_literal(x) %is% c(x = FALSE)
   is_missing(x) %is% c(x = TRUE)
-  arg_expr(x) %is% quote(quote())
+  expect_true(identical(arg_value(x), missing_value()))
 
   a <- 5
   set_arg(x, force_(quo(a)))
@@ -372,9 +444,6 @@ test_that("R_MissingValue bound directly", {
   expect_true(missing_( (function(x) arg_expr(x))() ))
   expect_true(missing_( (function(x) arg_list(x))() ))
   expect_true(is_literal(x))
-
-  set_arg(x, forced_quo(missing_value()))
-  is_forced(x) %is% c(x = FALSE)
 })
 
 test_that("missing_ matches R behavior with unwrapping", {

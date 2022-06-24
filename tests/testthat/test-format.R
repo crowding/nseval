@@ -32,10 +32,10 @@ test_that("format dots and quotations", {
   d <- dots_some_forced(4, a=list(x+2), b+1, c=3+3, "5")
 
   format(d) %is%
-    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), val=list(4)), ",
+    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), value=list(4)), ",
            "quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
   format(d, show.environments=FALSE) %is%
-    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), val=list(4)), ",
+    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), value=list(4)), ",
            "quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
   format(d, show.expressions=FALSE) %is%
     paste0("c.dots( forced_quo_(4), a = forced_quo_(list(4)), quo(b + 1, ", e,
@@ -44,7 +44,7 @@ test_that("format dots and quotations", {
   ##   paste0("dots<< 4, a = 4, ? b + 1, c = ? 3 + 3, ? \"5\" >>")
 
   format(d[[1]]) %is% "forced_quo_(4)"
-  format(d[[2]]) %is% "forced_quo(list(x + 2), val=list(4))"
+  format(d[[2]]) %is% "forced_quo(list(x + 2), value=list(4))"
   format(d[[3]]) %is% paste0("quo(b + 1, ", e, ")")
   format(d[[4]]) %is% paste0("quo(3 + 3, ", e, ")")
   format(d[[5]]) %is% paste0("quo(\"5\", ", e, ")")
@@ -60,6 +60,19 @@ test_that("format dots and quotations", {
 test_that("format outputs one line", {
   expect_equal(length(format(dots(a = function(x){x}))), 1)
   expect_equal(length(forced_dots_(list(a = function(x){x}))), 1)
+})
+
+test_that("weird promises", {
+
+  local({
+    c.boo <- function(...) {
+      expect_true(is_forced(..1))
+      expect_identical(env(arg(..1)), parent.env(environment()))
+      expect_match(format(arg(..1)), "weird")
+    }
+    c(structure(list(1), class="boo"), 34)
+  })
+
 })
 
 test_that("oneline", {

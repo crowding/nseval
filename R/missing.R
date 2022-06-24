@@ -83,15 +83,16 @@ missing_.default <- function(x, unwrap=TRUE) {
     rep(FALSE, length(x))
 }
 
-#' `missing_` on [dots] and [quotation] objects checks whether the
-#' expressions are identical to the missing value.
+#' `missing_` on [dots] and [quotation] objects checks whether a
+#' quotation either has or would evaluate to a missing.
+#'
 #' @rdname missing_value
 #' @export
 missing_.dots <- function(x, unwrap=TRUE) {
   if (unwrap) {
     x <- unwrap(x, TRUE)
   }
-  vapply(exprs(x), identical, FALSE, missing_value())
+  vapply(x, missing_.quotation, FALSE)
 }
 
 #' @export
@@ -99,7 +100,11 @@ missing_.dots <- function(x, unwrap=TRUE) {
 missing_.quotation <- function(x, unwrap=TRUE) {
   if (unwrap)
     x <- unwrap(x, TRUE)
-  identical(expr(x), missing_value())
+  if (forced.quotation(x)) {
+    identical(value(x), missing_value())
+  } else {
+    identical(expr(x), missing_value())
+  }
 }
 
 #' `list_missing` is similar to `list` but allows missing arguments.

@@ -3,6 +3,16 @@ context("dots conversions")
 `%is%` <- expect_equal
 `%throws%` <- expect_error
 
+test_that("quotation to promsxp", {
+  x <- 3
+  y <- 5
+  set_arg(a, quo(x+y))
+  set_arg(b, forced_quo(x*y))
+  y <- 7
+  a %is% 10 #3+7
+  b %is% 15 #3*5
+})
+
 # get the dots from an environment
 test_that("get_dots", {
   f <- function(a, b, ...) {
@@ -87,18 +97,29 @@ test_that("convert dots to list of closures", {
   neg <- `-`
   d <- dots(4+5, n = neg(6), x * 3)
   d <- as.list(d)
-  mode(d[[1]]) %is% "function"
-  mode(d[[2]]) %is% "function"
+  mode(d[[1]]) %is% "call"
+  mode(d[[2]]) %is% "call"
   names(d) %is% c("", "n", "")
-  d[[1]]() %is% 9
-  d[[2]]() %is% -6
-  d[[3]]() %is% 6
+  eval(d[[1]]) %is% 9
+  eval(d[[2]]) %is% -6
+  eval(d[[3]]) %is% 6
 
   neg <- `+`
   x <- 4
 
-  d[[2]]() %is% 6
-  d[[3]]() %is% 12
+  eval(d[[2]]) %is% 6
+  eval(d[[3]]) %is% 12
+})
+
+test_that("convert call to quo", {
+
+  f <- as.quo(quote(if(FALSE) 1+2 else 3))
+  expect_true(forced(f))
+  g <- as.quo(call("evalq", quote(1+2), environment()))
+  g %is% quo(1+2)
+  expect_error(as.quo(quote(if(FALSE) 1+2)))
+  expect_error(as.quo(quote(evalq(1+2, NULL))))
+
 })
 
 test_that("convert list of closures to dots", {

@@ -41,10 +41,11 @@ quo <- function(expr, env = arg_env_(quote(expr), environment()), force = FALSE)
 #' @export
 #' @useDynLib nseval _quotation
 quo_ <- function(expr, env, force = FALSE) {
+  sigil <- function() force # to indicate missing argument
   if(force) {
-    .Call("_quotation", NULL, expr, eval(expr, env));
+    .Call("_quotation", sigil, expr, eval(expr, env), sigil);
   } else {
-    .Call("_quotation", env, expr, missing_value());
+    .Call("_quotation", env, expr, sigil, sigil);
   }
 }
 
@@ -53,8 +54,9 @@ quo_ <- function(expr, env, force = FALSE) {
 env <- function(q) UseMethod("env")
 
 #' @export
+#' @useDynLib nseval _env_quotation
 env.quotation <- function(q) {
-  environment(q)
+  .Call("_env_quotation", q)
 }
 
 #' @rdname quo
@@ -146,6 +148,16 @@ as.quo.formula <- function(x) {
 as.quo.lazy <- function(x) {
   quo_(x$expr, x$env)
 }
+
+#' @exportS3Method as.quo call
+as.quo.call <- function(x) {
+  if (.Call("_is_plausible_quotation", x)) {
+    structure(x, class="quotation")
+  } else stop("Call doesn't look like a quotation")
+}
+
+#' @exportS3Method as.quo "if"
+as.quo.if <- as.quo.call
 
 #' @exportS3Method as.quo default
 as.quo.default <- function(x) {

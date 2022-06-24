@@ -1,8 +1,8 @@
 Package: nseval
 Type: Package
 Title: Tools for Lazy and Non-Standard Evaluation
-Version: 0.4.2
-Date: 2022-05-16
+Version: 0.4.99
+Date: 2022-06-21
 Author: Peter Meilstrup <peter.meilstrup@gmail.com>
 Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: Functions to capture, inspect, manipulate, and create
@@ -31,5 +31,5 @@ Collate:
     'force.R'
     'shortcut.R'
     'missing.R'
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Roxygen: list(markdown=TRUE)

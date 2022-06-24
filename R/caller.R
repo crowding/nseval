@@ -36,6 +36,7 @@
 #'   value as `caller(environment())`.)
 #' @param ifnotfound What to return in case the caller cannot be
 #'   determined. By default an error is raised.
+#' @param n How many levels to work up the stack.
 #' @return The environment which called `env` into being. If that
 #'   environment cannot be determined, `ifnotfound` is returned.
 #'
@@ -49,7 +50,8 @@
 #' }
 #' identical(F(), E) ## TRUE
 caller <- function(env = caller(environment()),
-                   ifnotfound = stop("caller: environment not found on stack")) {
+                   ifnotfound = stop("caller: environment not found on stack"),
+                   n = 1) {
   ## I think we want to find the activation record that corresponds
   ## to the *earliest* invocation of our environment, and look at its
   ## sys.parent.
@@ -59,14 +61,13 @@ caller <- function(env = caller(environment()),
   ## records. I wrote a small package "stacktrace" which helped to
   ## figure this out.
 
-  ## cat("getting caller of ", format(envir), "\n")
+  ## cat("getting caller of ", format(env), "\n")
 
   ## print(stacktrace(), max.width=80);
-  ## print(df(frames = oneline(as.list(sys.frames())),
-  ##          parents = sys.parents(),
-  ##          calls = oneline(as.list(sys.calls()))),
+  ## print(data.frame(frames = oneline(I(as.list(sys.frames()))),
+  ##                  parents = oneline(sys.parents()),
+  ##                  calls = oneline(I(as.list(sys.calls())))),
   ##       max.width=80)
-
   where <- which_frame(env, return(ifnotfound)) #return...
 
   if (is.primitive(sys.function(where))) {
@@ -91,7 +92,7 @@ caller <- function(env = caller(environment()),
     #
     # do.call will make a stack frame that has the right sysparent, which
     # parent.frame will return.
-    result <- do_(quo_(parent.frame, env))
+    result <- do.call("parent.frame", list(), envir=env)
   } else if(whichparent == 0) {
     result <- globalenv()
   } else {
@@ -195,13 +196,14 @@ do__ <- function(d) {
   eval(toeval[[1]], e)
 }
 
-#' Assign values to variables
+#' Assign values to variables.
 #'
 #' `set_` is a normally-evaluating version of [`<-`].
 #' `set_enclos_` is a normally evaluating version of
 #' [`<<-`].
 #' @param dest A [quotation] specifying the destination environment
-#'   and name.
+#'   and name. This can also be an indexing, expression, and `set_` will
+#'   perform subassignment.
 #' @param val The value to assign.
 #' @return `set_` returns `val`, invisibly.
 #' @details `set_` differs from `[assign]` in that `set_` will process
@@ -283,7 +285,7 @@ get_call <- function(env = caller(environment()),
   call <- sys.call(frame)
   head <- call[[1]]
   fn <- sys.function(frame)
-  argnames <- names(formals(fn))
+  argnames <- names(formals(fn)) %||% character(0)
   c.dots(quo_(head, rho),
          env2dots(env, argnames));
 }

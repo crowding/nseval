@@ -241,8 +241,9 @@ as.lazy_dots <- function(x, env) {
 
 #' @export
 #' @rdname compat
-as.lazy_dots.dots <- function(x, env="ignored")
+as.lazy_dots.dots <- function(x, env="ignored", ...)
 {
-  do(lazyeval::lazy_dots, x)
+  set_dots(environment(), x)
+  lazyeval::lazy_dots(...)
 }
 

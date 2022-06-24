@@ -13,6 +13,11 @@ test_that("can create quotation explicitly", {
   value(y) %is% 8
 })
 
+test_that("Environment must be an envir", {
+  expect_error(quo(hello(world), env=NULL), "value")
+  expect_error(quo(hello(world), env=12), "environment")
+})
+
 test_that("can force quotation, and make forced quotations, and forced", {
   x <- 1
   q <- quo(x <- x + 1)
@@ -27,7 +32,7 @@ test_that("can force quotation, and make forced quotations, and forced", {
   forced(fq) %is% TRUE
   x %is% 5
   expr(fq) %is% quote(x <- x + 1)
-  identical(env(fq), emptyenv())
+  env(fq) %is% emptyenv()
   value(fq) %is% 5 #forced at quo creation
   value(fq) %is% 5 #not re-forced
 })
@@ -58,6 +63,31 @@ test_that("can get expr and environment of quo", {
   env(q2)$where %is% "top"
 })
 
+test_that("can get expr and env of old quo", {
+  quold_ <- function(expr, env, force = FALSE) {
+    if(force) {
+      .Call("_quotation_old", NULL, expr, eval(expr, env));
+    } else {
+      .Call("_quotation_old", env, expr, missing_value());
+    }
+  }
+
+  where <- "top"
+  f <- function(x = x+y) {
+    where <- "f"
+    quold_(arg_expr(x), arg_env(x))
+  }
+
+  q1 <- f()
+  expr(q1) %is% quote(x+y)
+  env(q1)$where %is% "f"
+
+  q2 <- f(z+zzz)
+  expr(q2) %is% quote(z+zzz)
+  env(q2)$where %is% "top"
+
+})
+
 test_that("Can get missingness and forcedness of quo", {
   w <- 1
   x <- missing_value()
@@ -74,7 +104,6 @@ test_that("Can get missingness and forcedness of quo", {
 })
 
 test_that("Can force quo with alternate eval", {
-  # Note, the only good reason to do this is if you're implementing eval.
   x <- quo(asdlaksj + qweoiu)
   x <- force_(x, eval= function(expr, envir) 5)
   expect_true(forced(x))
@@ -118,3 +147,4 @@ test_that("Mutate quos", {
   expect_true(is.quotation(q))
   expect_false(is.quotation(quote(x)))
 })
+

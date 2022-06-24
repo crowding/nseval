@@ -90,7 +90,7 @@ envs <- function(d) {
 #' @rdname dots
 #' @export
 envs.dots <- function(d) {
-  lapply(d, environment)
+  lapply(d, function(x) .Call("_env_quotation", x))
 }
 
 #' @return `envs(d) <- value` returns an updated dots object with the
@@ -128,12 +128,27 @@ envs.dots <- function(d) {
   structure(y, class="dots")
 }
 
+
+
+
+# I am removing these...
+#
+# It turns out that when c() does generic dispatch on an arg, it _evaluates_
+# that arg if it's an expr. I don't know why... But since c() of two language
+# objects will make a list, that should count ?
+
+
 #' @export
 #' @rdname dots
 c.dots <- function(...) {
-  l <- list(...)
-  subdots <- lapply(l, function(x) unclass(as.dots(x)))
-  structure(unlist(subdots, recursive=FALSE), class="dots")
+  if (exists(".Method", envir=environment())) {
+    # because quotations are langsxps, primitive generic dispatch will
+    # over-evaluate them. workaround by making them all lists before "c"
+    l <- lapply(dots_exprs(...), function(x) unclass(as.dots(x)))
+    structure(do.call("c", l), class="dots")
+  } else {
+    structure(lapply(c(...), as.quo), class="dots")
+  }
 }
 
 #' @export
@@ -155,10 +170,10 @@ c.quotation <- c.dots
 #' @seealso env2dots set_arg dots2env
 #' @export
 #' @useDynLib nseval _get_dots
-#' @useDynLib nseval _dotsxp_to_flist
+#' @useDynLib nseval _dotsxp_to_quolist
 get_dots <- function(env = caller(environment()), inherits=FALSE) {
   dts <- .Call("_get_dots", env, inherits)
-  .Call("_dotsxp_to_flist", dts)
+  .Call("_dotsxp_to_quolist", dts)
 }
 
 #' @rdname get_dots

@@ -5,6 +5,8 @@
 \alias{arg_env_}
 \alias{arg_expr}
 \alias{arg_expr_}
+\alias{arg_value}
+\alias{arg_value_}
 \alias{dots_envs}
 \alias{dots_exprs}
 \alias{is_forced}
@@ -29,6 +31,18 @@ arg_env_(sym, env = arg_env_(quote(sym), environment()))
 arg_expr(sym, env = arg_env_(quote(sym), environment()))
 
 arg_expr_(sym, env = arg_env_(quote(sym), environment()))
+
+arg_value(
+  sym,
+  env = arg_env_(quote(sym), environment()),
+  ifnotforced = stop("Variable is not forced, so has no value")
+)
+
+arg_value_(
+  sym,
+  env = arg_env_(quote(sym), environment()),
+  ifnotforced = stop("Variable is not forced, so has no value")
+)
 
 dots_envs(...)
 
@@ -67,6 +81,9 @@ evaluates to a name or character.}
 
 \item{env}{The environment to search in.}
 
+\item{ifnotforced}{What to return if calling arg_value on a promise
+that has not been forced.}
+
 \item{...}{Bare variable names (for \verb{is_*}) or expressions (for
 \verb{dots_*}). Not forced.}
 
@@ -81,6 +98,8 @@ missingness.}
 \code{arg_env} returns an environment.
 
 \code{arg_expr} returns the expression bound to a named argument.
+
+\code{arg_value} returns the value bound to a named argument.
 
 \code{is_forced} and other \verb{is_*} return a logical vector with
 optional names.

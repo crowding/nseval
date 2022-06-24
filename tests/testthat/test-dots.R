@@ -251,6 +251,7 @@ test_that("expression mutator", local({
 }))
 
 test_that("dots_envs and mutator", local({
+  
   expect_equivalent(envs(dots()), list())
   f1 <- function(...) {
     where <- "e1E"
@@ -283,8 +284,11 @@ test_that("dots_envs and mutator", local({
 #
 test_that("expressions unpacks bytecode", {
   f <- function(x) dots(y=x+1)
+  g <- function(x) dots_exprs(y=x+1)
   f <- compiler::cmpfun(f)
+  g <- compiler::cmpfun(g)
   exprs(f(5)) %is% alist(y=x+1)
+  g(5) %is% alist(y=x+1)
 })
 
 test_that("dots_exprs", {
@@ -306,6 +310,17 @@ test_that("dots_exprs is pointer-stable", {
 })
 
 ## DOTS OBJECT, CALLING AND CURRYING -------------------------------------
+
+test_that("concatenate dots, quotations", {
+    x <- 4
+    y <- 6
+    d <- c(quo(x+y, force=TRUE), quo(x*y))
+    f <- function(...) {
+      set_dots(environment(), d)
+      list(...)
+    }
+    f() %is% list(10, 24)
+})
 
 test_that("do with forced quos -- like do.call(quote=TRUE) without overquoting", {
   x <- 2
@@ -715,3 +730,4 @@ test_that("is_missing and missing_ unwraps", {
   f(is_missing) %is% c(z=FALSE)
   f(function(x) missing_(arg(x))) %is% c(FALSE)
 })
+

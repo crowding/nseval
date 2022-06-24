@@ -15,9 +15,9 @@ forced <- function(x) UseMethod("forced")
 #' @description
 #' `forced(q)` tests whether a [quotation] is forced.
 #' @export
-#' @useDynLib nseval _forced_quotation
+#' @useDynLib nseval _is_forced_quotation
 forced.quotation <- function(x, ...) {
-  .Call("_forced_quotation", x)
+  .Call("_is_forced_quotation", x)
 }
 
 #' @rdname forced
@@ -95,9 +95,10 @@ force_ <- function(x, ...) {
 #' @param eval Which evaluation function to use.
 force_.quotation <- function(x, eval=base::eval, ...) {
   if (forced(x)) {
-    q
+    q #????
   } else {
-    .Call('_quotation', NULL, expr(x), eval(expr(x), env(x)))
+    sigil <- function() x
+    .Call('_quotation', sigil, expr(x), eval(expr(x), env(x)), sigil)
   }
 }
 
@@ -119,18 +120,10 @@ value <- function(x, ...) {
 
 #' @export
 #' @rdname forced
-#' @param mode Whether to force in "any" mode or "function" mode (see
-#'   [locate]).
 value.quotation <- function(x, mode="any", ...) {
-  if (forced(x)) {
-    x()
-  } else {
-    switch(mode,
-           "any" = eval(body(x), environment(x)),
-           "function" = stop("Not implemented"),
-           stop("Invalid mode")
-           )
-  }
+  if (forced(x)) .Call("_value_quotation", x)
+  else if (is.function(x)) x()
+  else eval(x)
 }
 
 #' @export

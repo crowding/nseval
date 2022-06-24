@@ -45,9 +45,6 @@ values(x)
 \item{...}{Options used by methods}
 
 \item{eval}{Which evaluation function to use.}
-
-\item{mode}{Whether to force in "any" mode or "function" mode (see
-\link{locate}).}
 }
 \value{
 \code{forced(x)} returns a \link{logical}.

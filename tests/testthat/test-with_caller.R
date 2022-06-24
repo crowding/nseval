@@ -233,11 +233,14 @@ test_that("what is function called?", {
 })
 
 test_that("do down the stack in closed env", {
+  
   where <- "0"
+  qq <- NULL
   f <- function() {
     where <- "f"
     henv <- g()
-    do_(quo(get, henv))
+    qq <<- quo(get, henv)
+    do_(qq)
   }
   g <- function() {
     where <- "g"
@@ -249,9 +252,13 @@ test_that("do down the stack in closed env", {
   }
   get <- function() {
     parent.frame()$where %is% "h"
+    caller(environment())$where %is% "h"
     caller()$where %is% "h"
+    x <- get_call()
+    x[[1]] %is% qq
   }
   f()
+
 })
 
 test_that("do from de novo env.", {

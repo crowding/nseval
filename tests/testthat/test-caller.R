@@ -197,6 +197,7 @@ test_that("caller from eval and do.call in closed environments", {
 })
 
 test_that("get_call and get_function", {
+
   where <- "0"
   eenv <- NULL
   fenv <- NULL
@@ -221,11 +222,13 @@ test_that("get_call and get_function", {
   h <- function(x, y, z, ...) {
     list(get_call(), get_function())
   }
+  
   c <- e()
   cmp <- list(dots_(alist( (r), x=where, y=where, z=where),
                     list(  genv, genv, fenv, eenv)),
               h)
   c %is% cmp
+  
 })
 
 test_that("ifnotfound", {

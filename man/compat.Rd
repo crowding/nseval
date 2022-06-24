@@ -7,7 +7,7 @@
 \usage{
 as.lazy_dots(x, env)
 
-\method{as.lazy_dots}{dots}(x, env = "ignored")
+\method{as.lazy_dots}{dots}(x, env = "ignored", ...)
 }
 \arguments{
 \item{x}{a \link{dots} object.}

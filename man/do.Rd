@@ -40,15 +40,19 @@ to \code{\link[=caller]{caller()}} (or \code{parent.frame()}) from within that f
 should return that environment.
 
 \code{do} is intended to be a replacement for base function \link{do.call}.
-For instance these two lines are similar in effect:\preformatted{do.call("complex", list(imaginary = 1:3))
-do(complex, dots(imaginary = 1:3))
-}
+For instance these two lines are similar in effect:
 
-As are all these:\preformatted{do.call("f", list(as.name("A")), envir = env)
+\if{html}{\out{<div class="sourceCode">}}\preformatted{do.call("complex", list(imaginary = 1:3))
+do(complex, dots(imaginary = 1:3))
+}\if{html}{\out{</div>}}
+
+As are all these:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{do.call("f", list(as.name("A")), envir = env)
 do_(quo(f, env), quo(A, env)):
 do_(dots_(list(as.name("f"), as.name("A")), env))
 do_(dots_(alist(f, A), env))
-}
+}\if{html}{\out{</div>}}
 }
 \note{
 When the environment of the call head differs from that of

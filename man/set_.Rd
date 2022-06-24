@@ -3,7 +3,7 @@
 \name{set_}
 \alias{set_}
 \alias{set_enclos_}
-\title{Assign values to variables}
+\title{Assign values to variables.}
 \usage{
 set_(dest, val)
 
@@ -11,7 +11,8 @@ set_enclos_(dest, val)
 }
 \arguments{
 \item{dest}{A \link{quotation} specifying the destination environment
-and name.}
+and name. This can also be an indexing, expression, and \code{set_} will
+perform subassignment.}
 
 \item{val}{The value to assign.}
 }

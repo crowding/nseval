@@ -59,6 +59,34 @@ arg_expr_ <- function(sym,
   .Call("_arg_expr", env, as.name(sym), TRUE)
 }
 
+
+#' @rdname shortcut
+#' @export
+#' @param ifnotforced What to return if calling arg_value on a promise
+#'   that has not been forced.
+#' @useDynLib nseval _arg_value
+#' @return `arg_value` returns the value bound to a named argument.
+arg_value <- function(sym,
+                     env=arg_env_(quote(sym), environment()),
+                     ifnotforced=stop("Variable is not forced, so has no value")) {
+  sym_ <- arg_expr_(quote(sym), environment())
+  arg_value_(sym_, env, ifnotforced)
+}
+
+#' @rdname shortcut
+#' @export
+#' @useDynLib nseval _arg_value
+arg_value_ <- function(sym,
+                       env=arg_env_(quote(sym), environment()),
+                       ifnotforced=stop("Variable is not forced, so has no value")) {
+  sigil <- function() sym
+  result <- .Call("_arg_value", env, as.name(sym), TRUE, sigil)
+  if (missing(result)) return(missing_value())
+  if (identical(result, sigil)) ifnotforced
+  else result
+}
+
+
 #' @export
 #' @rdname shortcut
 #' @useDynLib nseval _dots_envs
@@ -105,6 +133,11 @@ is_forced_.default <- function(syms, envs) {
     FUN=function(sym, env) {
       .Call("_is_forced", env, as.name(sym), FALSE)
     })
+}
+
+#' @exportS3Method is_forced_ name
+is_forced_.name <- function(syms, envs) {
+  .Call("_is_forced", envs, syms, FALSE)
 }
 
 #' @exportS3Method is_forced_ quotation
