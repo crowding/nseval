@@ -275,11 +275,28 @@ test_that("convert lazy_dots to dots", {
   exprs(d) <- alist(a+b, c+d)
 })
 
+test_that("convert lazy to quotation", {
+  l <- (function() list(lz = lazyeval::lazy(a+b), quo = quo(a+b)))()
+  lazyeval::as.lazy(l$quo) %is% l$lz
+  as.quo(l$lz) %is% l$quo
+})
+
 test_that("convert dots to lazy_dots", {
   x <- dots(a+b)
   xx <- lazy_dots(a+b)
   l <- as.lazy_dots(x)
   l %is% xx
+})
+
+test_that("convert flma to quotation", {
+  l <- (function() list(f = ~a+b, q = quo(a+b)))()
+  as.quo(l$f) %is% l$q
+})
+
+test_that("convert quosure to/from quotation", {
+  qu <- (function() list(sure = rlang::quo(a+b), tation = quo(a+b)))()
+  as.quo(qu$sure) %is% qu$tation
+  as.quosure.quo(qu$tation) %is% qu$sure
 })
 
 test_that("convert singleton dots to quotation", {

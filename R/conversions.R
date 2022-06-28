@@ -228,22 +228,57 @@ arglist <- function(names, fill = missing_value()) {
 
 #' Compatibility conversions.
 #'
-#' Convert quotations and dot lists to the representations used
-#' by other packages.
+#' Convert quotations and dot lists to representations used
+#' by some other packages.
 #' @rdname compat
-#' @export
-#' @param x a [dots] object.
-#' @param env See [lazyeval::as.lazy_dots].
-#' @return `as.lazy_dots` returns a [lazyeval::lazy_dots] object.
-as.lazy_dots <- function(x, env) {
-  UseMethod("as.lazy_dots")
+#' @param x an object to convert.
+#' @param env Ignored for quotations or dots.
+#' @return The converted object.
+#' @exportS3Method lazyeval::as.lazy_dots dots
+as.lazy_dots.dots <- function(x, env="ignored") {
+  (function(...) {
+    set_dots(environment(), x)
+    lazyeval::lazy_dots(...)
+  })()
 }
 
-#' @export
 #' @rdname compat
-as.lazy_dots.dots <- function(x, env="ignored", ...)
-{
-  set_dots(environment(), x)
-  lazyeval::lazy_dots(...)
+#' @exportS3Method lazyeval::as.lazy quotation
+as.lazy.quotation <- function(x, env="ignored") {
+  if (forced(x)) {
+    stop("Can't convert a forced quotation to a lazy")
+  } else {
+    lazyeval::lazy_(expr=expr(x), env=env(x))
+  }
+}
+
+#' @rdname compat
+#' @exportS3Method as.quo quosure
+as.quo.quosure <- function(x) {
+  quo_(rlang::quo_get_expr(x), rlang::quo_get_env(x))
+}
+
+#' @rdname compat
+#' @exportS3Method as.quo formula
+as.quo.formula <- function(x) {
+  quo_(x[[2]], environment(x))
+}
+
+#' @rdname compat
+#' @export "as.quosure.quo"
+as.quosure.quo <- function(x) {
+  # named like an s3 method, but is not, bc rlang::as_quosure is not generic
+  if (forced(x)) {
+    stop("Can't convert a forced quotation to a quosure")
+  } else {
+    rlang::new_quosure(expr=expr(x), env=env(x))
+  }
+}
+
+#' @rdname compat
+#' @export "as.quosures.dots"
+as.quosures.dots <- function(x) {
+  # named like an s3 method, but is not, bc rlang::as_quosures is not generic
+  rlang::new_quosures(lapply(x, as.quosure.quo))
 }
 

@@ -31,7 +31,7 @@ force_(x, ...)
 
 value(x, ...)
 
-\method{value}{quotation}(x, mode = "any", ...)
+\method{value}{quotation}(x, ...)
 
 \method{value}{dots}(x, ...)
 

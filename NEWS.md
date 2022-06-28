@@ -5,6 +5,7 @@
 * Representation of quotations has been changed.
 * Added method `is_forced_.name`.
 * Added `arg_value` to peek at values of promises (without forcing).
+* Added `as.quo` conversion methods for formulas and `rlang` quosures.
 
 ### Fixes:
 

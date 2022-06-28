@@ -1,0 +1,145 @@
+* There is documentation missing/no longer being generated? look at commit  `fe13754 Implement all.equal.quotation`. There is missing doc for "arg_" "expr<-" and so on.
+* There is an issue with .Call where it puts `...` objects into the stack trace where there where there shouldn't be?
+
+To repro:
+
+```{R}
+debug(pillar::type_sum)
+expect_error(async(await(pr) + 5, split_pipes=FALSE), "split_pipes")
+where
+```
+
+    where 17 at /home/peter/projects/nseval/R/dots.R#133: cps_translate(expr, async_endpoints, split_pipes = split_pipes)
+    where 18: Error: promise already under evaluation: recursive default argument reference or earlier problems?
+ 
+ ```{R}
+st <<- stacktrace()
+f
+```
+
+```{R}
+st
+```
+
+      Warning message:
+                In deparse(x, backtick = TRUE) : restarting interrupted promise evaluation
+
+```
+                                                 call
+9                                 do_(quo(c.dots), d)
+10                                            do__(d)
+11                                    .Call("_do", d)
+12                                           ?FORMAT?
+13 cps_translate(expr, async_endpoints, split_pip....
+```
+
+So there's a PROMSXP in the "call" column...?
+
+```
+> mode(st[[12, "call"]])
+[1] "call"
+> as.list(st[[12, "call"]])
+[[1]]
+c.dots
+
+[[2]]
+<promise: 0x555df3825f98>
+
+[[3]]
+<promise: 0x555df3e8acd8>
+
+$orig
+<promise: 0x555df3e8aca0>
+
+$trace
+<promise: 0x555df3e8ac68>
+
+[[6]]
+<promise: 0x555df3e8ac30>
+```
+
+So I'm passing promises in the "call" slot and it's failing to render. I mean what else am I supposed to do?
+
+Does .Internal(do.call) do anything different?
+
+A better technique might be to create an environment with a temporarily bound `...`?
+
+Or there are better ways to call with a dotsxp? what's .Internal(do_dotcall) about! Oh, that's for external functions.
+
+So do.call constructs a pairlist of promises and passes it to eval???
+What is my "do" doing differently? Ah. do.call is constructing "forced" promises.
+
+So what does evaluation of `...` do? it's handled in "promiseArgs." And I think the problem is in promiseArgs, it is double-wrapping my promises.
+
+Maybe I can temporarily bind `...`?
+
+Before doing this, I should first be trying to extract a reprex for this error coming from nseval. Because it is happening in async while async is making a "do", and is triggered by "expect_error" 
+
+which would have been
+
+Okay, I think it is happening on account of the error being _inside_ a argument that is being lazily evaluated. And it's happening in the "do" of c.dots, surprisingly enough If I don't use a "do" there it passes... but my "do"
+
+My question now is can I make this happen without the "do".
+
+Options for fixing:
+   * use `do.call` in the "quote-first-argument" case
+   * update set_arg_ to update `..N`
+   * use `...` as temp variable when assigning.
+   
+   If the same issue can be triggered from the main invocation of do_ then the last solution is the one I have.
+
+So I think I'm going to try "do__" works through a temporary binding of `...`. Only a few failed tests on my first draft.
+
+One thing this interferes with is the ability to call "<-" . I think I have a workaround: make the call using "..N" rather than "..." I will have to make sure the names get passed along.
+
+Now... switching to the `...` strategy means that it is trickier to invoke certain "ill behaved" primitives. Like `<-` or `for`. 
+
+How can I guess that I'm using an ill behaved primitive?
+* Is it a forced promsxp and is the value a primitive? Can I unwrap it to a primitive?
+* Can you unwrap it to a primitive?
+
+```
+ * eval:	= XYZ (three digits) --- where e.g. '1' means '001'
+ *		X=1 says that we should force R_Visible off
+ *		X=0 says that we should force R_Visible on
+ *		X=2 says that we should switch R_Visible on but let the C
+ *                  code update this.
+ *		Y=1 says that this is an internal function which must
+ *		    be accessed with a	.Internal(.) call, any other value is
+ *		    accessible directly and printed in R as ".Primitive(..)".
+ *		Z=1 says evaluate arguments before calling (BUILTINSXP) and
+ *		Z=0 says don't evaluate (SPECIALSXP).
+```
+This gives a clue about SPECIALSXP and BUILTINSXP. SPECIALSXP are the ones that don't evaluate.
+
+This appears to be spelled out in `names.c`. In `R_FunTab` I want entries where
+* `arity == 1`
+* `eval == 0`
+
+What does something like 
+
+     {"while",	do_while,	0,	100,	2,	{PP_WHILE,   PREC_FN,	  0}}
+mean? The `eval` value of 100 means that (PRIMPRINT(x) is 1) meaning we should force R_Visible off...
+
+.Internal
+
+`.ArgsEnv` is a special environment that gives the arguments list of all primitive functions.
+
+I now have a list of "ill-behaved" primitive functions. What are the strategies I need to call them?
+
+```{r}
+"all args quoted" = c(`::`, `:::`, expression, `for`, `function`, `missing`, `on.exit`, `quote`, `repeat`)
+"first_arg_quoted, second forced and wrapped if necessary"=c(`<-`, `<<-`, `=`)
+"maybe either quoted or promsxps" = c(`on.exit`, `quote`, `repeat`)
+"does it hurt if I do the promsxp anyway?" = c(`{`, `&&`, `||`, `if`, `on.exit`)
+"???"=c("@", "$", "~")
+```
+
+## Alternate representation for quotations.
+
+Quotations should be represented as calls to `evalq` with the literal expression and environment in question. 
+
+Meanwhile, a representation for _forced_ quotations might be 
+
+This will mean that you can `bquote` or `substitute` with a quotation object, and (if the expression evaluates "normally") you should maintain hygiene.
+

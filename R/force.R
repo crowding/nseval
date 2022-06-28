@@ -120,7 +120,7 @@ value <- function(x, ...) {
 
 #' @export
 #' @rdname forced
-value.quotation <- function(x, mode="any", ...) {
+value.quotation <- function(x, ...) {
   if (forced(x)) .Call("_value_quotation", x)
   else if (is.function(x)) x()
   else eval(x)

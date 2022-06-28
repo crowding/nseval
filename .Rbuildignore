@@ -11,3 +11,6 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^scratch.*
+^last.dump.r.*
+^.*/last.dump.r.*
