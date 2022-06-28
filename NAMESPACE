@@ -53,8 +53,10 @@ S3method(is_missing_,quotation)
 S3method(is_promise_,default)
 S3method(is_promise_,dots)
 S3method(is_promise_,quotation)
-S3method(lazyeval::as.lazy,quotation)
-S3method(lazyeval::as.lazy_dots,dots)
+if (getRversion() >= "3.6.0") {
+  S3method(lazyeval::as.lazy,quotation)
+  S3method(lazyeval::as.lazy_dots,dots)
+}
 S3method(missing_,default)
 S3method(missing_,dots)
 S3method(missing_,quotation)
