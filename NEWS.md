@@ -1,12 +1,18 @@
+# nseval 0.4.3
+
+Fixes:
+* add protection calls as identified by `rchk`.
+
 # nseval 0.4.2
 
 Fixes:
-* Fixed handling of missing arguments in `do` and `quo`
+* Fixed handling of missing arguments in `do` and `quo`.
 * `do` now passes arguments via a temporary binding of `...` in some
   cases. This should fix some cases where `sys.calls()` returned naked
-  promises, which made for confusing debugging.
+  promises, which made for confusing debugging. For R versions before 
+  4.0 the old behavior is retained.
 * Fixed man pages which were not generated completely.
-* `locate(fn, mode="function")` now works in the case where `x` is
+* `locate(fn, mode="function")` now works in the case where `fn` is
   a forced promise containing a function.
 
 Changes:
