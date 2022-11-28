@@ -31,5 +31,5 @@ Collate:
     'force.R'
     'shortcut.R'
     'missing.R'
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Roxygen: list(markdown=TRUE)

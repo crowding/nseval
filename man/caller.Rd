@@ -26,13 +26,15 @@ Given an environment that is currently on the stack, \code{caller}
 determines the calling environment.
 }
 \details{
-For example, in the code:\preformatted{X <- environment()
+For example, in the code:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{X <- environment()
 F <- function() \{
   Y <- environment()
   caller(Y)
 \}
 F()
-}
+}\if{html}{\out{</div>}}
 
 the environment called \code{Y} was created by calling \code{F()}, and that
 call occurs in the environment called \code{X}. In this case \code{X} is the
