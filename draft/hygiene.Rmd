@@ -1,0 +1,66 @@
+
+
+Imagine that Alice and Aaron are co-workers. Alice has a partner, Steve. Aaron has a partner, also named Steve. They greet each other on Monday:
+
+"Good morning," says Alice, "How was your weekend?"
+
+"Fun!" says Aaron. "Steve and I went on a river raft tour. I'm sunburned but it was a great outing. How was yours?"
+
+"That does sound like fun. We had a quiet weekend, Steve sprained his ankle at a and spent most of the rest of it on the couch."
+
+"Oh, that's unfortunate, tell Steve to take it easy."
+
+There is no confusion between the two, because Alice understands that when Aaron says "Steve," he is referring to Aaron's partner, and Aaron understands that when Alice says "Steve", she is referring to her partner and not Aaron's. When we use names, those uses come with a context (or "scope", or "environment") that disambiguates the names that might overlap.
+
+Standard evaluation in R works similarly. You can pass an argument to a function that refers to a local variable; the function. This is illustrated with an adaptation of the above scene to code:
+
+```{R}
+alice <- local{
+  steve <- "Alice's Steve"
+  list(
+    greet = function() steve$describeWeekend(),
+    describeWeekend = function() {
+      alice$gossip(steve, "stayed home")
+    },
+    gossip = function(who, what) {
+      if(who == steve) stop("That can't be right...")
+      steve$gossip(steve, "stayed home")
+    },
+    tell = function(who, what) {
+      if (who == steve) print("Thanks, I will")
+    }
+  }
+}
+
+aaron <- local{
+  steve <- "Aaron's Steve"
+  list(
+    describeWeekend = function() {
+      alice$gossip(steve, "and I went rafting")
+    }
+    gossip = function(who, what) {
+      if (who == steve) stop("That's not right...")
+      alice$tell(who, "to take care")
+    }
+  }
+}
+
+alice$greet()
+```
+
+Here the parts of Alice and Aaron are portrayed by lists of functions that pass data to one another. Alice's functions exist in a context that shares a value for `steve`, while Aaron's functions have a different value for `steve`. When Aaron calls `gossip(steve)`, Alice receives Aaron's local value of `steve`.
+
+This is ensured by the way "standard evaluation" in R takes place. Note that R is lazily evaluated, so the value for `who` is not calculated until after the gossip function has been evaluated. Nevertheless, when `who` is evaluated, R remembers that . The construct that allows this is a [promise]; it's also similar to the approach for lazy evaluation developed in chapter 6 of Abelson and Sussman.
+
+# Nonstandard evaluation
+
+Writing about Lisp-family programming languages often uses the term "hygeine" to refer to this property. If one function F has a local variable `x`, and calls a function `G` like `G(x)` `G` should use F's definition of `x`; this is said to be "hygienic." Hygienic functions keep straight when you are talking about your own names versus names coming from another scope. 
+
+This notion of hygeine is an extension of that of lexical scope to nonstandard evaluation. In standard evaluation, you do not deal directly with the names of variables; evaluating expressions is left up to the language. 
+
+
+the term "hygeine" is applied when computing over the language (i.e. when )
+
+In R, this implementation of promises; 
+
+So "Hygeine" can also be describes as extending lexical scope to also extend to functions over the language. 
