@@ -6,20 +6,20 @@
    and `if (FALSE) expr else value` for forced quotations.
 
    Follows the rule for PROMSXPs:
-   To make an unforced quotations, `envir` "should" be R_NilValue.
-   To make a forced quotation, `value` should be R_UnboundValue.
-     but R_Nilvalue or R_MissingValue will be accepted as long
-     as `envir` is R_NilValue (since _quotation is .Call'ed from R level,
-     and R_UnboundValues shouldn't manifest at R level.)
+   To make a forced quotation, `envir` "should" be R_NilValue.
+   To make an unforced quotation, `value` should be R_UnboundValue.
+   but R_Nilvalue or R_MissingValue will be accepted as long
+   as `envir` is not R_NilValue (since _quotation is .Call'ed from R level,
+   and R_UnboundValues shouldn't manifest at R level.)
 
-     unforced quotations are:
+   unforced quotations are:
      evalq(<expr>, <env>)
      CAR(q) install("evalq")
      CADR(q) <expr>
      CADDR(q) <env>
 
-     forced quotations are:
-     in R:
+   forced quotations are:
+   in R:
      if(FALSE) <expr> else <value>
      if(FALSE) <expr> else quote(<value>)
 

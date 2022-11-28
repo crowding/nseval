@@ -2,16 +2,20 @@ context("formatting")
 
 `%is%` <- function(...) expect_equal(..., expected.label = ..2)
 
-test_that("dots_unpack has a print method that works", {
-  x <- capture.output(as.data.frame(dots(a, b, c, d, 4, e)))
-  expect_equal(length(x), 7)
-})
+`%parses_like%` <- function(left, right)
+  expect_equal(parse(text=right, keep.source=FALSE),
+               parse(text=left, keep.source=FALSE))
 
 silently <- function(x, output_callback = force) {
   y <- NULL
   output_callback(capture.output(y <- print(x)))
   y
 }
+
+test_that("dots_unpack has a print method that works", {
+  x <- capture.output(as.data.frame(dots(a, b, c, d, 4, e)))
+  expect_equal(length(x), 7)
+})
 
 test_that("dots has some kind of print method", {
   d <- dots(a, b, c)
@@ -31,17 +35,19 @@ test_that("format dots and quotations", {
 
   d <- dots_some_forced(4, a=list(x+2), b+1, c=3+3, "5")
 
-  format(d) %is%
-    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), value=list(4)), ",
-           "quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
-  format(d, show.environments=FALSE) %is%
-    paste0("c.dots( forced_quo_(4), a = forced_quo(list(x + 2), value=list(4)), ",
-           "quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
-  format(d, show.expressions=FALSE) %is%
-    paste0("c.dots( forced_quo_(4), a = forced_quo_(list(4)), quo(b + 1, ", e,
-           "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, ") )")
-  ## format(d, compact=TRUE) %is%
-  ##   paste0("dots<< 4, a = 4, ? b + 1, c = ? 3 + 3, ? \"5\" >>")
+  collapse_lines <- function(..., collapse=" ") {
+    paste0(vapply(c(...), trimws, ""), collapse=collapse)
+  }
+
+  collapse_lines(format(d)) %is%
+    paste0("c.dots(forced_quo_(4), a = forced_quo(list(x + 2), value=list(4)), ",
+           "quo(b + 1, ", e, "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, "))")
+  format(d, show.environments=FALSE) %parses_like%
+    paste0("c.dots(forced_quo_(4), a = forced_quo(list(x + 2), value=list(4)),",
+                   "quo(b + 1), c = quo(3 + 3), quo(\"5\") )")
+  collapse_lines(format(d, show.expressions=FALSE)) %is%
+    paste0("c.dots(forced_quo_(4), a = forced_quo_(list(4)), quo(b + 1, ", e,
+           "), c = quo(3 + 3, ", e, "), quo(\"5\", ", e, "))")
 
   format(d[[1]]) %is% "forced_quo_(4)"
   format(d[[2]]) %is% "forced_quo(list(x + 2), value=list(4))"
@@ -52,14 +58,36 @@ test_that("format dots and quotations", {
   format(quo_(quote(f), globalenv())) %is%
     "quo(f, <environment: R_GlobalEnv>)"
   format(dots_(list(quote(f)), globalenv())) %is%
-    "c.dots( quo(f, <environment: R_GlobalEnv>) )"
-  format(dots(a, b, c)) %is%
-    paste0("c.dots( quo(a, ", e, "), quo(b, ", e, "), quo(c, ", e, ") )")
+    "c.dots(quo(f, <environment: R_GlobalEnv>))"
+  collapse_lines(format(dots(a, b, c))) %is%
+    paste0("c.dots(quo(a, ", e, "), quo(b, ", e, "), quo(c, ", e, "))")
 })
 
-test_that("format outputs one line", {
-  expect_equal(length(format(dots(a = function(x){x}))), 1)
-  expect_equal(length(forced_dots_(list(a = function(x){x}))), 1)
+test_that("format output is parseable when multiline as well", {
+  expect_equal(
+    length(format(dots(a = function(x)x))),
+    1)
+  expect_equal(
+    length(format(quo(function(x){x}), show.environments = FALSE)),
+    3)
+  expect_equal(
+    length(format(forced_dots_(list(a = function(x)x)))),
+    1)
+  expect_equal(
+    length(format(dots(a = function(x){x}))),
+    3)
+
+  format(quo(function(x){x}),
+         show.environments = FALSE
+         ) %parses_like% "quo(function(x) {x})"
+
+  format(dots(a = function(x){x}),
+         show.environments = FALSE
+         ) %parses_like% "c.dots(a=quo(function(x) {x} ))"
+
+  format(dots(a = function(x)x, b=function(x){x}),
+         show.environments=FALSE) %parses_like%
+    "c.dots(a=quo(function(x) x ), b = quo(function(x) {x}))"
 })
 
 test_that("weird promises", {

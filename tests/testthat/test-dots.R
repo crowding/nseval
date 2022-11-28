@@ -26,6 +26,9 @@ test_that("as.data.frame.dots extracts dots information into a data frame", {
   expect_equal(nrow(as.data.frame(dots())), 0)
   #
   f <- function(...) {
+    g(..., q = x+y)
+  }
+  g <- function(...) {
     as.data.frame(dots(...))
   }
   x <- 2
