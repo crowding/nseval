@@ -22,7 +22,7 @@ static int ddVal(SEXP symbol)
 SEXP _locate(SEXP sym, SEXP env, SEXP function) {
   assert_type(sym, SYMSXP);
   assert_type(env, ENVSXP);
-  int fn = asLogical(function);
+  Rboolean fn = asLogical(function);
 
   if (DDVAL(sym)) {
     error("locate_: double dot symbol `%s` not supported", CHAR(PRINTNAME(sym)));
@@ -32,7 +32,7 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
     assert_type(env, ENVSXP);
     LOG("looking in env %p for %s", env, CHAR(PRINTNAME(sym)));
     if (fn) {
-      SEXP x = findVarInFrame3(env, sym, TRUE);
+      SEXP x = PROTECT(findVarInFrame3(env, sym, TRUE));
       LOG("got a %s", type2char(TYPEOF(x)));
       while (TYPEOF(x) == PROMSXP) {
         if (PRVALUE(x) == R_UnboundValue) {
@@ -54,13 +54,14 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
       case SPECIALSXP:
       case BUILTINSXP:
         LOG("found a %s", type2char(TYPEOF(x)));
+        UNPROTECT(1);
         return env;
       default:
+        UNPROTECT(1);
         break;
       }
     } else {
       SEXP x = findVarInFrame3(env, sym, FALSE);
-
       if (x != R_UnboundValue) {
         return env;
       }
@@ -154,34 +155,48 @@ SEXP unwrap_step(SEXP prom) {
 SEXP unwrap_promise(SEXP prom, int recursive) {
   SEXP tortoise = prom;
   SEXP next;
+  PROTECT_INDEX prom_idx;
+  PROTECT_INDEX tortoise_idx;
+  PROTECT_WITH_INDEX(prom, &prom_idx);
+  PROTECT_WITH_INDEX(tortoise, &tortoise_idx);
   
   while(TRUE) {
 
-    if (!unwrappable(prom)) return prom;    
+    if (!unwrappable(prom)) {
+      UNPROTECT(2);
+      return prom;
+    }
     next = unwrap_step(prom);
 
     if (next == R_UnboundValue) {
       break;
     } else {
       prom = next;
+      REPROTECT(prom, prom_idx);
     }
 
     if (!recursive) break;
     
-    if (!unwrappable(prom)) return prom;
+    if (!unwrappable(prom)) {
+      UNPROTECT(2);
+      return prom;
+    }
     next = unwrap_step(prom);
 
     if (next == R_UnboundValue) {
       break;
     } else {
       prom = next;
+      REPROTECT(prom, prom_idx);
     }
 
     if (tortoise == prom) error("Circular promise chain!");
     tortoise = unwrap_step(tortoise);
+    REPROTECT(tortoise, tortoise_idx);
     if (tortoise == prom) error("Circular promise chain!");
   }
 
+  UNPROTECT(2);
   return prom;
 }
 
@@ -533,30 +548,28 @@ SEXP arg_get_from_nonpromise(SEXP sym, SEXP value, GET_ENUM request, int warn) {
 SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn, int recursive) {
   assert_type(envir, ENVSXP);
   assert_type(name, SYMSXP);
+  SEXP ans;
   if (name == R_DotsSymbol) {
     error("Unsupported use of ... in arg_* (use `arg_list( (...) )` or get_dots())");    
   }
   LOG("Getting %s of binding `%s` in env `%p`\n",
       get_enum_string(type), CHAR(PRINTNAME(name)), envir);
-  SEXP binding = x_findVar(name, envir);
+  SEXP binding = PROTECT(x_findVar(name, envir));
   if (TYPEOF(binding) == PROMSXP) {
     if (recursive) binding = unwrap_promise(binding, recursive);
-    /* Rprintf("Got a promise\n"); */
-    while (TYPEOF(PREXPR(binding)) == PROMSXP) { //TODO: unwrap quotations here
-      /* Rprintf("It's a wrapped promise\n"); */
+    while (TYPEOF(PREXPR(binding)) == PROMSXP) {
       binding = PREXPR(binding);
     }
     if (PRVALUE(binding) != R_UnboundValue) {
-      /* Rprintf("It's already forced\n"); */
-      return arg_get_from_forced_promise(name, binding, type, warn);
+      ans = arg_get_from_forced_promise(name, binding, type, warn);
     } else {
-      /* Rprintf("It's unforced\n"); */
-      return arg_get_from_unforced_promise(binding, type, warn);
+      ans = arg_get_from_unforced_promise(binding, type, warn);
     }
   } else {
-    /* Rprintf("It's not a promise\n"); */
-    return arg_get_from_nonpromise(name, binding, type, warn);
+    ans = arg_get_from_nonpromise(name, binding, type, warn);
   }
+  UNPROTECT(1);
+  return ans;
 }
 
 SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
@@ -632,19 +645,20 @@ SEXP _arg_dots(SEXP envirs, SEXP syms, SEXP tags, SEXP warn) {
   }
 
   /* so at least one item */
-  SEXP head = R_NilValue;
+  SEXP head = PROTECT(allocSExp(DOTSXP));
   SEXP tail = head;
-
+  Rboolean filled_head = FALSE;
+  
 # define APPEND(item, tag) {                    \
-    if(head == R_NilValue) {                    \
-      head = PROTECT(allocSExp(DOTSXP));        \
-      tail = head;                              \
-    } else {                                    \
+    PROTECT(item);                              \
+    PROTECT(tag);                               \
+    if (filled_head) {                          \
       SETCDR(tail, allocSExp(DOTSXP));          \
       tail = CDR(tail);                         \
-    }                                           \
+    } else filled_head = TRUE;                  \
     SETCAR(tail, item);                         \
     SET_TAG(tail, tag);                         \
+    UNPROTECT(2);                               \
   }
 
   for (int i = 0; i < len; i++) {

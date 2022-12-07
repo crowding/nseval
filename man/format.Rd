@@ -13,7 +13,7 @@
   compact = FALSE,
   show.environments = !compact,
   show.expressions = !compact,
-  width = 36,
+  width = NULL,
   ...
 )
 
@@ -22,7 +22,7 @@
   compact = FALSE,
   show.environments = !compact,
   show.expressions = !compact,
-  width = 36,
+  width = NULL,
   ...
 )
 
@@ -59,6 +59,6 @@ quotation object.
 
 \code{format.oneline} formats a vector or list so that each item is
 displayed on one line. It is similar to \link{format.AsIs} but tries
-harder with language objects. The "oneline" class is used by
+harder witlanguage objects. The "oneline" class is used by
 \link{as.data.frame.dots}.
 }

@@ -238,7 +238,7 @@ SEXP promsxp_to_quotation(SEXP prom) {
   }
 }
 
-SEXP empty_closure() {
+SEXP empty_closure(void) {
   SEXP out = PROTECT(allocSExp(CLOSXP));
   SET_FORMALS(out, R_NilValue);
   SET_BODY(out, R_MissingArg);
@@ -276,7 +276,10 @@ SEXP make_into_promsxp(SEXP in) {
     }
     return in;
   } else {
-    return forced_value_promise(in);
+    PROTECT(in);
+    SEXP out = forced_value_promise(in);
+    UNPROTECT(1);
+    return out;
   }
 }
 

@@ -52,7 +52,7 @@
 void assert_type3(SEXP, SEXPTYPE, const char *);
 int recycle_length(int i, int j);
 
-SEXP emptypromise();
+SEXP emptypromise(void);
 SEXP new_promise(SEXP expr, SEXP env);
 SEXP new_forced_promise(SEXP expr, SEXP value);
 SEXP x_findVar(SEXP sym, SEXP envir);

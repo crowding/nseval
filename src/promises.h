@@ -3,7 +3,7 @@
 
 SEXP forced_value_promise(SEXP in);
 SEXP promsxp_to_quotation(SEXP);
-SEXP empty_closure();
+SEXP empty_closure(void);
 SEXP _quotation_to_promsxp(SEXP);
 SEXP promsxp_to_quotation(SEXP);
 SEXP make_into_promsxp(SEXP);

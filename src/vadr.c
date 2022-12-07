@@ -19,7 +19,7 @@ int is_language(SEXP x) {
   }
 }
 
-SEXP emptypromise() {
+SEXP emptypromise(void) {
   SEXP out = PROTECT(allocSExp(PROMSXP));
   SET_PRCODE(out, R_MissingArg);
   SET_PRENV(out, R_EmptyEnv);

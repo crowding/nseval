@@ -1,3 +1,5 @@
+`%is%` <- expect_equal
+
 test_that("quotation unwrapping", {
   # arg, arg_expr, arg_env, etc. should unwrap quotations if
   # they are found within a promise's "expr" argument.
@@ -22,7 +24,6 @@ test_that("quotation unwrapping", {
   })
 
   pasta <- function(left, right) {
-    browser()
     arg_expr(left) %is% quote(toupper(a))
     expr(arg(left)) %is% quote(toupper(a))
     arg_expr(right) %is% quote(toupper(b))

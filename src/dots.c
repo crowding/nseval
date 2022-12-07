@@ -2,7 +2,7 @@
 #include "promises.h"
 
 int _dots_length(SEXP dots);
-SEXP emptypromise();
+SEXP emptypromise(void);
 
 SEXP _get_dots(SEXP env, SEXP inherit) {
   assert_type(env, ENVSXP);
@@ -77,7 +77,7 @@ SEXP _dots_unpack(SEXP dots) {
   PROTECT(values = allocVector(VECSXP, length));
 
   // hmm could just re-use the names eh?
-  SEXP input_names = getAttrib(dots, R_NamesSymbol);
+  SEXP input_names = PROTECT(getAttrib(dots, R_NamesSymbol));
   
   for (int i = 0; i < length; i++) {
     SEXP item = PROTECT(_quotation_to_promsxp(VECTOR_ELT(dots, i)));
@@ -114,7 +114,7 @@ SEXP _dots_unpack(SEXP dots) {
   setAttrib(dataFrame, R_RowNamesSymbol, names);
   setAttrib(dataFrame, R_ClassSymbol, mkString("data.frame"));
 
-  UNPROTECT(6);
+  UNPROTECT(7);
   return(dataFrame);
 }
 
@@ -195,11 +195,11 @@ SEXP _flist_to_dotsxp(SEXP flist) {
   assert_type(flist, VECSXP);
   int len = LENGTH(flist);
   int i;
-  SEXP output, names;
-  names = getAttrib(flist, R_NamesSymbol);
   if (len == 0) {
     return R_NilValue;
   } else {
+    SEXP output, names;
+    names = PROTECT(getAttrib(flist, R_NamesSymbol));
     output = PROTECT(allocList(len));
     SEXP output_iter = output;
     for (i = 0; i < len; i++, output_iter=CDR(output_iter)) {
@@ -212,7 +212,7 @@ SEXP _flist_to_dotsxp(SEXP flist) {
       SEXP clos = VECTOR_ELT(flist, i);
       SETCAR(output_iter, _quotation_to_promsxp(clos));
     }
-    UNPROTECT(1);
+    UNPROTECT(2);
     return output;
   }
 }
@@ -312,14 +312,13 @@ int is_list_like(SEXP in) {
   return is_list_type(TYPEOF(in));
 }
 
-/* given pointers to head and tail SEXPs, appends an new object.  Will
-   PROTECT when head of list is created, So you need to check an
-   unprotect head when done with list. */
+/* given pointers to head and tail SEXPs, appends an new object, and updates the
+   pointers. */
 void append_item(SEXP *head, SEXP *tail, SEXPTYPE type, SEXP tag, SEXP obj) {
   if (tag != R_NilValue) assert_type(tag, SYMSXP);
   if (*tail == R_NilValue) {
     if (is_list_type(type)) {
-      *head = PROTECT(allocSExp(type));
+      *head = allocSExp(type);
       *tail = *head;
       SET_TAG(*tail, tag);
       SETCAR(*tail, obj);
@@ -346,9 +345,10 @@ SEXP _env_to_dots(SEXP envir, SEXP names, SEXP missing, SEXP expand) {
      userspace. */
   assert_type(envir, ENVSXP);
   assert_type(names, STRSXP);
-  int use_missing = asLogical(missing);
-  int expand_dots = asLogical(expand);
+  Rboolean use_missing = asLogical(missing);
+  Rboolean expand_dots = asLogical(expand);
   int length = LENGTH(names);
+  Rboolean at_least_one = FALSE;
 
   /* e.g., growList(&head, &tail, DOTSXP, tag, obj) */
   SEXP head = R_NilValue;
@@ -378,19 +378,24 @@ SEXP _env_to_dots(SEXP envir, SEXP names, SEXP missing, SEXP expand) {
       if (expand_dots && found != R_MissingArg) {
         assert_type(found, DOTSXP);
         while (is_list_like(found)) {
+          PROTECT(found);
           append_item(&head, &tail, DOTSXP, TAG(found), CAR(found));
+          UNPROTECT(1);
+          if (!at_least_one) {PROTECT(head); at_least_one = TRUE;}
           found = CDR(found);
         }
       }
     } else {
-      append_item(&head, &tail, DOTSXP, sym, make_into_promsxp(found));
+      SEXP item = PROTECT(make_into_promsxp(found));
+      append_item(&head, &tail, DOTSXP, sym, item);
+      UNPROTECT(1);
+      if (!at_least_one) {PROTECT(head); at_least_one = TRUE;}
     }   
   }
   SEXP out = PROTECT(_dotsxp_to_quolist(head));
   setAttrib(out, R_ClassSymbol, ScalarString(mkChar("dots")));
   UNPROTECT(1);
-  if (head != R_NilValue) {
-    /* unprotect owed to append_item. */
+  if (at_least_one) {
     UNPROTECT(1);
   }
   return out;
