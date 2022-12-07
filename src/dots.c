@@ -398,7 +398,9 @@ SEXP _env_to_dots(SEXP envir, SEXP names, SEXP missing, SEXP expand) {
         }
       }
     } else {
-      append_item(&head, &tail, DOTSXP, sym, make_into_promsxp(found));
+      SEXP item = PROTECT(make_into_promsxp(found));
+      append_item(&head, &tail, DOTSXP, sym, item);
+      UNPROTECT(1);
       if (!at_least_one) {PROTECT(head); at_least_one = TRUE;}
     }   
   }

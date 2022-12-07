@@ -616,24 +616,20 @@ SEXP _arg_dots(SEXP envirs, SEXP syms, SEXP tags, SEXP warn) {
   }
 
   /* so at least one item */
-  SEXP head = R_NilValue;
+  SEXP head = PROTECT(allocSExp(DOTSXP));
   SEXP tail = head;
-
+  Rboolean filled_head = FALSE;
+  
 # define APPEND(item, tag) {                    \
     PROTECT(item);                              \
     PROTECT(tag);                               \
-    if(head == R_NilValue) {                    \
-      head = allocSExp(DOTSXP);                 \
-      tail = head;                              \
-      UNPROTECT(2);                             \
-      PROTECT(head);                            \
-    } else {                                    \
+    if (filled_head) {                          \
       SETCDR(tail, allocSExp(DOTSXP));          \
       tail = CDR(tail);                         \
-      UNPROTECT(2);                             \
-    }                                           \
+    } else filled_head = TRUE;                  \
     SETCAR(tail, item);                         \
     SET_TAG(tail, tag);                         \
+    UNPROTECT(2);                               \
   }
 
   for (int i = 0; i < len; i++) {

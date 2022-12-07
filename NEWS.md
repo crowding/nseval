@@ -1,10 +1,16 @@
 # nseval 0.4.3
 
 Fixes:
-* Added protection calls where identified by `rchk`.
+* Added memory protection calls where identified by `rchk`.
 * Comply with `-Wstrict-prototypes`.
 
 # nseval 0.4.2
+
+Changes:
+* Implemented `all.equal` method for `quotation` objects.
+* `dots` and `quotation` objects now print themselves in a `deparse()`-like style.
+* `is_*_()` functions how have methods for promises/dots.
+* `set_` and `set_enclos_` are added to help with making assignments.
 
 Fixes:
 * Fixed handling of missing arguments in `do` and `quo`.
@@ -16,11 +22,6 @@ Fixes:
 * `locate(fn, mode="function")` now works in the case where `fn` is
   a forced promise containing a function.
 
-Changes:
-* Implemented `all.equal` method for `quotation` objects.
-* dots and quotation objects now print themselves in a `deparse()`-like style.
-* `is_*_()` functions how have methods for promises/dots.
-* `set_` and `set_enclos_` are added to help with making assignments.
 
 # nseval 0.4.1
 

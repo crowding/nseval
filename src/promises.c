@@ -131,7 +131,10 @@ SEXP make_into_promsxp(SEXP in) {
     }
     return in;
   } else {
-    return forced_promise(in);
+    PROTECT(in);
+    SEXP out = forced_promise(in);
+    UNPROTECT(1);
+    return out;
   }
 }
 
