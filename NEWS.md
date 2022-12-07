@@ -1,7 +1,8 @@
 # nseval 0.4.3
 
 Fixes:
-* add protection calls as identified by `rchk`.
+* Added protection calls where identified by `rchk`.
+* Comply with `-Wstrict-prototypes`.
 
 # nseval 0.4.2
 

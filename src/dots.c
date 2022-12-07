@@ -2,7 +2,7 @@
 #include "promises.h"
 
 int _dots_length(SEXP dots);
-SEXP emptypromise();
+SEXP emptypromise(void);
 
 SEXP _get_dots(SEXP env, SEXP inherit) {
   assert_type(env, ENVSXP);

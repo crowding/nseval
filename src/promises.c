@@ -90,7 +90,7 @@ SEXP promsxp_to_quotation(SEXP prom) {
   return out;
 }
 
-SEXP empty_closure() {
+SEXP empty_closure(void) {
   SEXP out = PROTECT(allocSExp(CLOSXP));
   SET_FORMALS(out, R_NilValue);
   SET_BODY(out, R_MissingArg);
