@@ -151,6 +151,16 @@ SEXP _is_forced_quotation(SEXP clos) {
   return ScalarLogical(is_forced_quotation(clos));
 }
 
+Rboolean is_weird_quotation(SEXP quot) {
+  /* when a promise has a non-nil environment but ALSO a value;
+     which happens in primitive method dispatch,
+     the quo is represented as
+         if(FALSE) evalq(<expr>, <env>) else <value>
+     i.e. a forced quo with an unforced quo in its head.
+  */
+  return is_forced_quotation(quot) && is_quotation(CADDR(quot));
+}
+
 SEXP _expr_quotation(SEXP q) {
   switch(TYPEOF(q)) {
   case CLOSXP:
@@ -162,8 +172,7 @@ SEXP _expr_quotation(SEXP q) {
     break;
   case LANGSXP:
     if (is_forced_quotation(q)) {
-      if (is_quotation(CADDR(q))) {
-        /* must be a quo of one of those weird primitive dispatch promises */
+      if (is_weird_quotation(q)) {
         return CADR(CADDR(q));
       } else {
         return CADDR(q);
@@ -187,8 +196,7 @@ SEXP _env_quotation(SEXP q) {
     break;
   case LANGSXP:
     if (is_forced_quotation(q)) {
-      if (is_quotation(CADDR(q))) {
-        /* must be a quo from one of those weird primitive dispatch promises */
+      if (is_weird_quotation(q)) {
         return CADDR(CADDR(q));
       } else {
         return R_EmptyEnv;
@@ -247,13 +255,19 @@ SEXP empty_closure(void) {
   return out;
 }
 
-SEXP _quotation_to_promsxp(SEXP clos) {
-  if (_expr_quotation(clos) == R_MissingArg) {
+SEXP _quotation_to_promsxp(SEXP quot) {
+  if (_expr_quotation(quot) == R_MissingArg) {
     return R_MissingArg;
-  } else if(is_forced_quotation(clos)) {
-    return new_forced_promise(_expr_quotation(clos), _value_quotation(clos));
+  } else if (is_forced_quotation(quot)) {
+    if (is_weird_quotation(quot)) {
+      return new_weird_promise(_expr_quotation(quot),
+                               _env_quotation(quot),
+                               _value_quotation(quot));
+    } else {
+      return new_forced_promise(_expr_quotation(quot), _value_quotation(quot));
+    }
   } else {
-    return new_promise(_expr_quotation(clos), _env_quotation(clos));
+    return new_promise(_expr_quotation(quot), _env_quotation(quot));
   }
 }
 

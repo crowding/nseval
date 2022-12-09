@@ -2,14 +2,15 @@
 
 # Changes
 
-* Representation of quotations has been changed.
+* The representation of quotations has been changed. Quotations are now represented as expressions with a class attribute. This means that you can `eval` a quotation and it will return the same value that a promise would return when forced. This also means that you can `bquote` or `substitute` to place a quotation into an expression, and the resulting expression will evaluate _hygienically_.
+* The better to support hygiene, `arg*` will check if there a quotation in the argument expression (as it would be if the call had been done with `bquote` and transparently unwrap it.
 * Added method `is_forced_.name`.
 * Added `arg_value` to peek at values of promises (without forcing).
 * Added `as.quo` conversion methods for formulas and `rlang` quosures.
 
 ### Fixes:
 
-* Added some exceptions for "weird" promises found in s3 methods dispatched from a generic like `c`. These promises are forced (have a value, which was dispatched from) but still have their environments.
+* Added some support for "weird" promises. These are created by primitive s3 methods dispatched from a generic like `c`. These promises are forced (have a value, which was dispatched from) but still have an environment.
 
 # nseval 0.4.3
 

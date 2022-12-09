@@ -49,3 +49,16 @@ SEXP new_forced_promise(SEXP expr, SEXP value) {
   UNPROTECT(1);
   return out;
 }
+
+SEXP new_weird_promise(SEXP expr, SEXP env, SEXP value) {
+  SEXP out = PROTECT(allocSExp(PROMSXP));
+  if (is_language(value) && value != R_MissingArg) {
+    SET_PRCODE(out, Rf_lang2(install("quote"), value));
+  } else {
+    SET_PRCODE(out, expr);
+  }
+  SET_PRENV(out, env);
+  SET_PRVALUE(out, value);
+  UNPROTECT(1);
+  return out;
+}

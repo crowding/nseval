@@ -114,7 +114,7 @@ SEXP do_findBinding(SEXP sym, SEXP envir) {
 }
 
 int unwrappable(SEXP prom) {
-  while(TYPEOF(PREXPR(prom)) == PROMSXP) { //TODO unwrap quotations???
+  while(TYPEOF(PREXPR(prom)) == PROMSXP) {
     prom = PREXPR(prom);
   }
   int unwrappable =  (   TYPEOF(PREXPR(prom)) == SYMSXP
@@ -284,6 +284,57 @@ const char* test_enum_string(TEST_ENUM type) {
 
 SEXP arg_get(SEXP, SEXP, GET_ENUM, int, int);
 
+SEXP arg_get_from_quotation(SEXP quot, GET_ENUM request, int warn, SEXP value) {
+  LOG("unwrapping a quotation\n");
+  switch(request) {
+  default:
+  case EXPR:
+    return _expr_quotation(quot);
+  case ENV:
+    return _env_quotation(quot);
+  case VALUE:
+    if (value != R_UnboundValue) return value;
+    else return _value_quotation(quot);
+  case PROMISE:
+    if (value != R_UnboundValue) {
+      LOG("there is a new value to include\n");
+      if (is_forced_quotation(quot)) {
+        return new_forced_promise(_expr_quotation(quot),
+                                  value);
+      } else {
+        return new_weird_promise(_expr_quotation(quot),
+                                 _env_quotation(quot),
+                                 value);
+      }
+    } else {
+      LOG("quotation to promsxp\n");
+      return _quotation_to_promsxp(quot);
+    }
+  case IS_LITERAL:
+    {
+      SEXP expr = _expr_quotation(quot);
+      switch(TYPEOF(expr)) {
+      case INTSXP:
+      case STRSXP:
+      case REALSXP:
+        if (LENGTH(expr) > 1 || ATTRIB(expr) != R_NilValue) {
+          return ScalarLogical(FALSE);
+        } else {
+          return ScalarLogical(TRUE);
+        }
+      default:
+        return ScalarLogical(FALSE);
+      }
+    }
+  case IS_MISSING:
+    if (_expr_quotation(quot) == R_MissingArg) {
+      return ScalarLogical(TRUE);
+    } else {
+      return ScalarLogical(FALSE);
+    }
+  }
+}
+
 SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn) {
   SEXP expr = PREXPR(prom);
   switch(request) {
@@ -323,7 +374,6 @@ SEXP arg_get_from_unforced_promise(SEXP prom, GET_ENUM request, int warn) {
 
 SEXP arg_get_from_forced_promise(SEXP sym, SEXP prom, GET_ENUM request, int warn) {
   SEXP expr = PREXPR(prom);
-
   switch(request){
   case ENV:
     if (TYPEOF(PRENV(prom)) == ENVSXP) {
@@ -560,7 +610,9 @@ SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn, int recursive) {
     while (TYPEOF(PREXPR(binding)) == PROMSXP) {
       binding = PREXPR(binding);
     }
-    if (PRVALUE(binding) != R_UnboundValue) {
+    if (is_quotation(PREXPR(binding))) {
+      ans = arg_get_from_quotation(PREXPR(binding), type, warn, PRVALUE(binding));
+    } else if (PRVALUE(binding) != R_UnboundValue) {
       ans = arg_get_from_forced_promise(name, binding, type, warn);
     } else {
       ans = arg_get_from_unforced_promise(binding, type, warn);
@@ -570,6 +622,17 @@ SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn, int recursive) {
   }
   UNPROTECT(1);
   return ans;
+}
+
+SEXP arg_check_from_quotation(SEXP quot, SEXP value,
+                              TEST_ENUM query, int warn) {
+  switch(query) {
+  default:
+  case IS_PROMISE:
+    return ScalarLogical(TRUE);
+  case IS_FORCED:
+    return ScalarLogical((value != R_UnboundValue) || is_forced_quotation(quot));
+  }
 }
 
 SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
@@ -584,6 +647,9 @@ SEXP arg_check(SEXP envir, SEXP name, TEST_ENUM query, int warn) {
   }
   switch(TYPEOF(binding)) {
   case PROMSXP:
+    if (is_quotation(PREXPR(binding))) {
+      return arg_check_from_quotation(PREXPR(binding), PRVALUE(binding), query, warn);
+    }
     switch (query) {
     default:
     case IS_PROMISE: 

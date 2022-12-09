@@ -55,6 +55,7 @@ int recycle_length(int i, int j);
 SEXP emptypromise(void);
 SEXP new_promise(SEXP expr, SEXP env);
 SEXP new_forced_promise(SEXP expr, SEXP value);
+SEXP new_weird_promise(SEXP expr, SEXP value, SEXP env);
 SEXP x_findVar(SEXP sym, SEXP envir);
 
 SEXP _flist_to_dotsxp(SEXP flist);

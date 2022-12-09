@@ -24,36 +24,22 @@ test_that("quotation unwrapping", {
   })
 
   pasta <- function(left, right) {
+    #pasta is called via bquote, with quotations
+    #for arguments. Accessors should unwrap.
     arg_expr(left) %is% quote(toupper(a))
     expr(arg(left)) %is% quote(toupper(a))
     arg_expr(right) %is% quote(toupper(b))
     expr(arg(right)) %is% quote(toupper(b))
     arg_env(left)$b %is% "uno"
-    env(arg(right))$b %is% "uno"
-    arg_env(left)$a %is% "two"
-    env(arg(left))$a %is% "two"
-    do(c, left, right) %is% c("ONE", "DOS")
-    left %is% "ONE"
-    right %is% "DOS"
+    env(arg(left))$b %is% "uno"
+    arg_env(right)$a %is% "two"
+    env(arg(right))$a %is% "two"
+    do(c, arg(left), arg(right)) %is% c("ONE", "DOS")
+    expect_false(is_forced(left))
   }
   eval(bquote(pasta(.(first), .(second))))
 
-  pasty <- function(left, right) {
-    arg_expr(left) %is% quote(toupper(a))
-    expr(arg(left)) %is% quote(toupper(a))
-    arg_expr(right) %is% quote(toupper(b))
-    expr(arg(right)) %is% quote(toupper(b))
-    arg_env(left)$b %is% "uno"
-    env(arg(right))$b %is% "uno"
-    arg_env(left)$a %is% "two"
-    env(arg(left))$a %is% "two"
-    do(c, left, right) %is% c("ONE", "DOS")
-    left %is% "ONE"
-    right %is% "DOS"
-  }
-  eval(bquote(pasty(.(first), .(second))))
-
-  # check behavior with forced quotations
+  # check unwrapping behavior with forced quotations
   pastf <- function(left, right) {
     expect_false(is_forced(left))
     expect_true(is_forced(right))
@@ -73,7 +59,7 @@ test_that("quotation unwrapping", {
     expr(arg(right)) %is% quote(tolower(a))
     arg_env(left)$b %is% "dos" ## even though forced! So we have a use
                                ## case for weird quotations
-    env(arg(right))$a %is% "THREE"
+    env(arg(right)) %is% emptyenv()
   }
   eval(bquote(pastf( .(second), .(third) )))
 
