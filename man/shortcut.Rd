@@ -144,12 +144,12 @@ FALSE).
 }
 \details{
 Throughout this package, some functions come in two forms, a "bare"
-version which quote their first argument literally, and a
+version which quotes its first argument literally, and a
 normally-evaluating version with a trailing underscore in its
 name. So \code{is_forced(x)} chiecks whether "x" is a missing variable,
-while \code{is_forced_(x, environment())} checks whether "x"
-contains the \emph{name} of another variable which is missing. The
-following are all equivalent:
+while \code{is_forced_(x, environment())} checks whether "x" contains
+the \emph{name} of another variable which is missing. The following are
+all equivalent:
 \itemize{
 \item \code{arg_env(x)}
 \item \code{{y <- quo(x); arg_env_(y)}}

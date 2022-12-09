@@ -37,17 +37,20 @@ test_that("can bquote quotations into expressions and eval hygienically", {
     #
     # now try to splice these matched calls into another expression.
     cat("# evaluating `substitute`'s result gives:\n")
-    subst.expr <- bquote( c( ..(as.expression(as.list(matched[-1]))) ), splice=TRUE)
+    subst.expr <- as.call(c(list(quote(c)), as.list(substituted[-1])))
+    #subst.expr <- bquote( c( ..(as.expression(as.list(substituted[-1]))) ), splice=TRUE)
     print( eval(subst.expr) )
     #
     cat("# evaluating `match.call`'s result gives:\n")
-    match.expr <- bquote( c( ..(as.expression(as.list(matched[-1]))) ), splice=TRUE)
+    #match.expr <- bquote( c( ..(as.expression(as.list(matched[-1]))) ), splice=TRUE
+    match.expr <- as.call(c(list(quote(c)), as.list(matched[-1])))
     print( eval(match.expr) )
     # and evaluating in the parent.frame there is an error.
     expect_error( eval(match.expr, parent.frame()) )
     #
     cat("# evaluating `get_call`'s result gives:\n")
-    got.expr <- bquote( c( ..(as.expression(got[-1])) ), splice=TRUE)
+    #got.expr <- bquote( c( ..(as.expression(got[-1])) ), splice=TRUE)
+    got.expr <- as.call(c(list(quote(c)), as.list(got[-1])))
     print(eval( got.expr ))
     #
     cat("# evaluating `get_call`'s result in the parent frame gives:")
