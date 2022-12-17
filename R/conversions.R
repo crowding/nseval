@@ -210,6 +210,7 @@ goodname <- function(x) !(x %in% c(NA_character_, "", "..."))
 #' fn(x^2)
 #' fn(x+y)
 function_ <- function(args, body, env = arg_env(args, environment())) {
+  force(env)
   f <- do.call("function", list(as.pairlist(args), body), envir=environment())
   environment(f) <- env
   f
@@ -281,4 +282,3 @@ as.quosures.dots <- function(x) {
   # named like an s3 method, but is not, bc rlang::as_quosures is not generic
   rlang::new_quosures(lapply(x, as.quosure.quo))
 }
-

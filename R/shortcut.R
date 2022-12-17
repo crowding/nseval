@@ -328,13 +328,6 @@ is_default_ <- function(syms, envs) {
 }
 
 is_default__ <- function(sym, env) {
-  ( identical(arg_env_(sym, env),
-                 env)
-    && identical(arg_expr_(sym, env),
-                 formals(get_function(locate_(sym,env)))[[sym]]))
-}
-
-is_default__ <- function(sym, env) {
   env <- locate_(sym, env)
   (    identical(arg_env_(sym, env),
                  env)

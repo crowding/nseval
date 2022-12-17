@@ -254,7 +254,7 @@ test_that("expression mutator", local({
 }))
 
 test_that("dots_envs and mutator", local({
-  
+
   expect_equivalent(envs(dots()), list())
   f1 <- function(...) {
     where <- "e1E"
@@ -686,6 +686,11 @@ test_that("function_, make an empty closure", {
   expect_identical(missing_value(), body(r))
   expect_identical(formals(r), NULL)
   expect_equal(formals(r), NULL)
+
+  r <- function_(alist(...=, recursive=FALSE),
+                 quote(c(..., recursive=recursive)))
+  r(list(0, c(1, 2)), list(c(3, 4), 5), recursive=TRUE) %is%
+    0:5
 })
 
 test_that("get_dots returns promise objects", {
@@ -733,4 +738,3 @@ test_that("is_missing and missing_ unwraps", {
   f(is_missing) %is% c(z=FALSE)
   f(function(x) missing_(arg(x))) %is% c(FALSE)
 })
-
