@@ -81,7 +81,7 @@ arg_list_ <- function(syms, envs) {
   .Call("_dotsxp_to_quolist", dts)
 }
 
-
+#' @export
 #' @rdname arg
 #' @description
 #' `set_arg` and set_arg_ create bindings from quotations. They

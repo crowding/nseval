@@ -125,14 +125,16 @@ is_forced_ <- function(syms, envs) {
 
 #' @exportS3Method is_forced_ default
 is_forced_.default <- function(syms, envs) {
-  if (is.null(names(syms)))
-    names(syms) <- as.character(syms)
-  mapply(
-    syms,
-    if (is.list(envs)) envs else list(envs),
-    FUN=function(sym, env) {
-      .Call("_is_forced", env, as.name(sym), FALSE)
-    })
+  out <- structure(logical(length(syms)),
+                   names=names(syms) %||% as.character(syms))
+  if (is.list(envs)) {
+    for (i in seq_along(syms))
+      out[[i]] <- .Call("_is_forced", envs[[i]], as.name(syms[[i]]), FALSE)
+  } else {
+    for (i in seq_along(syms))
+      out[[i]] <- .Call("_is_forced", envs, as.name(syms[[i]]), FALSE)
+  }
+  out
 }
 
 #' @exportS3Method is_forced_ name
