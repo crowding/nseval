@@ -153,5 +153,5 @@ objects are effectively a recreation of
 [fexprs](https://en.wikipedia.org/wiki/Fexpr) with lexical scope On
 the topic of how to work with fexprs, particularly in combination with
 lexical scope and environments, John Shutt's 2010 [PhD
-thesis](https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf)
+thesis](https://digital.wpi.edu/concern/etds/ht24wj541?locale=en)
 has been helpful.

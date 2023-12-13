@@ -1,6 +1,13 @@
+# nseval 0.5.1 (release date: 2023-12-11)
+
+### Fixes:
+
+* Fix issues raised by CRAN:
+  * Always cast argument of `printf("%p", ...)` to `(void *)`
+
 # nseval 0.5
 
-# Changes
+### Changes
 
 * The representation of quotations has been changed. Quotations are now represented as expressions with a class attribute. This means that you can `eval` a quotation and it will return the same value that a promise would return when forced. This also means that you can `bquote` or `substitute` to place a quotation into an expression, and the resulting expression will evaluate _hygienically_.
 * The better to support hygiene, `arg*` will check if there a quotation in the argument expression (as it would be if the call had been done with `bquote`) and transparently unwrap it.
