@@ -11,7 +11,7 @@ The `nseval` Package: Utilities for Controlling Non-standard Evaluation
 ======
 
   <!-- badges: start -->
-[![R-CMD-check](https://github.com/crowding/nseval/workflows/R-CMD-check/badge.svg)](https://github.com/crowding/nseval/actions)
+  [![R-CMD-check](https://github.com/crowding/nseval/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/crowding/nseval/actions/workflows/R-CMD-check.yaml)
  [![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)[![Codecov test coverage](https://codecov.io/gh/crowding/nseval/branch/main/graph/badge.svg)](https://app.codecov.io/gh/crowding/nseval?branch=main)
   <!-- badges: end -->
 

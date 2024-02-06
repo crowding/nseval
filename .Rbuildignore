@@ -14,3 +14,4 @@
 ^scratch.*
 ^last.dump.r.*
 ^.*/last.dump.r.*
+^nseval\.Rproj$
