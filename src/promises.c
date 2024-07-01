@@ -103,36 +103,6 @@ SEXP _is_plausible_quotation(SEXP value) {
   return ScalarLogical(is_plausible_quotation(value));
 }
 
-SEXP _quotation_old(SEXP envir, SEXP expr, SEXP value) {
-  SEXP out = PROTECT(allocSExp(CLOSXP));
-  SET_FORMALS(out, R_NilValue);
-  SEXP prom;
-  if (expr == R_MissingArg) {
-    /* Ignore the environment. */
-    SET_CLOENV(out, R_EmptyEnv);
-    SET_BODY(out, expr);
-  } else if (envir == R_NilValue) {
-    /* already-forced promise. Record a PROMSXP in the body? */
-    prom = PROTECT(new_forced_promise(expr, value));
-    SET_CLOENV(out, R_EmptyEnv);
-    SET_BODY(out, prom);
-    UNPROTECT(1);
-  } else {
-    assert_type(envir, ENVSXP);
-    if (value != R_MissingArg) {
-      error("Can't make a promise with both an env and a value");
-    } else {
-      SET_CLOENV(out, envir);
-      SET_BODY(out, expr);
-    }
-  }
-
-  setAttrib(out, R_ClassSymbol, mkString("quotation"));
-
-  UNPROTECT(1);
-  return out;
-}
-
 /* Test if a quotation is "forced" */
 int is_forced_quotation(SEXP clos) {
   switch(TYPEOF(clos)) {
@@ -244,15 +214,6 @@ SEXP promsxp_to_quotation(SEXP prom) {
     return _quotation(PRENV(prom), PRCODE(prom),
                       PRVALUE(prom), R_UnboundValue);
   }
-}
-
-SEXP empty_closure(void) {
-  SEXP out = PROTECT(allocSExp(CLOSXP));
-  SET_FORMALS(out, R_NilValue);
-  SET_BODY(out, R_MissingArg);
-  SET_CLOENV(out, R_EmptyEnv);
-  UNPROTECT(1);
-  return out;
 }
 
 SEXP _quotation_to_promsxp(SEXP quot) {

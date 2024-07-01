@@ -32,7 +32,6 @@ extern SEXP _is_missing(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _is_promise(SEXP, SEXP, SEXP);
 extern SEXP _locate(SEXP, SEXP, SEXP);
 extern SEXP _quotation(SEXP, SEXP, SEXP, SEXP);
-extern SEXP _quotation_old(SEXP, SEXP, SEXP);
 extern SEXP _quotation_literal(SEXP);
 extern SEXP _quotation_to_promsxp(SEXP);
 extern SEXP _remove(SEXP, SEXP);
@@ -65,7 +64,6 @@ static const R_CallMethodDef CallEntries[] = {
   {"_is_promise",           (DL_FUNC) &_is_promise,           3},
   {"_locate",               (DL_FUNC) &_locate,               3},
   {"_quotation",            (DL_FUNC) &_quotation,            4},
-  {"_quotation_old",        (DL_FUNC) &_quotation_old,        3},
   {"_quotation_literal",    (DL_FUNC) &_quotation_literal,    1},
   {"_quotation_to_promsxp", (DL_FUNC) &_quotation_to_promsxp, 1},
   {"_remove",               (DL_FUNC) &_remove, 2},
