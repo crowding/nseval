@@ -5,7 +5,7 @@
 #include <Rinternals.h>
 #include <Rversion.h>
 
-#undef DEBUG 
+#undef DEBUG
 // #define DEBUG
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
@@ -58,6 +58,7 @@ SEXP new_weird_promise(SEXP expr, SEXP value, SEXP env);
 SEXP x_findVar(SEXP sym, SEXP envir);
 
 SEXP _flist_to_dotsxp(SEXP flist);
+SEXP _flist_to_pairlist(SEXP flist);
 int is_language(SEXP x);
 int is_forced(SEXP x);
 SEXP peek_promise(SEXP prom);

@@ -128,6 +128,7 @@ format_robust <- function(x, ...) {
   tryCatch(format(x, ...), error=function(e) "?FORMAT?")
 }
 
+#' @exportS3Method
 format.name <- function(x, ...) {
   format(as.character(x))
 }
