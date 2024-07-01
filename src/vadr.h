@@ -64,6 +64,16 @@ SEXP peek_promise(SEXP prom);
 
 #endif
 
+#if R_VERSION < R_Version(4, 4, 1)
+SEXP allocLang(int n)
+{
+  if (n > 0)
+    return LCONS(R_NilValue, allocList(n - 1));
+  else
+    return R_NilValue;
+}
+#endif
+
 #if R_VERSION < R_Version(4, 5, 0)
 # define R_ClosureFormals(x) FORMALS(x)
 # define R_ClosureEnv(x) CLOENV(x)

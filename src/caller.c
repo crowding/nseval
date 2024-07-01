@@ -42,8 +42,7 @@ SEXP _construct_do_call(SEXP dots) {
     int arglen = 0;
     if (has_args) arglen = length(dots);
     LOG("arglen = %d", arglen);
-    SET_VECTOR_ELT(out, 0, call = allocList(arglen));
-    SET_TYPEOF(call, LANGSXP);
+    SET_VECTOR_ELT(out, 0, call = allocLang(arglen));
   }
 
   //construct the call head
