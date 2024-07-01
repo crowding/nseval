@@ -24,7 +24,7 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
   assert_type(env, ENVSXP);
   Rboolean fn = asLogical(function);
 
-  if (DDVAL(sym)) {
+  if (ddVal(sym)) {
     error("locate_: double dot symbol `%s` not supported", CHAR(PRINTNAME(sym)));
   }
 
@@ -91,7 +91,7 @@ SEXP x_findVar(SEXP sym, SEXP envir) {
   assert_type(sym, SYMSXP);
   assert_type(envir, ENVSXP);
   SEXP binding;
-  if (DDVAL(sym)) {
+  if (ddVal(sym)) {
     binding = do_ddfindVar(sym, envir);
   } else {
     binding = Rf_findVar(sym, envir);
