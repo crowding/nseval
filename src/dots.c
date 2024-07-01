@@ -11,7 +11,7 @@ SEXP _get_dots(SEXP env, SEXP inherit) {
   if (asLogical(inherit)) {
     vl = findVar(R_DotsSymbol, env);
   } else {
-    vl = findVarInFrame3(env, R_DotsSymbol, TRUE);
+    vl = findVarInFrame(env, R_DotsSymbol);
   }
   if (vl == R_UnboundValue || vl == R_MissingArg) {
     LOG("... not found in env %p", (void *) env);
