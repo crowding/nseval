@@ -30,7 +30,7 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
 
   while (env != R_EmptyEnv) {
     assert_type(env, ENVSXP);
-    LOG("looking in env %p for %s", env, CHAR(PRINTNAME(sym)));
+    LOG("looking in env %p for %s", (void *) env, CHAR(PRINTNAME(sym)));
     if (fn) {
       SEXP x = PROTECT(findVarInFrame3(env, sym, TRUE));
       LOG("got a %s", type2char(TYPEOF(x)));
@@ -138,10 +138,10 @@ SEXP unwrap_step(SEXP prom) {
   SEXP env = PRENV(prom);
   SEXP binding = x_findVar(name, env);
   /* Rprintf("env(%p) is %p where %s -> %p which is a %s\n", */
-  /*         prom, */
-  /*         env, */
+  /*         (void *) prom, */
+  /*         (void *) env, */
   /*         CHAR(PRINTNAME(name)), */
-  /*         binding, */
+  /*         (void *) binding, */
   /*         type2char(TYPEOF(binding))); */
   if (binding == R_MissingArg) {
     return emptypromise();
@@ -220,7 +220,7 @@ SEXP peek_promise(SEXP prom) {
   switch(TYPEOF(name)) {
   case SYMSXP: {
     LOG("it's a %s, `%s`, quoted in environment %p",
-        type2char(TYPEOF(name)), CHAR(PRINTNAME(name)), PRENV(prom));
+        type2char(TYPEOF(name)), CHAR(PRINTNAME(name)), (void *) PRENV(prom));
     SEXP binding;
     binding = x_findVar(name, env);
     // we've already unwrapped so this shouldn't be another promise
@@ -603,7 +603,7 @@ SEXP arg_get(SEXP envir, SEXP name, GET_ENUM type, int warn, int recursive) {
     error("Unsupported use of ... in arg_* (use `arg_list( (...) )` or get_dots())");    
   }
   LOG("Getting %s of binding `%s` in env `%p`\n",
-      get_enum_string(type), CHAR(PRINTNAME(name)), envir);
+      get_enum_string(type), CHAR(PRINTNAME(name)), (void *) envir);
   SEXP binding = PROTECT(x_findVar(name, envir));
   if (TYPEOF(binding) == PROMSXP) {
     if (recursive) binding = unwrap_promise(binding, recursive);
@@ -747,7 +747,7 @@ SEXP _arg_dots(SEXP envirs, SEXP syms, SEXP tags, SEXP warn) {
         APPEND(CAR(j), TAG(j));
       }
     } else {
-      LOG("Getting %s from env %p", CHAR(PRINTNAME(sym)), env);
+      LOG("Getting %s from env %p", CHAR(PRINTNAME(sym)), (void *) env);
       SEXP promise =
         arg_get(env, sym, PROMISE, asLogical(warn), FALSE);
       LOG("got a %s", type2char(TYPEOF(promise)));

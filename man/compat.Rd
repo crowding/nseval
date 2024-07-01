@@ -9,9 +9,9 @@
 \alias{as.quosures.dots}
 \title{Compatibility conversions.}
 \usage{
-\method{as.lazy_dots}{dots}(x, env = "ignored")
+as.lazy_dots.dots(x, env = "ignored")
 
-\method{as.lazy}{quotation}(x, env = "ignored")
+as.lazy.quotation(x, env = "ignored")
 
 \method{as.quo}{quosure}(x)
 

@@ -7,14 +7,14 @@ SEXP emptypromise(void);
 SEXP _get_dots(SEXP env, SEXP inherit) {
   assert_type(env, ENVSXP);
   SEXP vl;
-  LOG("Getting dots from env %p", env);
+  LOG("Getting dots from env %p", (void *) env);
   if (asLogical(inherit)) {
     vl = findVar(R_DotsSymbol, env);
   } else {
     vl = findVarInFrame3(env, R_DotsSymbol, TRUE);
   }
   if (vl == R_UnboundValue || vl == R_MissingArg) {
-    LOG("... not found in env %p", env);
+    LOG("... not found in env %p", (void *) env);
     return R_NilValue;
   } else {
     return vl;
@@ -273,7 +273,7 @@ SEXP promisish_to_call(SEXP x) {
     // this doesn't seem to happen, aside from missings. Not to say it
     // can't.
     warning("nonpromise (a %s, %p) found in ... list",
-            type2char(TYPEOF(x)), x);
+            type2char(TYPEOF(x)), (void *) x);
     x = PROTECT(forced_value_promise(x));
     out = PROTECT(promsxp_to_quotation(x));
     protections+=2;

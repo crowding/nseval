@@ -11,7 +11,7 @@ The `nseval` Package: Utilities for Controlling Non-standard Evaluation
 ======
 
   <!-- badges: start -->
-[![R-CMD-check](https://github.com/crowding/nseval/workflows/R-CMD-check/badge.svg)](https://github.com/crowding/nseval/actions)
+  [![R-CMD-check](https://github.com/crowding/nseval/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/crowding/nseval/actions/workflows/R-CMD-check.yaml)
  [![CRAN version badge](http://www.r-pkg.org/badges/version/nseval)](https://cran.r-project.org/package=nseval)[![Codecov test coverage](https://codecov.io/gh/crowding/nseval/branch/main/graph/badge.svg)](https://app.codecov.io/gh/crowding/nseval?branch=main)
   <!-- badges: end -->
 
@@ -153,5 +153,5 @@ objects are effectively a recreation of
 [fexprs](https://en.wikipedia.org/wiki/Fexpr) with lexical scope On
 the topic of how to work with fexprs, particularly in combination with
 lexical scope and environments, John Shutt's 2010 [PhD
-thesis](https://web.wpi.edu/Pubs/ETD/Available/etd-090110-124904/unrestricted/jshutt.pdf)
+thesis](https://digital.wpi.edu/concern/etds/ht24wj541?locale=en)
 has been helpful.

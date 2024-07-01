@@ -26,7 +26,7 @@ format.dots <- function(x,
     FUN=function(x, n, sep) {
       glue(
         if (is.na(n)) "<NA> = " else if (n == "") "" else paste0(n, " = "),
-        format.quotation.inner(x,
+        format_quotation_inner(x,
                                compact,
                                show.environments=show.environments,
                                show.expressions=show.expressions,
@@ -69,7 +69,7 @@ format.quotation <- function(x,
                              show.expressions = !compact,
                              width = NULL,
                              ...) {
-  chars <- format.quotation.inner(
+  chars <- format_quotation_inner(
     x, compact = compact,
     show.environments = show.environments,
     show.expressions = show.expressions, width = width)
@@ -134,7 +134,7 @@ format.name <- function(x, ...) {
 
 oneline <- function(x) structure(x, class=union("oneline", class(x)))
 
-format.quotation.inner <- function(x,
+format_quotation_inner <- function(x,
                                    compact = FALSE,
                                    show.environments = !compact,
                                    show.expressions = !compact,

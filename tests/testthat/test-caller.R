@@ -89,12 +89,12 @@ test_that("caller of a closed environment (contra parent.frame)", {
     g()
   }
 
-  g <- function() {
+  g <- function(p = parent.frame(), c = caller()) {
     where <- "g"
     environment()
   }
 
-  caller(g())$where %is*% "f"
+  expect_error(caller(f()), "not found")
 })
 
 test_that("caller from a lazy argument", {
@@ -222,13 +222,13 @@ test_that("get_call and get_function", {
   h <- function(x, y, z, ...) {
     list(get_call(), get_function())
   }
-  
+
   c <- e()
   cmp <- list(dots_(alist( (r), x=where, y=where, z=where),
                     list(  genv, genv, fenv, eenv)),
               h)
   c %is% cmp
-  
+
 })
 
 test_that("ifnotfound", {
