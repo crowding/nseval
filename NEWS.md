@@ -1,3 +1,9 @@
+# nseval 0.5.2 (release date: 2023-07-01)
+
+### Fixes:
+
+* In preparation for normalization of an official R API, references to non-API functions `DDVAL`, `Rf_findVarInFrame3`, `SET_TYPEOF`, `SET_BODY`, `SET_FORMALS` and `SET_CLOENV` have been removed. The calls to PROMSXP accessor functions remain, as they are central to this package's purpose and it is not yet clear what the official API will have in their place.
+
 # nseval 0.5.1 (release date: 2023-12-11)
 
 ### Fixes:
