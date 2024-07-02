@@ -3,8 +3,9 @@
 
 #include <R.h>
 #include <Rinternals.h>
+#include <Rversion.h>
 
-#undef DEBUG 
+#undef DEBUG
 // #define DEBUG
 
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
@@ -40,8 +41,6 @@
     }                                                            \
   }
 
-
-
 #ifdef DEBUG
 #define LOG(FMT, ...) Rprintf("%s: "  FMT " @%s:%d\n",                  \
                               __func__, ##__VA_ARGS__, __FILE__, __LINE__)
@@ -59,8 +58,23 @@ SEXP new_weird_promise(SEXP expr, SEXP value, SEXP env);
 SEXP x_findVar(SEXP sym, SEXP envir);
 
 SEXP _flist_to_dotsxp(SEXP flist);
+SEXP _flist_to_pairlist(SEXP flist);
 int is_language(SEXP x);
 int is_forced(SEXP x);
 SEXP peek_promise(SEXP prom);
 
+#endif
+
+#if R_VERSION < R_Version(4, 4, 1)
+SEXP allocLang(int n);
+#endif
+
+#if R_VERSION < R_Version(4, 5, 0)
+# define R_ClosureFormals(x) FORMALS(x)
+# define R_ClosureEnv(x) CLOENV(x)
+# define R_ParentEnv(x) ENCLOS(x)
+#endif
+
+#if R_VERSION < R_Version(4, 2, 0)
+Rboolean R_existsVarInFrame(SEXP rho, SEXP symbol);
 #endif

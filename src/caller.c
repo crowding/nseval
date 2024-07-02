@@ -4,10 +4,6 @@
 #include <R_ext/Boolean.h>
 #include <Rversion.h>
 
-int nullish(SEXP dots) {        /* R_NilValue but also list() */
-  return (TYPEOF(dots) == VECSXP && LENGTH(dots) == 0);
-}
-
 SEXP _remove(SEXP what, SEXP env) {
 #if defined(R_VERSION) && R_VERSION >= R_Version(4, 0, 0)
   assert_type(what, SYMSXP);
@@ -18,33 +14,26 @@ SEXP _remove(SEXP what, SEXP env) {
 }
 
 SEXP _construct_do_call(SEXP dots) {
-  dots = PROTECT(_flist_to_dotsxp(dots));
-
-  //return a list with 3 items: call, env, dotsxp
+  dots = PROTECT(_flist_to_dotsxp(dots)); // TODO: Either stop assigning to dots in do__, or come up with a pairlist-to-dotsxp kludge
+  assert_type(dots, DOTSXP);
+  //return a list with 3 items: call, env, and optional dotsxp to bind to `...`
   SEXP out = PROTECT(allocVector(VECSXP, 3));
   SEXP fun = CAR(dots);
   SEXP args = CDR(dots);
-
+  LOG("got a %s for an arglist", type2char(TYPEOF(args)));
   assert_type(fun, PROMSXP);
-  int has_args;
-  if (nullish(dots)) {
-    LOG("Nullish");
-    has_args = 0;
+  int arglen;
+  if (isNull(args)) {
+    arglen = 0;
   } else {
-    assert_type(dots, DOTSXP);
-    has_args = 1;
+    assert_type(args, DOTSXP);
+    arglen = length(args);
   }
 
   //construct a pairlist to make the call
   LOG("allocating call");
   SEXP call;
-  {
-    int arglen = 0;
-    if (has_args) arglen = length(dots);
-    LOG("arglen = %d", arglen);
-    SET_VECTOR_ELT(out, 0, call = allocList(arglen));
-    SET_TYPEOF(call, LANGSXP);
-  }
+  SET_VECTOR_ELT(out, 0, call = allocLang(arglen+1));
 
   //construct the call head
   SEXP callenv = PRENV(fun);
@@ -75,7 +64,7 @@ SEXP _construct_do_call(SEXP dots) {
 
   /* construct the call args (all input promises) */
   SEXP copyTo = call;
-  if (has_args) {
+  if (arglen > 0) {
     copyTo = CDR(copyTo);
     SEXP copyFrom = args;
     for (; 

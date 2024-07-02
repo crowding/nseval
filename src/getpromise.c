@@ -24,7 +24,7 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
   assert_type(env, ENVSXP);
   Rboolean fn = asLogical(function);
 
-  if (DDVAL(sym)) {
+  if (ddVal(sym)) {
     error("locate_: double dot symbol `%s` not supported", CHAR(PRINTNAME(sym)));
   }
 
@@ -32,7 +32,7 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
     assert_type(env, ENVSXP);
     LOG("looking in env %p for %s", (void *) env, CHAR(PRINTNAME(sym)));
     if (fn) {
-      SEXP x = PROTECT(findVarInFrame3(env, sym, TRUE));
+      SEXP x = PROTECT(findVarInFrame(env, sym));
       LOG("got a %s", type2char(TYPEOF(x)));
       while (TYPEOF(x) == PROMSXP) {
         if (PRVALUE(x) == R_UnboundValue) {
@@ -40,7 +40,7 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
              Rinternals, I'll do it by calling "force"... or forceAndCall and
              then calling force.... */
           LOG("forcing it");
-          SEXP force = findVarInFrame3(R_BaseNamespace, install("force"), TRUE);
+          SEXP force = findVarInFrame(R_BaseNamespace, install("force"));
           SEXP callForce = PROTECT(list2(force, sym));
           R_forceAndCall(callForce, 1, env);
           UNPROTECT(1);
@@ -61,12 +61,11 @@ SEXP _locate(SEXP sym, SEXP env, SEXP function) {
         break;
       }
     } else {
-      SEXP x = findVarInFrame3(env, sym, FALSE);
-      if (x != R_UnboundValue) {
+      if (R_existsVarInFrame(env, sym)) {
         return env;
       }
     }
-    env = ENCLOS(env);
+    env = R_ParentEnv(env);
   }
   return R_NilValue;
 }
@@ -91,7 +90,7 @@ SEXP x_findVar(SEXP sym, SEXP envir) {
   assert_type(sym, SYMSXP);
   assert_type(envir, ENVSXP);
   SEXP binding;
-  if (DDVAL(sym)) {
+  if (ddVal(sym)) {
     binding = do_ddfindVar(sym, envir);
   } else {
     binding = Rf_findVar(sym, envir);

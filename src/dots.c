@@ -11,7 +11,7 @@ SEXP _get_dots(SEXP env, SEXP inherit) {
   if (asLogical(inherit)) {
     vl = findVar(R_DotsSymbol, env);
   } else {
-    vl = findVarInFrame3(env, R_DotsSymbol, TRUE);
+    vl = findVarInFrame(env, R_DotsSymbol);
   }
   if (vl == R_UnboundValue || vl == R_MissingArg) {
     LOG("... not found in env %p", (void *) env);
@@ -24,9 +24,11 @@ SEXP _get_dots(SEXP env, SEXP inherit) {
 SEXP _set_dots(SEXP dots, SEXP env) {
   assert_type(env, ENVSXP);
   if (isNull(dots) || dots == R_MissingArg) {
+    LOG("Setting missing dots");
     defineVar(R_DotsSymbol, R_MissingArg, env); /* is this kosher? */       
   } else {
     assert_type(dots, DOTSXP);
+    LOG("got a DOTSXP, setting `...`");
     defineVar(R_DotsSymbol, dots, env);
   }
   return R_NilValue;
@@ -191,6 +193,22 @@ SEXP _dots_envs(SEXP dots) {
   return(envs);
 }
 
+/* allocDots <- function(n) { */
+/*   do.call(function(...) .Call("_get_dots", environment(), FALSE), rep(list(NULL), n)) */
+/* } */
+
+SEXP allocDots(int n) {
+  SEXP out = R_NilValue;
+  int up = 0;
+  for (; n > 0; n--, up++) {
+    SEXP new = PROTECT(allocSExp(DOTSXP));
+    SETCDR(new, out);
+    out = new;
+  }
+  UNPROTECT(up);
+  return out;
+}
+
 SEXP _flist_to_dotsxp(SEXP flist) {
   assert_type(flist, VECSXP);
   int len = LENGTH(flist);
@@ -200,10 +218,9 @@ SEXP _flist_to_dotsxp(SEXP flist) {
   } else {
     SEXP output, names;
     names = PROTECT(getAttrib(flist, R_NamesSymbol));
-    output = PROTECT(allocList(len));
+    output = PROTECT(allocDots(len));
     SEXP output_iter = output;
     for (i = 0; i < len; i++, output_iter=CDR(output_iter)) {
-      SET_TYPEOF(output_iter, DOTSXP);
       if ((names != R_NilValue) && (STRING_ELT(names, i) != R_BlankString)) {
         SET_TAG(output_iter, install(CHAR(STRING_ELT(names, i))));
       } else {

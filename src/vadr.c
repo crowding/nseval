@@ -62,3 +62,19 @@ SEXP new_weird_promise(SEXP expr, SEXP env, SEXP value) {
   UNPROTECT(1);
   return out;
 }
+
+#if R_VERSION < R_Version(4, 4, 1)
+SEXP allocLang(int n)
+{
+  if (n > 0)
+    return LCONS(R_NilValue, allocList(n - 1));
+  else
+    return R_NilValue;
+}
+#endif
+
+#if R_VERSION < R_Version(4, 2, 0)
+Rboolean R_existsVarInFrame(SEXP rho, SEXP symbol) {
+  return (Rf_findVarInFrame3(rho, symbol, FALSE) != R_UnboundValue);
+}
+#endif

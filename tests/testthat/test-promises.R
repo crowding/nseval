@@ -63,31 +63,6 @@ test_that("can get expr and environment of quo", {
   env(q2)$where %is% "top"
 })
 
-test_that("can get expr and env of old quo", {
-  quold_ <- function(expr, env, force = FALSE) {
-    if(force) {
-      .Call("_quotation_old", NULL, expr, eval(expr, env));
-    } else {
-      .Call("_quotation_old", env, expr, missing_value());
-    }
-  }
-
-  where <- "top"
-  f <- function(x = x+y) {
-    where <- "f"
-    quold_(arg_expr(x), arg_env(x))
-  }
-
-  q1 <- f()
-  expr(q1) %is% quote(x+y)
-  env(q1)$where %is% "f"
-
-  q2 <- f(z+zzz)
-  expr(q2) %is% quote(z+zzz)
-  env(q2)$where %is% "top"
-
-})
-
 test_that("Can get missingness and forcedness of quo", {
   w <- 1
   x <- missing_value()
