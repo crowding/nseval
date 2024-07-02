@@ -8,6 +8,8 @@ Maintainer: Peter Meilstrup <peter.meilstrup@gmail.com>
 Description: Functions to capture, inspect, manipulate, and create
              lazy values (promises), "..." lists, and active calls.
 License: GPL (>= 2.0)
+URL: https://crowding.github.io/nseval/, https://github.com/crowding/nseval
+BugReports: https://github.com/crowding/nseval/issues
 Encoding: UTF-8
 Imports:
     methods
